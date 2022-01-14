@@ -39,6 +39,11 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
         this.setOnTouchListener(new OnSwipeTouchListener(context) {
             @Override
+            public void onSwipeTop() {
+                gameLogicThread.stopGame();
+            }
+
+            @Override
             public void onSwipeBottom() {
                 gameLogicThread.fastDrop();
             }
@@ -239,13 +244,17 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             ivHandler.sendMessage(msg);
 
             if (playfield.hasCollision(activePiece)) {
-                gameLogicThread.requestStop();
-                drawThread.requestStop();
-
-                Message msgGameOver = Message.obtain();
-                msgGameOver.obj = new int[]{score, lines, level};
-                gmHandler.sendMessage(msgGameOver);
+                stopGame();
             }
+        }
+
+        public void stopGame() {
+            gameLogicThread.requestStop();
+            drawThread.requestStop();
+
+            Message msgGameOver = Message.obtain();
+            msgGameOver.obj = new int[]{score, lines, level};
+            gmHandler.sendMessage(msgGameOver);
         }
 
         public void requestStop() {

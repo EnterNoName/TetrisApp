@@ -9,6 +9,7 @@
 
 
     <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="56dp"
@@ -24,7 +25,7 @@
         android:id="@+id/btnFlowRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="56dp"
         android:orientation="vertical"
         app:constraint_referenced_ids="btnRotateRight,btnMoveRight"
         app:flow_verticalGap="5dp"
@@ -36,7 +37,7 @@
         android:id="@+id/btnFlowLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="56dp"
         android:orientation="vertical"
         app:constraint_referenced_ids="btnRotateLeft,btnMoveLeft"
         app:flow_verticalGap="5dp"
@@ -48,25 +49,35 @@
         android:id="@+id/btnRotateLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button" />
+        android:background="@drawable/rounded_button"
+        android:src="@drawable/rotate_left"
+        app:tint="@color/black"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="314dp" />
 
     <ImageButton
         android:id="@+id/btnRotateRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button" />
+        android:background="@drawable/rounded_button"
+        android:src="@drawable/rotate_right"
+        app:tint="@color/black" />
 
     <ImageButton
         android:id="@+id/btnMoveLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button" />
+        android:background="@drawable/rounded_button"
+        android:src="@drawable/arrow_left"
+        app:tint="@color/black" />
 
     <ImageButton
         android:id="@+id/btnMoveRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button" />
+        android:background="@drawable/rounded_button"
+        android:src="@drawable/arrow_right"
+        app:tint="@color/black" />
 
     <TextView
         android:id="@+id/tvLevel"
