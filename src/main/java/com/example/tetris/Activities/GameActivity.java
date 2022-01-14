@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.tetris.Fragments.GameOverFragment;
+import com.example.tetris.Fragments.PauseFragment;
 import com.example.tetris.Models.Tetris;
 import com.example.tetris.Models.Tetromino;
 import com.example.tetris.R;
@@ -22,13 +23,13 @@ public class GameActivity extends AppCompatActivity {
     ImageView ivNextPiece;
     TextView tvScore, tvLines, tvLevel;
     ImageButton rotateLeft, rotateRight, moveLeft, moveRight;
-    Tetris game;
+    public Tetris game;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        Handler ivHandler = new Handler(msg -> {
+        Handler setImageViewHandler = new Handler(msg -> {
             switch ((Tetromino.Shape) msg.obj) {
                 case O: // O-Shape
                     ivNextPiece.setImageResource(R.drawable.o_tetromino);
@@ -54,24 +55,30 @@ public class GameActivity extends AppCompatActivity {
             }
             return true;
         });
-        Handler tvHandler = new Handler(msg -> {
-            switch (msg.what) {
-                case 0:
-                    tvScore.setText((String) msg.obj);
-                    break;
-                case 1:
-                    tvLevel.setText((String) msg.obj);
-                    break;
-                case 2:
-                    tvLines.setText((String) msg.obj);
-                    break;
-            }
+
+        Handler setTextViewsHandler = new Handler(msg -> {
+            int score = msg.getData().getInt("score"),
+                    lines = msg.getData().getInt("lines"),
+                    level = msg.getData().getInt("level");
+            tvScore.setText(getString(R.string.score, score));
+            tvLevel.setText(getString(R.string.level, level));
+            tvLines.setText(getString(R.string.lines, lines));
             return true;
         });
+
         Handler gameOverHandler = new Handler(msg -> {
-            int[] arr = (int[]) msg.obj;
-            GameOverFragment gameOverFragment = new GameOverFragment(arr[0], arr[1], arr[2]);
-            gameOverFragment.show(getSupportFragmentManager(), "MyFragment");
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .add(R.id.fragment_container_view, GameOverFragment.class, msg.getData())
+                    .commit();
+            return true;
+        });
+
+        Handler gamePauseHandler = new Handler(msg -> {
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .add(R.id.fragment_container_view, PauseFragment.class, null)
+                    .commit();
             return true;
         });
 
@@ -86,7 +93,7 @@ public class GameActivity extends AppCompatActivity {
         tvLines = findViewById(R.id.tvLines);
         tvScore = findViewById(R.id.tvScore);
 
-        game = new Tetris(getApplicationContext(), ivHandler, tvHandler, gameOverHandler);
+        game = new Tetris(getApplicationContext(), setImageViewHandler, setTextViewsHandler, gameOverHandler, gamePauseHandler);
         ConstraintLayout layout = findViewById(R.id.layout);
         layout.addView(game, 0);
 
@@ -94,7 +101,6 @@ public class GameActivity extends AppCompatActivity {
         rotateRight.setOnClickListener(game);
         moveLeft.setOnClickListener(game);
         moveRight.setOnClickListener(game);
-
 
         // Hiding device navigation
         Window w = getWindow();

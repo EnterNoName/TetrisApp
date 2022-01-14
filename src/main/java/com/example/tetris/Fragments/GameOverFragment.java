@@ -1,14 +1,12 @@
 package com.example.tetris.Fragments;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
 
 import com.example.tetris.R;
 import com.example.tetris.Utils.JSON;
@@ -17,26 +15,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GameOverFragment extends DialogFragment {
-
-    private final int score, lines, level;
-    private int highScore = 0;
-
-    public GameOverFragment(int score, int lines, int level) {
-        this.score = score;
-        this.lines = lines;
-        this.level = level;
+public class GameOverFragment extends Fragment implements View.OnClickListener {
+    public GameOverFragment() {
+        super(R.layout.fragment_game_over);
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savesInstanceState) {
-        super.onCreateView(inflater, container, savesInstanceState);
-        View view = inflater.inflate(R.layout.fragment_game_over, container, false);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        int score = requireArguments().getInt("score"),
+                lines = requireArguments().getInt("lines"),
+                level = requireArguments().getInt("level"),
+                highScore = 0;
+
         TextView tvScore = view.findViewById(R.id.currentScore);
         TextView tvHighScore = view.findViewById(R.id.highScore);
 
-        tvScore.setText("Your score: " + score);
+        tvScore.setText(getString(R.string.final_score, score));
 
         try {
             JSONObject data = JSON.read(requireContext(), "save.json");
@@ -78,23 +73,17 @@ public class GameOverFragment extends DialogFragment {
             if (score > highScore) {
                 tvHighScore.setText(R.string.new_high_score);
             } else {
-                tvHighScore.setText(getResources().getString(R.string.current_high_score, highScore));
+                tvHighScore.setText(getString(R.string.current_high_score, highScore));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        return view;
+        view.setOnClickListener(this);
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        getActivity().finish();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onClick(View v) {
+        requireActivity().finish();
     }
 }

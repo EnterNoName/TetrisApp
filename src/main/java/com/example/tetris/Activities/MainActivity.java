@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(i);
                 break;
             case R.id.btnStats:
-                i = new Intent(MainActivity.this, StatisticsActivity.class);
-                startActivity(i);
+//                i = new Intent(MainActivity.this, StatisticsActivity.class);
+//                startActivity(i);
                 break;
             case R.id.btnQuit:
                 finishAndRemoveTask();

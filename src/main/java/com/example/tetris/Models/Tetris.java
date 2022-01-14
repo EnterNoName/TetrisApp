@@ -1,10 +1,14 @@
 package com.example.tetris.Models;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.SurfaceHolder;
@@ -13,8 +17,8 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
-import com.example.tetris.Utils.OnSwipeTouchListener;
 import com.example.tetris.R;
+import com.example.tetris.Utils.OnSwipeTouchListener;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +26,7 @@ import java.util.stream.Stream;
 
 public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.OnClickListener {
     Playfield playfield = new Playfield();
-    Handler ivHandler, tvHandler, gmHandler;
+    Handler ivHandler, tvHandler, gmHandler, gpHandler;
     Tetromino activePiece = new Tetromino(Tetromino.Shape.randomShape());
     Tetromino.Shape nextPiece = Tetromino.Shape.randomShape();
 
@@ -31,25 +35,52 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
     private float POINT_SIZE, HORIZONTAL_BORDER, VERTICAL_BORDER, VERTICAL_OFFSET;
 
-    public Tetris(Context context, Handler ivHandler, Handler tvHandler, Handler gmHandler) {
+    @SuppressLint("ClickableViewAccessibility")
+    public Tetris(Context context,
+                  Handler setImageViewHandler,
+                  Handler setTextViewsHandler,
+                  Handler gameOverHandler,
+                  Handler gamePauseHandler) {
         super(context);
-        this.ivHandler = ivHandler;
-        this.tvHandler = tvHandler;
-        this.gmHandler = gmHandler;
+        this.ivHandler = setImageViewHandler;
+        this.tvHandler = setTextViewsHandler;
+        this.gmHandler = gameOverHandler;
+        this.gpHandler = gamePauseHandler;
 
         this.setOnTouchListener(new OnSwipeTouchListener(context) {
             @Override
             public void onSwipeTop() {
-                gameLogicThread.stopGame();
+                pauseThreads();
+                gpHandler.sendEmptyMessage(0);
             }
 
             @Override
             public void onSwipeBottom() {
                 gameLogicThread.fastDrop();
             }
+
+            @Override
+            public void onSwipeRight() {
+                gameLogicThread.moveActivePieceRight();
+            }
+
+            @Override
+            public void onSwipeLeft() {
+                gameLogicThread.moveActivePieceLeft();
+            }
         });
 
         getHolder().addCallback(this);
+    }
+
+    public void pauseThreads() {
+        gameLogicThread.requestPause();
+        drawThread.requestPause();
+    }
+
+    public void resumeThreads() {
+        gameLogicThread.requestResume();
+        drawThread.requestResume();
     }
 
     @Override
@@ -70,11 +101,12 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
         VERTICAL_OFFSET = POINT_SIZE * 2;
 
+        gameLogicThread = new GameLogicThread();
+        gameLogicThread.updateTextViews();
+        gameLogicThread.start();
+
         drawThread = new DrawThread(getContext(), getHolder());
         drawThread.start();
-
-        gameLogicThread = new GameLogicThread();
-        gameLogicThread.start();
     }
 
     @Override
@@ -96,6 +128,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
         drawThread.requestStop();
         gameLogicThread.requestStop();
+        resumeThreads();
 
         boolean retry = true;
         while (retry) {
@@ -127,8 +160,9 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
     }
 
     public class GameLogicThread extends Thread {
+        private volatile int s = 0;
         private float speedMult = 1f;
-        private volatile long speed = 900;
+        private volatile long speed = 1000;
         private volatile boolean isRunning = true;
         private int lines = 0, score = 0, level = 0;
 
@@ -165,32 +199,27 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
                 }
             }
 
-            if (level < 10 && score > (level + 1) * 2000) {
+            if (level < 10 && score > (level + 1) * 1800) {
                 level += 1;
-                speed = 900 - (level + 1) * 50L;
+                speed = 1100 - (level + 1) * 100L;
             }
 
             updateTextViews();
         }
 
-        private void updateTextViews() {
-            Message msgScore = Message.obtain(), msgLevel = Message.obtain(), msgLines = Message.obtain();
+        public void updateTextViews() {
+            Message msg = Message.obtain();
+            Bundle bundle = new Bundle();
 
-            msgScore.what = 0;
-            msgScore.obj = "Score: " + score;
+            bundle.putInt("score", score);
+            bundle.putInt("level", level);
+            bundle.putInt("lines", lines);
 
-            msgLevel.what = 1;
-            msgLevel.obj = "Level: " + level;
-
-            msgLines.what = 2;
-            msgLines.obj = "Lines: " + lines;
-
-            tvHandler.sendMessage(msgScore);
-            tvHandler.sendMessage(msgLevel);
-            tvHandler.sendMessage(msgLines);
+            msg.setData(bundle);
+            tvHandler.sendMessage(msg);
         }
 
-        public void moveActivePieceDown() {
+        private void moveActivePieceDown() {
             activePiece.moveDown();
             if (playfield.hasCollision(activePiece)) {
                 activePiece.moveUp();
@@ -248,22 +277,36 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         }
 
-        public void stopGame() {
-            gameLogicThread.requestStop();
-            drawThread.requestStop();
+        private void stopGame() {
+            pauseThreads();
 
-            Message msgGameOver = Message.obtain();
-            msgGameOver.obj = new int[]{score, lines, level};
-            gmHandler.sendMessage(msgGameOver);
+            Bundle bundle = new Bundle();
+            Message msg = Message.obtain();
+
+            bundle.putInt("score", score);
+            bundle.putInt("lines", lines);
+            bundle.putInt("level", level);
+
+            msg.setData(bundle);
+            gmHandler.sendMessage(msg);
         }
 
         public void requestStop() {
             isRunning = false;
         }
 
+        public void requestPause() {
+            s = 1;
+        }
+
+        public void requestResume() {
+            s = 0;
+        }
+
         @Override
         public void run() {
             while (isRunning) {
+                while (s != 0);
                 try {
                     moveActivePieceDown();
                     Thread.sleep((long) (speed * speedMult));
@@ -276,6 +319,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
     public class DrawThread extends Thread {
 
+        private volatile int s = 0;
         private final SurfaceHolder surfaceHolder;
         private final Paint paint = new Paint();
         private final Bitmap bitmap;
@@ -294,7 +338,15 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             isRunning = false;
         }
 
-        public void drawPoint(int x, int y, Canvas canvas) {
+        public void requestPause() {
+            s = 1;
+        }
+
+        public void requestResume() {
+            s = 0;
+        }
+
+        private void drawPoint(int x, int y, Canvas canvas) {
             paint.setStyle(Paint.Style.FILL);
             canvas.drawRect(x * POINT_SIZE + HORIZONTAL_BORDER,
                     y * POINT_SIZE + VERTICAL_BORDER - VERTICAL_OFFSET,
@@ -307,7 +359,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
                     paint);
         }
 
-        public void drawBorders(Canvas canvas) {
+        private void drawBorders(Canvas canvas) {
             paint.setStrokeWidth(10);
 
             paint.setColor(0xff000000);
@@ -322,7 +374,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             canvas.drawRect(HORIZONTAL_BORDER, VERTICAL_BORDER, getWidth() - HORIZONTAL_BORDER, getHeight() - VERTICAL_BORDER, paint);
         }
 
-        public void drawPlayfield(Canvas canvas) {
+        private void drawPlayfield(Canvas canvas) {
             for (int y = 0; y < 22; y++) {
                 for (int x = 0; x < 10; x++) {
                     if (playfield.playfieldState[y][x] != 0xff000000) {
@@ -333,7 +385,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         }
 
-        public void drawTetromino(Tetromino t, Canvas canvas) {
+        private void drawTetromino(Tetromino t, Canvas canvas) {
             paint.setColor(t.getColor());
             for (int y = 0; y < t.getShapeMatrix().length; y++) {
                 for (int x = 0; x < t.getShapeMatrix()[y].length; x++) {
@@ -347,6 +399,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         @Override
         public void run() {
             while (isRunning) {
+                while (s != 0);
                 Canvas canvas = surfaceHolder.lockCanvas();
                 if (canvas != null) {
                     try {

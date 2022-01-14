@@ -7,9 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".Activities.GameActivity">
 
-
     <androidx.constraintlayout.helper.widget.Flow
-        android:id="@+id/flow"
+        android:id="@+id/flTextViews"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="56dp"
@@ -18,26 +17,26 @@
         app:flow_horizontalAlign="start"
         app:layout_constraintBottom_toBottomOf="@+id/ivNextPiece"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/ivNextPiece"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintTop_toTopOf="@+id/ivNextPiece"/>
 
     <androidx.constraintlayout.helper.widget.Flow
-        android:id="@+id/btnFlowRight"
+        android:id="@+id/flButtonsRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="56dp"
+        android:layout_marginEnd="24dp"
         android:orientation="vertical"
         app:constraint_referenced_ids="btnRotateRight,btnMoveRight"
         app:flow_verticalGap="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.501" />
 
     <androidx.constraintlayout.helper.widget.Flow
-        android:id="@+id/btnFlowLeft"
+        android:id="@+id/flButtonsLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="56dp"
+        android:layout_marginStart="24dp"
         android:orientation="vertical"
         app:constraint_referenced_ids="btnRotateLeft,btnMoveLeft"
         app:flow_verticalGap="5dp"
@@ -84,7 +83,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/raleway_font_family"
-        android:text="@string/initial_level"
+        android:text="@string/level"
         android:textAlignment="viewStart"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -94,7 +93,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/raleway_font_family"
-        android:text="@string/initial_score"
+        android:text="@string/score"
         android:textAlignment="viewStart"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -104,7 +103,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/raleway_semi_bold"
-        android:text="@string/initial_lines"
+        android:text="@string/lines"
         android:textAlignment="viewStart"
         android:textColor="@color/white"
         android:textSize="24sp" />
@@ -117,6 +116,15 @@
         android:layout_marginEnd="56dp"
         android:alpha="0.7"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
