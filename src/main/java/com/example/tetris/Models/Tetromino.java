@@ -1,13 +1,12 @@
 package com.example.tetris.Models;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 public class Tetromino {
     private final int[][] shapeMatrix;
-    private int x, y, color;
+    private int x;
+    private int y;
+    private final int color;
     public Tetromino(Shape s) {
         shapeMatrix = s.getShape();
         color = s.getColor();
@@ -116,8 +115,8 @@ public class Tetromino {
                 {1, 0, 0}
         }, 0xffff7f00);
 
-        private static final List<Shape> VALUES = Collections.unmodifiableList(Arrays.asList(values()));
-        private static final int SIZE = VALUES.size();
+        private static final Shape[] VALUES = values();
+        private static final int SIZE = VALUES.length;
         private final int[][] shape;
         private final int color;
 
@@ -127,15 +126,25 @@ public class Tetromino {
         }
 
         public static Shape randomShape() {
-            return VALUES.get(new Random().nextInt(SIZE));
+            return VALUES[new Random().nextInt(SIZE)];
         }
 
         public int[][] getShape() {
-            return shape;
+            return deepCopyIntMatrix(shape);
         }
 
         public int getColor() {
             return color;
         }
+    }
+
+    public static int[][] deepCopyIntMatrix(int[][] input) {
+        if (input == null)
+            return null;
+        int[][] result = new int[input.length][];
+        for (int r = 0; r < input.length; r++) {
+            result[r] = input[r].clone();
+        }
+        return result;
     }
 }

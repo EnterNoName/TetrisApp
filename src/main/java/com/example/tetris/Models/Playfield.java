@@ -58,7 +58,7 @@ public class Playfield {
     }
 
     private List<Point> floodFill(Point firstNode, Callback callback) {
-        Queue<Point> queue = new LinkedList();
+        Queue<Point> queue = new LinkedList<>();
         queue.add(firstNode);
 
         int[][] playfieldCopy = playfieldState;
@@ -166,7 +166,7 @@ public class Playfield {
         boolean func(int color);
     }
 
-    private class Point {
+    private static class Point {
         int x, y, color;
 
         Point(int x, int y, int color) {

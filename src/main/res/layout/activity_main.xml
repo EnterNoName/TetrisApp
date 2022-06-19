@@ -8,11 +8,12 @@
 
 
     <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="152dp"
         android:orientation="vertical"
-        app:constraint_referenced_ids="btnStart,btnStats,btnQuit"
+        app:constraint_referenced_ids="btnStart, btnReset, btnQuit"
         app:layout_constraintBottom_toBottomOf="@+id/background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
@@ -23,6 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000000"
+        android:contentDescription="@string/description_background"
         android:scaleType="centerCrop"
         android:src="@drawable/background_main"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -36,19 +38,27 @@
         android:id="@+id/btnStart"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="@string/start_button" />
+        android:text="@string/start_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btnStats"
+        android:id="@+id/btnReset"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="@string/statistics_button" />
+        android:text="@string/reset_score"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/btnQuit"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:text="@string/quit_button" />
+        android:text="@string/quit_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints" />
 
     <TextView
         android:id="@+id/gameTitle"

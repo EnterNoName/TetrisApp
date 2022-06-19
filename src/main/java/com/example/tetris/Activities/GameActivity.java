@@ -3,6 +3,7 @@ package com.example.tetris.Activities;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -12,6 +13,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.tetris.Fragments.GameOverFragment;
 import com.example.tetris.Fragments.PauseFragment;
@@ -24,6 +27,7 @@ public class GameActivity extends AppCompatActivity {
     TextView tvScore, tvLines, tvLevel;
     ImageButton rotateLeft, rotateRight, moveLeft, moveRight;
     public Tetris game;
+    boolean isGameOver = false;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,8 +71,8 @@ public class GameActivity extends AppCompatActivity {
         });
 
         Handler gameOverHandler = new Handler(msg -> {
+            isGameOver = true;
             getSupportFragmentManager().beginTransaction()
-                    .setReorderingAllowed(true)
                     .add(R.id.fragment_container_view, GameOverFragment.class, msg.getData())
                     .commit();
             return true;
@@ -81,6 +85,17 @@ public class GameActivity extends AppCompatActivity {
                     .commit();
             return true;
         });
+
+        getSupportFragmentManager()
+                .registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
+                    @Override
+                    public void onFragmentDetached(FragmentManager fm, Fragment f) {
+                        super.onFragmentDetached(fm, f);
+                        if (isGameOver) {
+                            finish();
+                        }
+                    }
+                }, true);
 
         rotateLeft = findViewById(R.id.btnRotateLeft);
         rotateRight = findViewById(R.id.btnRotateRight);

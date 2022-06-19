@@ -19,7 +19,7 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     TextView tvHighScore;
-    Button btnStart, btnStats, btnQuit;
+    Button btnStart, btnReset, btnQuit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,19 +30,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         w.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         btnStart = findViewById(R.id.btnStart);
-        btnStats = findViewById(R.id.btnStats);
+//        btnStats = findViewById(R.id.btnStats);
         btnQuit = findViewById(R.id.btnQuit);
+        btnReset = findViewById(R.id.btnReset);
 
         tvHighScore = findViewById(R.id.highScoreMain);
 
         btnStart.setOnClickListener(this);
-        btnStats.setOnClickListener(this);
+//        btnStats.setOnClickListener(this);
         btnQuit.setOnClickListener(this);
+        btnReset.setOnClickListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        updateScore();
+    }
+
+    private void updateScore() {
         int highScore = 0;
         JSONObject data = JSON.read(getApplicationContext(), "save.json");
         try {
@@ -55,6 +61,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvHighScore.setText(getResources().getString(R.string.current_high_score, highScore));
     }
 
+    private void resetScore() {
+        JSON.write(getApplicationContext(), "save.json", new JSONObject(), false);
+        updateScore();
+    }
+
     @Override
     public void onClick(View v) {
         Intent i;
@@ -63,13 +74,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 i = new Intent(MainActivity.this, GameActivity.class);
                 startActivity(i);
                 break;
-            case R.id.btnStats:
+//            case R.id.btnStats:
 //                i = new Intent(MainActivity.this, StatisticsActivity.class);
 //                startActivity(i);
-                break;
+//                break;
             case R.id.btnQuit:
                 finishAndRemoveTask();
                 break;
+            case R.id.btnReset:
+                resetScore();
+
         }
     }
 }

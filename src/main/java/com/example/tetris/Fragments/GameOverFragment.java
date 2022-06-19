@@ -7,7 +7,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
+import com.example.tetris.Activities.GameActivity;
 import com.example.tetris.R;
 import com.example.tetris.Utils.JSON;
 
@@ -84,6 +86,7 @@ public class GameOverFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        requireActivity().finish();
+        GameActivity activity = (GameActivity) requireActivity();
+        activity.getSupportFragmentManager().beginTransaction().remove(GameOverFragment.this).commit();
     }
 }
