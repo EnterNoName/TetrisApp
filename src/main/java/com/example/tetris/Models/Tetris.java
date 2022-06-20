@@ -58,7 +58,12 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
             @Override
             public void onSwipeBottom() {
-                gameLogicThread.fastDrop();
+                if (gameLogicThread.isSoftDrop) {
+                    gameLogicThread.hardDrop();
+                } else {
+                    gameLogicThread.softDrop();
+                }
+
             }
 
             @Override
@@ -172,7 +177,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 
     private class GameLogicThread extends Thread {
         private volatile int s = 0;
-        private float speedMult = 1f;
+        private boolean isSoftDrop = false;
         private volatile long speed = 1000;
         private volatile boolean isRunning = true;
         private int lines = 0, score = 0, level = 0;
@@ -249,8 +254,6 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
                 playfield.solidifyPiece(activePiece);
                 getNewActivePiece();
                 updateGameValues(clearLines());
-
-                speedMult = 1f;
             }
         }
 
@@ -282,13 +285,26 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         }
 
-        // ToDo: Hard drop
-        public void fastDrop() {
-            speedMult = 0.1f;
-            moveActivePieceDown();
+        public void softDrop() {
+            isSoftDrop = true;
+        }
+
+        public void hardDrop() {
+            while (true) {
+                activePiece.moveDown();
+                if (playfield.hasCollision(activePiece)) {
+                    activePiece.moveUp();
+                    playfield.solidifyPiece(activePiece);
+                    getNewActivePiece();
+                    updateGameValues(clearLines());
+                    break;
+                }
+            }
         }
 
         private void getNewActivePiece() {
+            isSoftDrop = false;
+
             activePiece = new Tetromino(nextPiece);
             nextPiece = Tetromino.Shape.randomShape();
 
@@ -329,7 +345,11 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
 //                    lock.notifyAll();
                     try {
                         moveActivePieceDown();
-                        Thread.sleep((long) (speed * speedMult));
+                        if (isSoftDrop) {
+                            Thread.sleep((long) (speed * 0.1f));
+                        } else {
+                            Thread.sleep((long) (speed));
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
