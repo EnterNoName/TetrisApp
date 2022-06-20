@@ -86,7 +86,6 @@ public class GameOverFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        GameActivity activity = (GameActivity) requireActivity();
-        activity.getSupportFragmentManager().beginTransaction().remove(GameOverFragment.this).commit();
+        requireActivity().finish();
     }
 }

@@ -1,16 +1,15 @@
 package com.example.tetris.Models;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -24,34 +23,31 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.OnClickListener {
-    Playfield playfield = new Playfield();
-    Handler ivHandler, tvHandler, gmHandler, gpHandler;
-    Tetromino activePiece = new Tetromino(Tetromino.Shape.randomShape());
-    Tetromino.Shape nextPiece = Tetromino.Shape.randomShape();
+import kotlin.Triple;
 
-    DrawThread drawThread;
-    GameLogicThread gameLogicThread;
+public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.OnClickListener {
+    private Playfield playfield = new Playfield();
+    private Tetromino activePiece = new Tetromino(Tetromino.Shape.randomShape());
+    private Tetromino.Shape nextPiece = Tetromino.Shape.randomShape();
+
+    private DrawThread drawThread;
+    private GameLogicThread gameLogicThread;
+    private GameEventListener gameEventListener;
 
     private float POINT_SIZE, HORIZONTAL_BORDER, VERTICAL_BORDER, VERTICAL_OFFSET;
 
     @SuppressLint("ClickableViewAccessibility")
-    public Tetris(Context context,
-                  Handler setImageViewHandler,
-                  Handler setTextViewsHandler,
-                  Handler gameOverHandler,
-                  Handler gamePauseHandler) {
+    public Tetris(Context context) {
         super(context);
-        this.ivHandler = setImageViewHandler;
-        this.tvHandler = setTextViewsHandler;
-        this.gmHandler = gameOverHandler;
-        this.gpHandler = gamePauseHandler;
 
-        this.setOnTouchListener(new OnSwipeTouchListener(context) {
+        // In-game gesture handler
+        setOnTouchListener(new OnSwipeTouchListener(context) {
             @Override
             public void onSwipeTop() {
                 pauseThreads();
-                gpHandler.sendEmptyMessage(0);
+                gameEventListener.onGameEvent(
+                        new GameEvent.GamePause(gameLogicThread.gatherStatistics())
+                );
             }
 
             @Override
@@ -73,21 +69,30 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         getHolder().addCallback(this);
     }
 
-    public void pauseThreads() {
-        gameLogicThread.requestPause();
-        drawThread.requestPause();
-    }
-
-    public void resumeThreads() {
-        gameLogicThread.requestResume();
-        drawThread.requestResume();
+    // In-game buttons click handler
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnRotateLeft:
+                gameLogicThread.rotateActivePieceLeft();
+                break;
+            case R.id.btnRotateRight:
+                gameLogicThread.rotateActivePieceRight();
+                break;
+            case R.id.btnMoveLeft:
+                gameLogicThread.moveActivePieceLeft();
+                break;
+            case R.id.btnMoveRight:
+                gameLogicThread.moveActivePieceRight();
+                break;
+        }
     }
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        Message msg = Message.obtain();
-        msg.obj = nextPiece;
-        ivHandler.sendMessage(msg);
+        gameEventListener.onGameEvent(
+                new GameEvent.NewNextPiece(nextPiece)
+        );
 
         if ((getHeight() / 22f) > (getWidth() / 12f)) {
             POINT_SIZE = getWidth() / 12f;
@@ -141,25 +146,23 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnRotateLeft:
-                gameLogicThread.rotateActivePieceLeft();
-                break;
-            case R.id.btnRotateRight:
-                gameLogicThread.rotateActivePieceRight();
-                break;
-            case R.id.btnMoveLeft:
-                gameLogicThread.moveActivePieceLeft();
-                break;
-            case R.id.btnMoveRight:
-                gameLogicThread.moveActivePieceRight();
-                break;
-        }
+    // Game thread controllers
+    public void stopThreads() {
+        gameLogicThread.requestPause();
+        drawThread.requestPause();
     }
 
-    public class GameLogicThread extends Thread {
+    public void pauseThreads() {
+        gameLogicThread.requestPause();
+        drawThread.requestPause();
+    }
+
+    public void resumeThreads() {
+        gameLogicThread.requestResume();
+        drawThread.requestResume();
+    }
+
+    private class GameLogicThread extends Thread {
         private volatile int s = 0;
         private float speedMult = 1f;
         private volatile long speed = 1000;
@@ -207,18 +210,30 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             updateTextViews();
         }
 
+        // Helper methods
         public void updateTextViews() {
-            Message msg = Message.obtain();
-            Bundle bundle = new Bundle();
-
-            bundle.putInt("score", score);
-            bundle.putInt("level", level);
-            bundle.putInt("lines", lines);
-
-            msg.setData(bundle);
-            tvHandler.sendMessage(msg);
+            gameEventListener.onGameEvent(
+                    new GameEvent.ScoreUpdate(score)
+            );
+            gameEventListener.onGameEvent(
+                    new GameEvent.LevelUpdate(level)
+            );
+            gameEventListener.onGameEvent(
+                    new GameEvent.LinesUpdate(lines)
+            );
         }
 
+        public void updateImageView() {
+            gameEventListener.onGameEvent(
+                    new GameEvent.NewNextPiece(nextPiece)
+            );
+        }
+
+        public GameStatistics gatherStatistics() {
+            return new GameStatistics(level, score, lines);
+        }
+
+        // Active piece movements
         private void moveActivePieceDown() {
             activePiece.moveDown();
             if (playfield.hasCollision(activePiece)) {
@@ -259,6 +274,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         }
 
+        // ToDo: Hard drop
         public void fastDrop() {
             speedMult = 0.1f;
             moveActivePieceDown();
@@ -268,9 +284,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             activePiece = new Tetromino(nextPiece);
             nextPiece = Tetromino.Shape.randomShape();
 
-            Message msg = Message.obtain();
-            msg.obj = nextPiece;
-            ivHandler.sendMessage(msg);
+            updateImageView();
 
             if (playfield.hasCollision(activePiece)) {
                 stopGame();
@@ -278,19 +292,14 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         }
 
         private void stopGame() {
-            pauseThreads();
+            stopThreads();
 
-            Bundle bundle = new Bundle();
-            Message msg = Message.obtain();
-
-            bundle.putInt("score", score);
-            bundle.putInt("lines", lines);
-            bundle.putInt("level", level);
-
-            msg.setData(bundle);
-            gmHandler.sendMessage(msg);
+            gameEventListener.onGameEvent(
+                    new GameEvent.GameOver(gatherStatistics())
+            );
         }
 
+        // Game loop controls
         public void requestStop() {
             isRunning = false;
         }
@@ -303,6 +312,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             s = 0;
         }
 
+        // Game loop ToDo: Synchronize with
         @Override
         public void run() {
             while (isRunning) {
@@ -317,7 +327,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         }
     }
 
-    public class DrawThread extends Thread {
+    private class DrawThread extends Thread {
 
         private volatile int s = 0;
         private final SurfaceHolder surfaceHolder;
@@ -334,6 +344,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             bitmap = Bitmap.createScaledBitmap(bm, (int) POINT_SIZE, (int) POINT_SIZE, true);
         }
 
+        // Render loop controls
         public void requestStop() {
             isRunning = false;
         }
@@ -346,6 +357,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             s = 0;
         }
 
+        // Drawing logic
         private void drawPoint(int x, int y, Canvas canvas) {
             paint.setStyle(Paint.Style.FILL);
             canvas.drawRect(x * POINT_SIZE + HORIZONTAL_BORDER,
@@ -396,6 +408,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         }
 
+        // Render loop
         @Override
         public void run() {
             while (isRunning) {
@@ -412,6 +425,179 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
                     }
                 }
             }
+        }
+    }
+
+    // Events to communicate with activity
+    public interface GameEventListener {
+        void onGameEvent(GameEvent event);
+    }
+
+    public static abstract class GameEvent {
+        public abstract GameEventType getType();
+
+        public static class ScoreUpdate extends GameEvent {
+            private final int score;
+
+            private ScoreUpdate(int score) {
+                this.score = score;
+            }
+
+            public int getPayload() {
+                return score;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.SCORE_UPDATE;
+            }
+        }
+
+        public static class LinesUpdate extends GameEvent {
+            private final int lines;
+
+            private LinesUpdate(int lines) {
+                this.lines = lines;
+            }
+
+            public int getPayload() {
+                return lines;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.LINES_UPDATE;
+            }
+        }
+
+        public static class LevelUpdate extends GameEvent {
+            private final int level;
+
+            private LevelUpdate(int level) {
+                this.level = level;
+            }
+
+            public int getPayload() {
+                return level;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.LEVEL_UPDATE;
+            }
+        }
+
+        public static class NewNextPiece extends GameEvent {
+            private final Tetromino.Shape nextShape;
+
+            private NewNextPiece(Tetromino.Shape nextShape) {
+                this.nextShape = nextShape;
+            }
+
+            public Tetromino.Shape getPayload() {
+                return nextShape;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.NEXT_PIECE;
+            }
+        }
+
+        public static class GameOver extends GameEvent {
+            private final GameStatistics statistics;
+
+            public GameOver(GameStatistics statistics) {
+                this.statistics = statistics;
+            }
+
+            public GameStatistics getPayload() {
+                return statistics;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.GAME_OVER;
+            }
+        }
+
+        public static class GamePause extends GameEvent {
+            private final GameStatistics statistics;
+
+            public GamePause(GameStatistics statistics) {
+                this.statistics = statistics;
+            }
+
+            public GameStatistics getPayload() {
+                return statistics;
+            }
+
+            @Override
+            public GameEventType getType() {
+                return GameEventType.GAME_PAUSE;
+            }
+        }
+    }
+
+    public enum GameEventType {
+        SCORE_UPDATE, LEVEL_UPDATE, NEXT_PIECE, GAME_OVER, GAME_PAUSE, LINES_UPDATE;
+    }
+
+    public void setGameEventListener(GameEventListener listener) {
+        gameEventListener = listener;
+    }
+
+    public static class GameStatistics implements Parcelable {
+        private final int level, score, lines;
+
+
+
+        public GameStatistics(int level, int score, int lines) {
+            this.level = level;
+            this.score = score;
+            this.lines = lines;
+        }
+
+        protected GameStatistics(Parcel in) {
+            level = in.readInt();
+            lines = in.readInt();
+            score = in.readInt();
+        }
+
+        public static final Creator<GameStatistics> CREATOR = new Creator<GameStatistics>() {
+            @Override
+            public GameStatistics createFromParcel(Parcel in) {
+                return new GameStatistics(in);
+            }
+
+            @Override
+            public GameStatistics[] newArray(int size) {
+                return new GameStatistics[size];
+            }
+        };
+
+        public int getLevel() {
+            return level;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public int getLines() {
+            return lines;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(level);
+            dest.writeInt(lines);
+            dest.writeInt(score);
         }
     }
 }

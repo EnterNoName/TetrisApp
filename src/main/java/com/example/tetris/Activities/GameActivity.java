@@ -27,75 +27,83 @@ public class GameActivity extends AppCompatActivity {
     TextView tvScore, tvLines, tvLevel;
     ImageButton rotateLeft, rotateRight, moveLeft, moveRight;
     public Tetris game;
-    boolean isGameOver = false;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        Handler setImageViewHandler = new Handler(msg -> {
-            switch ((Tetromino.Shape) msg.obj) {
-                case O: // O-Shape
-                    ivNextPiece.setImageResource(R.drawable.o_tetromino);
-                    break;
-                case I: // I-Shape
-                    ivNextPiece.setImageResource(R.drawable.i_tetromino);
-                    break;
-                case T: // T-Shape
-                    ivNextPiece.setImageResource(R.drawable.t_tetromino);
-                    break;
-                case J: // J-Shape
-                    ivNextPiece.setImageResource(R.drawable.j_tetromino);
-                    break;
-                case L: // L-Shape
-                    ivNextPiece.setImageResource(R.drawable.l_tetromino);
-                    break;
-                case Z: // Z-Shape
-                    ivNextPiece.setImageResource(R.drawable.z_tetromino);
-                    break;
-                case S: // S-Shape
-                    ivNextPiece.setImageResource(R.drawable.s_tetromino);
-                    break;
-            }
-            return true;
-        });
+        game = new Tetris(getApplicationContext());
+        ConstraintLayout layout = findViewById(R.id.layout);
+        layout.addView(game, 0);
 
-        Handler setTextViewsHandler = new Handler(msg -> {
-            int score = msg.getData().getInt("score"),
-                    lines = msg.getData().getInt("lines"),
-                    level = msg.getData().getInt("level");
-            tvScore.setText(getString(R.string.score, score));
-            tvLevel.setText(getString(R.string.level, level));
-            tvLines.setText(getString(R.string.lines, lines));
-            return true;
-        });
-
-        Handler gameOverHandler = new Handler(msg -> {
-            isGameOver = true;
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container_view, GameOverFragment.class, msg.getData())
-                    .commit();
-            return true;
-        });
-
-        Handler gamePauseHandler = new Handler(msg -> {
-            getSupportFragmentManager().beginTransaction()
-                    .setReorderingAllowed(true)
-                    .add(R.id.fragment_container_view, PauseFragment.class, null)
-                    .commit();
-            return true;
-        });
-
-        getSupportFragmentManager()
-                .registerFragmentLifecycleCallbacks(new FragmentManager.FragmentLifecycleCallbacks() {
-                    @Override
-                    public void onFragmentDetached(FragmentManager fm, Fragment f) {
-                        super.onFragmentDetached(fm, f);
-                        if (isGameOver) {
-                            finish();
+        game.setGameEventListener(event -> {
+            switch (event.getType()) {
+                case LEVEL_UPDATE:
+                    int level = ((Tetris.GameEvent.LevelUpdate) event).getPayload();
+                    runOnUiThread(() -> {
+                        tvLevel.setText(getString(R.string.level, level));
+                    });
+                    break;
+                case SCORE_UPDATE:
+                    int score = ((Tetris.GameEvent.ScoreUpdate) event).getPayload();
+                    runOnUiThread(() -> {
+                        tvScore.setText(getString(R.string.score, score));
+                    });
+                    break;
+                case LINES_UPDATE:
+                    int lines = ((Tetris.GameEvent.LinesUpdate) event).getPayload();
+                    runOnUiThread(() -> {
+                        tvLines.setText(getString(R.string.lines, lines));
+                    });
+                    break;
+                case NEXT_PIECE:
+                    Tetromino.Shape nextPiece = ((Tetris.GameEvent.NewNextPiece) event).getPayload();
+                    runOnUiThread(() -> {
+                        switch (nextPiece) {
+                            case O: // O-Shape
+                                ivNextPiece.setImageResource(R.drawable.o_tetromino);
+                                break;
+                            case I: // I-Shape
+                                ivNextPiece.setImageResource(R.drawable.i_tetromino);
+                                break;
+                            case T: // T-Shape
+                                ivNextPiece.setImageResource(R.drawable.t_tetromino);
+                                break;
+                            case J: // J-Shape
+                                ivNextPiece.setImageResource(R.drawable.j_tetromino);
+                                break;
+                            case L: // L-Shape
+                                ivNextPiece.setImageResource(R.drawable.l_tetromino);
+                                break;
+                            case Z: // Z-Shape
+                                ivNextPiece.setImageResource(R.drawable.z_tetromino);
+                                break;
+                            case S: // S-Shape
+                                ivNextPiece.setImageResource(R.drawable.s_tetromino);
+                                break;
                         }
-                    }
-                }, true);
+                    });
+                    break;
+                case GAME_PAUSE: {
+                    Tetris.GameStatistics stats = ((Tetris.GameEvent.GamePause) event).getPayload();
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.fragment_container_view, PauseFragment.class, null)
+                            .commit();
+                    break;
+                }
+                case GAME_OVER: {
+                    Tetris.GameStatistics stats = ((Tetris.GameEvent.GameOver) event).getPayload();
+                    Bundle args = new Bundle();
+                    args.putParcelable("statistics", stats);
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.fragment_container_view, GameOverFragment.class, args)
+                            .commit();
+                    break;
+                }
+            }
+        });
 
         rotateLeft = findViewById(R.id.btnRotateLeft);
         rotateRight = findViewById(R.id.btnRotateRight);
@@ -107,10 +115,6 @@ public class GameActivity extends AppCompatActivity {
         tvLevel = findViewById(R.id.tvLevel);
         tvLines = findViewById(R.id.tvLines);
         tvScore = findViewById(R.id.tvScore);
-
-        game = new Tetris(getApplicationContext(), setImageViewHandler, setTextViewsHandler, gameOverHandler, gamePauseHandler);
-        ConstraintLayout layout = findViewById(R.id.layout);
-        layout.addView(game, 0);
 
         rotateLeft.setOnClickListener(game);
         rotateRight.setOnClickListener(game);
