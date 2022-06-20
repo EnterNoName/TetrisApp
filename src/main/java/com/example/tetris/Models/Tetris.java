@@ -398,9 +398,23 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         }
 
         private void drawPlayfield(Canvas canvas) {
+            paint.setColor(0xff222222);
+            paint.setStrokeWidth(5);
+            for (int x = 0; x < 10; x++) {
+                canvas.drawLine(x * POINT_SIZE + HORIZONTAL_BORDER, 0 * POINT_SIZE + VERTICAL_BORDER,
+                        x * POINT_SIZE + HORIZONTAL_BORDER, 20 * POINT_SIZE + VERTICAL_BORDER,
+                        paint);
+            }
+            for (int y = 0; y < 22; y++) {
+                canvas.drawLine(0 * POINT_SIZE + HORIZONTAL_BORDER, y * POINT_SIZE + VERTICAL_BORDER,
+                        10 * POINT_SIZE + HORIZONTAL_BORDER, y * POINT_SIZE + VERTICAL_BORDER,
+                        paint);
+            }
+
             for (int y = 0; y < 22; y++) {
                 for (int x = 0; x < 10; x++) {
                     if (playfield.playfieldState[y][x] != 0xff000000) {
+                        paint.setStrokeWidth(10);
                         paint.setColor(playfield.playfieldState[y][x]);
                         drawPoint(x, y, canvas);
                     }
