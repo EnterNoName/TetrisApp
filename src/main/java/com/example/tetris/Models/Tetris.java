@@ -26,6 +26,10 @@ import java.util.stream.Stream;
 import kotlin.Triple;
 
 public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.OnClickListener {
+    private final Object lock = new Object();
+
+    private boolean isPaused = false;
+
     private Playfield playfield = new Playfield();
     private Tetromino activePiece = new Tetromino(Tetromino.Shape.randomShape());
     private Tetromino.Shape nextPiece = Tetromino.Shape.randomShape();
@@ -44,10 +48,12 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         setOnTouchListener(new OnSwipeTouchListener(context) {
             @Override
             public void onSwipeTop() {
-                pauseThreads();
-                gameEventListener.onGameEvent(
-                        new GameEvent.GamePause(gameLogicThread.gatherStatistics())
-                );
+                if (!isPaused) {
+                    pauseThreads();
+                    gameEventListener.onGameEvent(
+                            new GameEvent.GamePause(gameLogicThread.gatherStatistics())
+                    );
+                }
             }
 
             @Override
@@ -66,6 +72,7 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
             }
         });
 
+        // Starts the game
         getHolder().addCallback(this);
     }
 
@@ -107,11 +114,10 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         VERTICAL_OFFSET = POINT_SIZE * 2;
 
         gameLogicThread = new GameLogicThread();
-        gameLogicThread.updateTextViews();
-        gameLogicThread.start();
-
         drawThread = new DrawThread(getContext(), getHolder());
+        gameLogicThread.updateTextViews();
         drawThread.start();
+        gameLogicThread.start();
     }
 
     @Override
@@ -153,11 +159,13 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
     }
 
     public void pauseThreads() {
+        isPaused = true;
         gameLogicThread.requestPause();
         drawThread.requestPause();
     }
 
     public void resumeThreads() {
+        isPaused = false;
         gameLogicThread.requestResume();
         drawThread.requestResume();
     }
@@ -315,14 +323,17 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         // Game loop ToDo: Synchronize with
         @Override
         public void run() {
-            while (isRunning) {
-                while (s != 0);
-                try {
-                    moveActivePieceDown();
-                    Thread.sleep((long) (speed * speedMult));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//            synchronized (lock) {
+                while (isRunning) {
+                    while (s != 0);
+//                    lock.notifyAll();
+                    try {
+                        moveActivePieceDown();
+                        Thread.sleep((long) (speed * speedMult));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+//                }
             }
         }
     }
@@ -411,19 +422,22 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback, View.
         // Render loop
         @Override
         public void run() {
-            while (isRunning) {
-                while (s != 0);
-                Canvas canvas = surfaceHolder.lockCanvas();
-                if (canvas != null) {
-                    try {
-                        canvas.drawColor(0xff000000);
-                        drawPlayfield(canvas);
-                        drawTetromino(activePiece, canvas);
-                        drawBorders(canvas);
-                    } finally {
-                        surfaceHolder.unlockCanvasAndPost(canvas);
+//            synchronized (lock) {
+                while (isRunning) {
+                    while (s != 0);
+//                    lock.notifyAll();
+                    Canvas canvas = surfaceHolder.lockCanvas();
+                    if (canvas != null) {
+                        try {
+                            canvas.drawColor(0xff000000);
+                            drawPlayfield(canvas);
+                            drawTetromino(activePiece, canvas);
+                            drawBorders(canvas);
+                        } finally {
+                            surfaceHolder.unlockCanvasAndPost(canvas);
+                        }
                     }
-                }
+//                }
             }
         }
     }
