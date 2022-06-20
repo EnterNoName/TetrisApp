@@ -86,9 +86,11 @@ public class GameActivity extends AppCompatActivity {
                     break;
                 case GAME_PAUSE: {
                     Tetris.GameStatistics stats = ((Tetris.GameEvent.GamePause) event).getPayload();
+                    Bundle args = new Bundle();
+                    args.putParcelable("statistics", stats);
                     getSupportFragmentManager().beginTransaction()
                             .setReorderingAllowed(true)
-                            .add(R.id.fragment_container_view, PauseFragment.class, null)
+                            .add(R.id.fragment_container_view, PauseFragment.class, args)
                             .commit();
                     break;
                 }

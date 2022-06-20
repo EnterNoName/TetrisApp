@@ -2,6 +2,9 @@ package com.example.tetris.Utils;
 
 import android.content.Context;
 
+import com.example.tetris.Models.Tetris;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -66,5 +69,50 @@ public class JSON {
             }
         } catch (IOException ignored) {
         }
+    }
+
+    public static int writeStats(Context context, Tetris.GameStatistics stats) {
+        int score = stats.getScore(), lines = stats.getLines(), level = stats.getLevel();
+        int highScore = 0;
+        try {
+            JSONObject data = JSON.read(context, "save.json");
+
+            if (!data.isNull("bestAttempts")) {
+                highScore = data.getJSONArray("bestAttempts").getJSONObject(0).getInt("score");
+
+                JSONArray attempts = data.getJSONArray("bestAttempts");
+                for (int i = 0; i < 5; i++) {
+                    if (!attempts.isNull(i)) {
+                        JSONObject attemptData = attempts.getJSONObject(i);
+                        if (score > attemptData.getInt("score")) {
+                            attemptData.put("score", score);
+                            attemptData.put("lines", lines);
+                            attemptData.put("level", level);
+                            data.getJSONArray("bestAttempts").put(i, attemptData);
+                            break;
+                        }
+                    } else {
+                        JSONObject attemptData = new JSONObject();
+                        attemptData.put("score", score);
+                        attemptData.put("lines", lines);
+                        attemptData.put("level", level);
+                        data.getJSONArray("bestAttempts").put(attemptData);
+                        break;
+                    }
+                }
+            } else {
+                data.put("bestAttempts", new JSONArray());
+                JSONObject attemptData = new JSONObject();
+                attemptData.put("score", score);
+                attemptData.put("lines", lines);
+                attemptData.put("level", level);
+                data.getJSONArray("bestAttempts").put(attemptData);
+            }
+
+            JSON.write(context, "save.json", data, false);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return highScore;
     }
 }
