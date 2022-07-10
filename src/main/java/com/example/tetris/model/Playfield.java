@@ -1,4 +1,7 @@
-package com.example.tetris.Models;
+package com.example.tetris.model;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,8 +16,8 @@ public class Playfield {
     public final int[][] playfieldState = new int[22][10];
 
     public Playfield() {
-        for (int y = 0; y < playfieldState.length; y++) {
-            Arrays.fill(playfieldState[y], 0xff000000);
+        for (int[] ints : playfieldState) {
+            Arrays.fill(ints, 0xff000000);
         }
     }
 
@@ -24,16 +27,16 @@ public class Playfield {
 
         List<Integer> lineData = new ArrayList<>();
 
-        for (int y = 0; y < playfieldState.length; y++) {
+        for (int[] ints : playfieldState) {
             boolean isFilled = true;
-            for (int x = 0; x < playfieldState[y].length; x++) {
-                if (playfieldState[y][x] == 0xff000000) {
+            for (int anInt : ints) {
+                if (anInt == 0xff000000) {
                     isFilled = false;
                     break;
                 }
             }
             if (isFilled) {
-                Arrays.fill(playfieldState[y], 0xff000000);
+                Arrays.fill(ints, 0xff000000);
 
                 if (prevLineFilled) {
                     int prevValue = lineData.get(currentCombo);

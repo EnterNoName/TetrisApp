@@ -1,4 +1,7 @@
-package com.example.tetris.Models;
+package com.example.tetris.model;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.Random;
 
@@ -7,10 +10,11 @@ public class Tetromino {
     private int x;
     private int y;
     private final int color;
+    
     public Tetromino(Shape s) {
         shapeMatrix = s.getShape();
         color = s.getColor();
-        x = (int) (10 - shapeMatrix.length) / 2;
+        x = (10 - shapeMatrix.length) / 2;
         y = 0;
     }
 
