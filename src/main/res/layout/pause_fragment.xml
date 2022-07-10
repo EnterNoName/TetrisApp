@@ -6,14 +6,15 @@
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:background="@color/transparent_black"
-    tools:context=".Fragments.PauseFragment">
+    android:clickable="true"
+    tools:context=".fragments.PauseFragment">
 
     <TextView
         android:id="@+id/tvPause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/raleway_semi_bold"
-        android:text="Paused"
+        android:text="@string/paused"
         android:textColor="@color/white"
         android:textSize="40sp"
         app:layout_constraintBottom_toTopOf="@+id/exitActivityBtn"
