@@ -1,4 +1,4 @@
-package com.example.tetris.Utils;
+package com.example.tetris.util;
 
 import android.content.Context;
 import android.view.GestureDetector;

@@ -1,8 +1,8 @@
-package com.example.tetris.Utils;
+package com.example.tetris.util;
 
 import android.content.Context;
 
-import com.example.tetris.Models.Tetris;
+import com.example.tetris.view.Tetris;
 
 import org.json.JSONArray;
 import org.json.JSONException;
