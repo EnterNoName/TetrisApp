@@ -10,10 +10,10 @@ import androidx.lifecycle.ViewModel;
 import com.example.tetris.R;
 
 public class GameViewModel extends ViewModel {
-    private MutableLiveData<Integer> score = new MutableLiveData(0);
-    private MutableLiveData<Integer> lines = new MutableLiveData(0);
-    private MutableLiveData<Integer> level = new MutableLiveData(0);
-    private MutableLiveData<Drawable> nextTetromino = new MutableLiveData(null);
+    private final MutableLiveData<Integer> score = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> lines = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> level = new MutableLiveData<>(0);
+    private final MutableLiveData<Drawable> nextTetromino = new MutableLiveData<>(null);
 
     public LiveData<String> getScore() {
         return Transformations.map(score, Object::toString);

@@ -19,25 +19,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
             android:background="@drawable/rounded_button"
             android:contentDescription="@string/rotate_left_desc"
             android:src="@drawable/rotate_left"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnMoveLeft"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/black" />
 
         <ImageButton
             android:id="@+id/btnRotateRight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/rounded_button"
             android:contentDescription="@string/rotate_right_arrow"
             android:src="@drawable/rotate_right"
+
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnMoveRight"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/black" />
 
         <ImageButton
@@ -45,24 +46,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/rounded_button"
             android:src="@drawable/arrow_left"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
+            app:layout_constraintTop_toBottomOf="@+id/btnRotateLeft"
+            app:tint="@color/black"
+            android:contentDescription="@string/move_left_arrow" />
 
         <ImageButton
             android:id="@+id/btnMoveRight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/rounded_button"
             android:src="@drawable/arrow_right"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
+            app:layout_constraintTop_toBottomOf="@+id/btnRotateRight"
+            app:tint="@color/black"
+            android:contentDescription="@string/move_right_arrow" />
 
         <TextView
             android:id="@+id/tvLevel"

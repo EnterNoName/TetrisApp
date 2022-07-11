@@ -16,4 +16,6 @@
     <string name="rotate_right_arrow">Clock wise arrow</string>
     <string name="iv_next_piece_desc">Next tetromino</string>
     <string name="paused">Paused</string>
+    <string name="move_left_arrow">Arrow pointing to the left</string>
+    <string name="move_right_arrow">Arrow pointing to the right</string>
 </resources>
