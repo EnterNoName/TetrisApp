@@ -256,8 +256,8 @@ public class Tetris extends SurfaceView implements SurfaceHolder.Callback {
                 }
             }
 
-            if (level < 10 && score > level * 1800) {
-                level += 1;
+            if (level < 10 && score >= level * 1800) {
+                level = Math.min(10, (score / 1800) + 1);
                 speed = 900 - (level - 1) * 85L;
             }
 
