@@ -1,21 +1,44 @@
 <resources>
     <string name="app_name">Tetris</string>
-    <string name="game_over">Game over!</string>
-    <string name="level">Level: </string>
-    <string name="score">Score: </string>
-    <string name="lines">Lines: </string>
-    <string name="current_high_score">Current high score:\n</string>
-    <string name="quit_button">Exit</string>
-    <string name="statistics_button">Statistics</string>
-    <string name="start_button">Play</string>
-    <string name="new_high_score">That\'s your new personal best!</string>
-    <string name="final_score">Final score:</string>
-    <string name="reset_score">Reset score</string>
-    <string name="description_background">Tetris game screenshot (background)</string>
-    <string name="rotate_left_desc">Counter clock wise arrow</string>
-    <string name="rotate_right_arrow">Clock wise arrow</string>
-    <string name="iv_next_piece_desc">Next tetromino</string>
-    <string name="paused">Paused</string>
-    <string name="move_left_arrow">Arrow pointing to the left</string>
-    <string name="move_right_arrow">Arrow pointing to the right</string>
+    <string name="welcome">Welcome to</string>
+    <string name="singleplayer">Singleplayer</string>
+    <string name="multiplayer">Multiplayer</string>
+    <string name="settings">Settings</string>
+    <string name="next">Next:</string>
+    <string name="desc_exit">Exit app</string>
+    <string name="sign_in"><u>Sign in</u></string>
+    <string name="desc_leaderboard">Show leaderboard</string>
+    <string name="desc_profile">Account circle</string>
+    <string name="hold">Hold:</string>
+    <string name="score">Score:</string>
+    <string name="lines">Lines:</string>
+    <string name="level">Level:</string>
+    <string name="combo">Combo:</string>
+    <string name="desc_left">Move left</string>
+    <string name="desc_right">Move right</string>
+    <string name="desc_down">Drop tetromino</string>
+    <string name="desc_rotate_right">Rotate right</string>
+    <string name="desc_rotate_left">Rotate left</string>
+    <string name="desc_pause">Pause</string>
+    <string name="desc_resume">Resume</string>
+    <string name="pause_text">Paused</string>
+
+    <string name="update_link" translatable="false">https://github.com/MichaelRayven/TetrisApp/releases/latest/download/tetris.apk</string>
+    <string name="desc_download_notification">Downloading…</string>
+    <string name="update_feature_title">Want to stay up to date?</string>
+    <string name="update_feature_description">The auto update feature allows you to update the app with just a click of a button.</string>
+    <string name="update_feature_supporting">Want to try it out?</string>
+    <string name="update_feature_accept">Yes</string>
+    <string name="update_feature_decline">No, thanks</string>
+    <string name="update_feature_unavailable">Auto-update feature will be disabled.</string>
+    <string name="update_feature_retry">Enable</string>
+
+    <string name="exit_dialog_title">Exit the game?</string>
+    <string name="exit_dialog_description">All current progress will be lost!</string>
+
+    <string name="accept">Accept</string>
+    <string name="agree">Yes</string>
+    <string name="disagree">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="desc_menu">Exit to menu</string>
 </resources>

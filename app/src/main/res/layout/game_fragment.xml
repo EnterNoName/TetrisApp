@@ -1,139 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <data>
-        <variable
-            name="viewModel"
-            type="com.example.tetrisapp.viewmodel.GameViewModel"/>
-    </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".ui.activity.MainActivity">
+
+    <com.example.tetrisapp.ui.view.GameView
+        android:id="@+id/gameView"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:backgroundColor="?colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/include"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/sidebar"
+        android:layout_width="70dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btnLeft"
+        android:layout_width="@dimen/controls_size"
+        android:layout_height="@dimen/controls_size"
+        android:scaleType="fitCenter"
+        android:padding="16dp"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/ic_round_arrow_left_24"
+        android:background="@drawable/background_button"
+        android:backgroundTint="?colorSecondaryVariant"
+        app:layout_constraintBottom_toBottomOf="@+id/btnDown"
+        app:layout_constraintEnd_toStartOf="@+id/btnRight"
+        app:layout_constraintTop_toTopOf="@+id/btnRotateRight"
+        android:contentDescription="@string/desc_left" />
+
+    <ImageButton
+        android:id="@+id/btnRight"
+        android:layout_width="@dimen/controls_size"
+        android:layout_height="@dimen/controls_size"
+        android:scaleType="fitCenter"
+        android:padding="16dp"
+        android:layout_marginEnd="32dp"
+        android:src="@drawable/ic_round_arrow_right_24"
+        android:background="@drawable/background_button"
+        android:backgroundTint="?colorSecondaryVariant"
+        app:layout_constraintBottom_toBottomOf="@+id/btnDown"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnRotateRight"
+        android:contentDescription="@string/desc_right" />
+
+    <ImageButton
+        android:id="@+id/btnDown"
+        android:layout_width="@dimen/controls_size"
+        android:layout_height="@dimen/controls_size"
+        android:scaleType="fitCenter"
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"
+        android:src="@drawable/ic_round_arrow_drop_down_24"
+        android:background="@drawable/background_button"
+        android:backgroundTint="?colorSecondaryVariant"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/btnRotateRight"
+        app:layout_constraintStart_toStartOf="@+id/btnRotateLeft"
+        android:contentDescription="@string/desc_down" />
+
+    <ImageButton
+        android:id="@+id/btnRotateRight"
+        android:layout_width="@dimen/controls_size"
+        android:layout_height="@dimen/controls_size"
+        android:scaleType="fitCenter"
+        android:padding="16dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="12dp"
+        android:src="@drawable/ic_round_rotate_right_24"
+        android:background="@drawable/background_button"
+        android:backgroundTint="?colorSecondaryVariant"
+        app:layout_constraintBottom_toTopOf="@+id/btnDown"
+        app:layout_constraintStart_toEndOf="@+id/btnRotateLeft"
+        android:contentDescription="@string/desc_rotate_right" />
+
+    <ImageButton
+        android:id="@+id/btnRotateLeft"
+        android:layout_width="@dimen/controls_size"
+        android:layout_height="@dimen/controls_size"
+        android:scaleType="fitCenter"
+        android:padding="16dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="12dp"
+        android:src="@drawable/ic_round_rotate_left_24"
+        android:background="@drawable/background_button"
+        android:backgroundTint="?colorSecondaryVariant"
+        app:layout_constraintBottom_toTopOf="@+id/btnDown"
+        app:layout_constraintStart_toStartOf="parent"
+        android:contentDescription="@string/desc_rotate_left" />
+
+    <ImageButton
+        android:id="@+id/btnPause"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/background_button"
+        android:src="@drawable/ic_round_pause_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/desc_pause" />
+
+    <TextView
+        android:id="@+id/tvCountdown"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".activities.GameActivity">
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:fontFamily="@font/fira_sans_medium"
+        android:textColor="?colorOnPrimary"
+        android:includeFontPadding="false"
+        android:textSize="60sp" />
 
-        <ImageButton
-            android:id="@+id/btnRotateLeft"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/rounded_button"
-            android:contentDescription="@string/rotate_left_desc"
-            android:src="@drawable/rotate_left"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
 
-        <ImageButton
-            android:id="@+id/btnRotateRight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/rounded_button"
-            android:contentDescription="@string/rotate_right_arrow"
-            android:src="@drawable/rotate_right"
 
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/black" />
-
-        <ImageButton
-            android:id="@+id/btnMoveLeft"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/rounded_button"
-            android:src="@drawable/arrow_left"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnRotateLeft"
-            app:tint="@color/black"
-            android:contentDescription="@string/move_left_arrow" />
-
-        <ImageButton
-            android:id="@+id/btnMoveRight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/rounded_button"
-            android:src="@drawable/arrow_right"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnRotateRight"
-            app:tint="@color/black"
-            android:contentDescription="@string/move_right_arrow" />
-
-        <TextView
-            android:id="@+id/tvLevel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="64dp"
-            android:fontFamily="@font/raleway_font_family"
-            android:text="@{@string/level + ' ' + viewModel.level}"
-            android:textAlignment="viewStart"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="@string/level" />
-
-        <TextView
-            android:id="@+id/tvScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="4dp"
-            android:fontFamily="@font/raleway_font_family"
-            android:text="@{@string/score + ' ' + viewModel.score}"
-            android:textAlignment="viewStart"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvLines"
-            tools:text="@string/score" />
-
-        <TextView
-            android:id="@+id/tvLines"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="4dp"
-            android:fontFamily="@font/raleway_semi_bold"
-            android:text="@{@string/lines + ' ' + viewModel.lines}"
-            android:textAlignment="viewStart"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvLevel"
-            tools:text="@string/lines" />
-
-        <ImageView
-            android:id="@+id/ivNextPiece"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginTop="64dp"
-            android:layout_marginEnd="56dp"
-            android:alpha="0.7"
-            android:contentDescription="@string/iv_next_piece_desc"
-            android:src="@{viewModel.nextTetromino ?? @drawable/i_tetromino}"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_container_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</layout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 
 

@@ -4,52 +4,61 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:background="@color/transparent_black"
-    android:clickable="true"
-    tools:context=".fragments.PauseFragment">
+    android:background="?colorPrimary"
+    tools:context=".ui.fragment.PauseFragment">
 
     <TextView
-        android:id="@+id/tvPause"
+        android:id="@+id/tvPaused"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/raleway_semi_bold"
-        android:text="@string/paused"
-        android:textColor="@color/white"
-        android:textSize="40sp"
-        app:layout_constraintBottom_toTopOf="@+id/exitActivityBtn"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="@font/fira_sans_bold"
+        android:includeFontPadding="false"
+        android:text="@string/pause_text"
+        android:textColor="?colorOnPrimary"
+        android:textSize="64sp"
+        app:layout_constraintBottom_toTopOf="@+id/flow2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.580" />
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <ImageButton
-        android:id="@+id/exitActivityBtn"
+        android:id="@+id/btnResume"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/background_button"
+        android:contentDescription="@string/desc_resume"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_play_arrow_24"
+        app:tint="?colorOnPrimary" />
+
+    <ImageButton
+        android:id="@+id/btnExit"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/background_button"
+        android:contentDescription="@string/desc_menu"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_exit_to_app_24"
+        app:tint="?colorOnPrimary" />
+
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button"
-        android:padding="20dp"
-        android:src="@drawable/exit_from_activity"
-        android:layout_marginStart="25dp"
+        android:orientation="horizontal"
+        app:constraint_referenced_ids="btnExit,btnResume"
+        app:flow_horizontalGap="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/resumeBtn"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageButton
-        android:id="@+id/resumeBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="25dp"
-        android:background="@drawable/rounded_button"
-        android:padding="20dp"
-        android:src="@drawable/play_arrow"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/exitActivityBtn"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/tvPaused" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
