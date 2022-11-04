@@ -23,7 +23,8 @@
     <string name="desc_resume">Resume</string>
     <string name="pause_text">Paused</string>
 
-    <string name="update_link" translatable="false">https://github.com/MichaelRayven/TetrisApp/releases/latest/download/tetris.apk</string>
+    <string name="update_url" translatable="false">https://tetrisapp-backend.herokuapp.com/</string>
+
     <string name="desc_download_notification">Downloading…</string>
     <string name="update_feature_title">Want to stay up to date?</string>
     <string name="update_feature_description">The auto update feature allows you to update the app with just a click of a button.</string>

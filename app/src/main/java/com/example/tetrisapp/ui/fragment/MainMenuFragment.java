@@ -2,66 +2,57 @@ package com.example.tetrisapp.ui.fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
+import com.example.tetrisapp.model.Update;
+import com.example.tetrisapp.util.ConnectionHelper;
+import com.example.tetrisapp.util.PermissionHelper;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class MainMenuFragment extends Fragment {
     private MainMenuFragmentBinding binding;
     private boolean hasWriteStoragePermission = false;
     private boolean hasInstallPackagesPermission = false;
-    private boolean hasInternetConnection = false;
-    ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    hasWriteStoragePermission = true;
-                } else {
-                    Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
-                }
-            });
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    private PermissionHelper permissionHelper;
+    private ConnectionHelper connectionHelper;
+    private Retrofit retrofit;
+    UpdateService updateService;
     ActivityResultLauncher<Intent> activityResultLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == Activity.RESULT_OK &&
-                        requireActivity().getPackageManager().canRequestPackageInstalls()) {
-                    hasInstallPackagesPermission = true;
-                } else {
-                    Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
-                }
+                requestPermissions();
             });
 
     @Nullable
@@ -74,7 +65,57 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        permissionHelper = new PermissionHelper(requireActivity(), this);
+        connectionHelper = new ConnectionHelper(requireActivity());
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.update_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        updateService = retrofit.create(UpdateService.class);
         initClickListeners();
+        checkUpdate();
+    }
+
+    private void checkUpdate() {
+        connectionHelper.checkInternetConnection(
+                () -> {
+                        updateService.getUpdate().enqueue(new Callback<Update>() {
+                            @Override
+                            public void onResponse(Call<Update> call, Response<Update> response) {
+                                if (response.isSuccessful()) {
+                                    assert response.body() != null;
+                                    if (BuildConfig.VERSION_NAME.compareTo(response.body().version) < 0) {
+                                        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                                                .setTitle(response.body().title)
+                                                .setMessage(response.body().description)
+                                                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
+
+                                                })
+                                                .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
+                                                    requestPermissions();
+                                                    if (hasWriteStoragePermission && hasInstallPackagesPermission) {
+                                                        installUpdate(response.body().url);
+                                                    }
+                                                })
+                                                .show();
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<Update> call, Throwable t) {
+                                try {
+                                    throw t;
+                                } catch (Throwable e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                },
+                () -> {
+                    // TODO
+                }
+        );
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -84,41 +125,37 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void requestPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            hasWriteStoragePermission = true;
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    requireContext(), Manifest.permission.MANAGE_EXTERNAL_STORAGE) ==
-                    PackageManager.PERMISSION_GRANTED) {
-                hasWriteStoragePermission = true;
-            } else if (requireActivity().shouldShowRequestPermissionRationale(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
-                binding.permissionRationale.setVisibility(View.VISIBLE);
-            } else {
-                requestPermissionLauncher.launch(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            permissionHelper.checkPermission(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    () -> {hasWriteStoragePermission = true;},
+                    () -> {
+                        permissionHelper.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            () -> {hasWriteStoragePermission = true;},
+                            () -> {
+                            Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
+                                    .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
+                        });
+                        },
+                    () -> {}
+            );
         } else {
-            if (ContextCompat.checkSelfPermission(
-                    requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                    PackageManager.PERMISSION_GRANTED) {
-                hasWriteStoragePermission = true;
-            } else if (requireActivity().shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                binding.permissionRationale.setVisibility(View.VISIBLE);
-            } else {
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            }
+            hasWriteStoragePermission = true;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (requireActivity().getPackageManager().canRequestPackageInstalls()) {
-                hasWriteStoragePermission = true;
-            } else if (requireActivity().shouldShowRequestPermissionRationale(Manifest.permission.REQUEST_INSTALL_PACKAGES)) {
-                activityResultLauncher.launch(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES));
-            } else {
-                activityResultLauncher.launch(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES));
-            }
-        } else {
-            hasWriteStoragePermission = true;
-        }
+        permissionHelper.checkPermission(
+                Manifest.permission.REQUEST_INSTALL_PACKAGES,
+                () -> {hasInstallPackagesPermission = true;},
+                () -> {
+                    permissionHelper.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            () -> {hasInstallPackagesPermission = true;},
+                            () -> {
+                                Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
+                                        .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
+                            });
+                },
+                () -> {activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));}
+        );
     }
 
     private long downloadFileToExternalStorage(String url, String fileName, String description, String title) {
@@ -141,8 +178,7 @@ public class MainMenuFragment extends Fragment {
         return manager.enqueue(request);
     }
 
-    private void installUpdate() {
-        String url = getString(R.string.update_link);
+    private void installUpdate(String url) {
         String fileName = getString(R.string.app_name) + ".apk";
         File file = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),

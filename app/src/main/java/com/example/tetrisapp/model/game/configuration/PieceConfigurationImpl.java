@@ -1,7 +1,7 @@
-package com.example.tetrisapp.model.configuration;
+package com.example.tetrisapp.model.game.configuration;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.model.Piece;
+import com.example.tetrisapp.model.game.Piece;
 
 import java.util.Arrays;
 import java.util.HashMap;

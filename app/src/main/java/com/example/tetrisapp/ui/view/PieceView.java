@@ -3,10 +3,7 @@ package com.example.tetrisapp.ui.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
@@ -17,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.model.Piece;
+import com.example.tetrisapp.model.game.Piece;
 
 public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
     private final Paint paint = new Paint();

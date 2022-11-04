@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 
-import com.example.tetrisapp.model.Piece;
-
 public class PieceViewThread extends Thread {
     private final SurfaceHolder surfaceHolder;
     private final PieceView surfaceView;

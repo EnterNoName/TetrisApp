@@ -1,7 +1,7 @@
-package com.example.tetrisapp.model;
+package com.example.tetrisapp.model.game;
 
 import com.example.tetrisapp.data.TetrominoRandomizer;
-import com.example.tetrisapp.model.configuration.PieceConfiguration;
+import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.util.ArrayHelper;
 import com.example.tetrisapp.util.MathHelper;
 

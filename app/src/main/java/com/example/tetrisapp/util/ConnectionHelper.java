@@ -12,26 +12,13 @@ import java.net.InetAddress;
 
 public class ConnectionHelper {
     private final Activity activity;
-    private boolean hasInternetConnection = false;
     NetworkRequest networkRequest = new NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .build();
-
-    private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
-        @Override
-        public void onAvailable(@NonNull Network network) {
-            super.onAvailable(network);
-            hasInternetConnection = isInternetAvailable();
-        }
-
-        @Override
-        public void onLost(@NonNull Network network) {
-            super.onLost(network);
-            hasInternetConnection = false;
-        }
-    };
+    Callback onAvailable;
+    Callback onLost;
 
     public ConnectionHelper(Activity activity) {
         this.activity = activity;
@@ -47,15 +34,30 @@ public class ConnectionHelper {
     }
 
     public void checkInternetConnection(Callback onAvailable, Callback onLost) {
+        this.onAvailable = onAvailable;
+        this.onLost = onLost;
+
+        ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                super.onAvailable(network);
+                if(isInternetAvailable()) {
+                    onAvailable.call();
+                } else {
+                    onLost.call();
+                }
+            }
+
+            @Override
+            public void onLost(@NonNull Network network) {
+                super.onLost(network);
+                onLost.call();
+            }
+        };
+
         ConnectivityManager connectivityManager =
                 activity.getSystemService(ConnectivityManager.class);
         connectivityManager.requestNetwork(networkRequest, networkCallback);
-
-        if (hasInternetConnection) {
-            onAvailable.call();
-        } else {
-            onLost.call();
-        }
     }
 
     public interface Callback {

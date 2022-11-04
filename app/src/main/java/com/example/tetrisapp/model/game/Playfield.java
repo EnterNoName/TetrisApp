@@ -1,4 +1,4 @@
-package com.example.tetrisapp.model;
+package com.example.tetrisapp.model.game;
 
 import android.os.Parcel;
 import android.os.Parcelable;

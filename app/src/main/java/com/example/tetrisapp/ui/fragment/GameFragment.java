@@ -16,9 +16,9 @@ import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.GameFragmentBinding;
-import com.example.tetrisapp.model.Tetris;
-import com.example.tetrisapp.model.configuration.PieceConfiguration;
-import com.example.tetrisapp.model.configuration.PieceConfigurationImpl;
+import com.example.tetrisapp.model.game.Tetris;
+import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
 import com.example.tetrisapp.ui.view.GameView;
 import com.example.tetrisapp.util.TouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

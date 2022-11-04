@@ -1,6 +1,6 @@
-package com.example.tetrisapp.model.configuration;
+package com.example.tetrisapp.model.game.configuration;
 
-import com.example.tetrisapp.model.Piece;
+import com.example.tetrisapp.model.game.Piece;
 
 public interface PieceConfiguration {
     Piece[] getPieces();
