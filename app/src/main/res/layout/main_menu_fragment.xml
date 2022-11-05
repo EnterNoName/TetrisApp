@@ -36,7 +36,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/btnSignIn"
             app:layout_constraintEnd_toStartOf="@+id/textView"
             app:layout_constraintStart_toStartOf="@+id/btnSignIn"
-            app:layout_constraintTop_toTopOf="@+id/btnSignIn" />
+            app:layout_constraintTop_toTopOf="@+id/btnSignIn"
+            app:tint="?colorOnPrimary" />
 
         <TextView
             android:id="@+id/textView"
