@@ -131,8 +131,9 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void drawTetromino(Canvas canvas) {
         for (int y = 0; y < piece.getMatrix().length; y++) {
+            if (y >= piece.getMatrix().length) continue;
             for (int x = 0; x < piece.getMatrix()[y].length; x++) {
-                if (y < piece.getMatrix().length && x < piece.getMatrix()[y].length && piece.getMatrix()[y][x] == 1) {
+                if (x < piece.getMatrix()[y].length && piece.getMatrix()[y][x] == 1) {
                     drawPoint(x, y, piece.getColor(), piece.getOverlayResId(), canvas);
                 }
             }
