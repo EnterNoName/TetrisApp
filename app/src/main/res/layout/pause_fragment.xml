@@ -45,7 +45,7 @@
         android:contentDescription="@string/desc_menu"
         android:padding="8dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_round_exit_to_app_24"
+        android:src="@drawable/ic_round_arrow_back_24"
         app:tint="?colorOnPrimary" />
 
     <androidx.constraintlayout.helper.widget.Flow
