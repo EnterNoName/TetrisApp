@@ -25,8 +25,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private int pointSize;
     private int xOffset;
     private int yOffset;
-    private int generalOffset = 20;
-    private int borderWidth = 3;
+    private final int generalOffset = 20;
+    private final int borderWidth = 5;
 
     private int color = 0xff000000;
 
@@ -64,10 +64,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void calculateDimensions(int width, int height) {
-        if (height / 20 <= width / 10) {
-            pointSize = height / 20;
+        if ((height - generalOffset * 2) / 20 <= (width - generalOffset * 2) / 10) {
+            pointSize = (height - generalOffset * 2) / 20;
         } else {
-            pointSize = width / 10;
+            pointSize = (width - generalOffset * 2) / 10;
         }
 
         xOffset = (width - pointSize * 10) / 2;
@@ -130,7 +130,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void drawGrid(Canvas canvas) {
         paint.setColor(0xFF666666);
-        paint.setStrokeWidth(5f);
+        paint.setStrokeWidth(borderWidth);
+        paint.setStrokeCap(Paint.Cap.ROUND);
 
         for (int x = 0; x <= 10; x++) {
             canvas.drawLine(pointSize * x + xOffset,
@@ -147,6 +148,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                     pointSize * y + yOffset,
                     paint);
         }
+
+        paint.setStrokeCap(Paint.Cap.SQUARE);
     }
 
     private void drawPoint(int x, int y, int color, int overlayResource, Canvas canvas) {
