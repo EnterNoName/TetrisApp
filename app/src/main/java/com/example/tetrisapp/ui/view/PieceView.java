@@ -18,7 +18,7 @@ import com.example.tetrisapp.model.game.Piece;
 
 public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
     private final Paint paint = new Paint();
-    private PieceViewThread thread;
+    private GenericDrawThread<PieceView> thread;
     private Piece piece = null;
 
     private int pointSize;
@@ -49,7 +49,7 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        thread = new PieceViewThread(getHolder(), this);
+        thread = new GenericDrawThread<>(getHolder(), this);
         thread.setRunning(true);
         thread.start();
     }

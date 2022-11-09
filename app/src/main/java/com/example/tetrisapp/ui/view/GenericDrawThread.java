@@ -1,15 +1,15 @@
 package com.example.tetrisapp.ui.view;
 
-import android.annotation.SuppressLint;
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public class PieceViewThread extends Thread {
+public class GenericDrawThread<T extends SurfaceView> extends Thread {
     private final SurfaceHolder surfaceHolder;
-    private final PieceView surfaceView;
+    private final T surfaceView;
     private boolean threadRunning = false;
 
-    public PieceViewThread(SurfaceHolder surfaceHolder, PieceView surfaceView) {
+    public GenericDrawThread(SurfaceHolder surfaceHolder, T surfaceView) {
         this.surfaceHolder = surfaceHolder;
         this.surfaceView = surfaceView;
     }
@@ -18,7 +18,6 @@ public class PieceViewThread extends Thread {
         threadRunning = b;
     }
 
-    @SuppressLint("WrongCall")
     @Override
     public void run() {
         while (threadRunning) {
@@ -27,6 +26,7 @@ public class PieceViewThread extends Thread {
             synchronized (surfaceHolder) {
                 surfaceView.draw(c);
             }
+
             if (c != null) {
                 surfaceHolder.unlockCanvasAndPost(c);
             }
