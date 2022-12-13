@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingHorizontal="4dp"
+    android:background="?colorPrimary"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="@layout/game_fragment">
 
@@ -31,7 +32,7 @@
             android:backgroundTint="?colorPrimaryVariant"
             app:contentPadding="4dp"
             android:elevation="8dp">
-            <com.example.tetrisapp.ui.view.PieceView
+            <com.example.tetrisapp.model.game.view.PieceView
                 android:id="@+id/pvNext1"
                 app:backgroundColor="?colorPrimaryVariant"
                 android:layout_width="match_parent"
@@ -49,7 +50,7 @@
             android:elevation="8dp"
             app:contentPadding="4dp">
 
-            <com.example.tetrisapp.ui.view.PieceView
+            <com.example.tetrisapp.model.game.view.PieceView
                 android:id="@+id/pvNext2"
                 app:backgroundColor="?colorPrimaryVariant"
                 android:layout_width="match_parent"
@@ -66,7 +67,7 @@
             android:elevation="8dp"
             app:contentPadding="4dp">
 
-            <com.example.tetrisapp.ui.view.PieceView
+            <com.example.tetrisapp.model.game.view.PieceView
                 android:id="@+id/pvNext3"
                 app:backgroundColor="?colorPrimaryVariant"
                 android:layout_width="match_parent"
@@ -83,7 +84,7 @@
             android:elevation="8dp"
             app:contentPadding="4dp">
 
-            <com.example.tetrisapp.ui.view.PieceView
+            <com.example.tetrisapp.model.game.view.PieceView
                 android:id="@+id/pvNext4"
                 app:backgroundColor="?colorPrimaryVariant"
                 android:layout_width="match_parent"
@@ -111,7 +112,7 @@
             android:elevation="8dp"
             app:contentPadding="4dp">
 
-            <com.example.tetrisapp.ui.view.PieceView
+            <com.example.tetrisapp.model.game.view.PieceView
                 android:id="@+id/pvHold"
                 app:backgroundColor="?colorPrimaryVariant"
                 android:layout_width="match_parent"

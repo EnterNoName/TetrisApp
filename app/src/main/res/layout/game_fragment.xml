@@ -8,7 +8,7 @@
     android:background="@color/white"
     tools:context=".ui.activity.MainActivity">
 
-    <com.example.tetrisapp.ui.view.GameView
+    <com.example.tetrisapp.model.game.view.GameView
         android:id="@+id/gameView"
         android:layout_width="0dp"
         android:layout_height="match_parent"

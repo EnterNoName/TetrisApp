@@ -1,9 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.fragment.GameOverFragment">
 
+    <TextView
+        android:id="@+id/tvGameOver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_bold"
+        android:includeFontPadding="false"
+        android:text="Game over!"
+        android:textColor="?colorOnPrimary"
+        android:textSize="64sp"
+        android:layout_marginTop="136dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvHighScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_bold"
+        android:includeFontPadding="false"
+        android:text="Current high score:\n80019"
+        android:textAlignment="center"
+        android:textColor="?colorOnPrimary"
+        android:textSize="32sp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvGameOver" />
+
+    <LinearLayout
+        android:id="@+id/ltScore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="48dp"
+        android:layout_marginHorizontal="32dp"
+        app:layout_constraintTop_toBottomOf="@+id/tvHighScore">
+
+        <TextView
+            android:id="@+id/tvScore"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fira_sans_bold"
+            android:layout_weight="1"
+            android:text="Score:"
+            android:textColor="?colorOnPrimary"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/score"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/background_game_value_large"
+            android:fontFamily="@font/fira_sans_medium"
+            android:includeFontPadding="false"
+            android:padding="12dp"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="28sp"
+            tools:text="00000000" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ltLines"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="32dp"
+        app:layout_constraintTop_toBottomOf="@+id/ltScore">
+
+        <TextView
+            android:id="@+id/tvLines"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fira_sans_bold"
+            android:layout_weight="1"
+            android:text="Lines:"
+            android:textColor="?colorOnPrimary"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/lines"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/background_game_value_large"
+            android:fontFamily="@font/fira_sans_medium"
+            android:includeFontPadding="false"
+            android:padding="12dp"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="28sp"
+            tools:text="00000000" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ltLevel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="32dp"
+        app:layout_constraintTop_toBottomOf="@+id/ltLines">
+
+        <TextView
+            android:id="@+id/tvLevel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fira_sans_bold"
+            android:layout_weight="1"
+            android:text="Level:"
+            android:textColor="?colorOnPrimary"
+            android:textSize="32sp" />
+
+        <TextView
+            android:id="@+id/level"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/background_game_value_large"
+            android:fontFamily="@font/fira_sans_medium"
+            android:includeFontPadding="false"
+            android:padding="12dp"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="28sp"
+            tools:text="00000000" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutButtonsHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:divider="@drawable/empty_horizontal_divider"
+        android:showDividers="middle"
+        android:layout_marginBottom="32dp"
+        android:layout_marginHorizontal="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnLeave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/background_button"
+            android:contentDescription="@string/desc_leave"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="12dp"
+            android:src="@drawable/ic_round_arrow_back_24"
+            app:tint="?colorOnPrimary" />
+
+        <ImageButton
+            android:id="@+id/btnRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/background_button"
+            android:contentDescription="@string/desc_retry"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="12dp"
+            android:src="@drawable/ic_round_replay_24"
+            app:tint="?colorOnPrimary"
+            tools:ignore="ImageContrastCheck,DuplicateSpeakableTextCheck" />
+
+        <ImageButton
+            android:id="@+id/btnShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/background_button"
+            android:contentDescription="@string/desc_share"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="12dp"
+            android:src="@drawable/ic_round_share_24"
+            app:tint="?colorOnPrimary"
+            tools:ignore="ImageContrastCheck" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

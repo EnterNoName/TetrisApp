@@ -13,10 +13,6 @@
         <action
             android:id="@+id/action_mainMenuFragment_to_gameFragment"
             app:destination="@id/gameFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"
             app:popUpTo="@id/gameFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -33,10 +29,43 @@
             app:exitAnim="@android:anim/fade_out"
             app:popEnterAnim="@android:anim/fade_in"
             app:popExitAnim="@android:anim/fade_out" />
+
+        <action
+            android:id="@+id/action_gameFragment_to_gameOverFragment"
+            app:destination="@id/gameOverFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out"
+            app:popUpTo="@id/gameOverFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_gameFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/pauseFragment"
         android:name="com.example.tetrisapp.ui.fragment.PauseFragment"
         android:label="pause_fragment"
-        tools:layout="@layout/pause_fragment" />
+        tools:layout="@layout/pause_fragment" >
+        <action
+            android:id="@+id/action_pauseFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/gameOverFragment"
+        android:name="com.example.tetrisapp.ui.fragment.GameOverFragment"
+        android:label="game_over_fragment"
+        tools:layout="@layout/game_over_fragment" >
+        <action
+            android:id="@+id/action_gameOverFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_gameOverFragment_to_gameFragment"
+            app:destination="@id/gameFragment" />
+    </fragment>
 </navigation>
