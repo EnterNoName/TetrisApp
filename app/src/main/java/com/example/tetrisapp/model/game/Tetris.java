@@ -22,8 +22,7 @@ public class Tetris {
     public static final int LOCK_DELAY = 500;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private DataUpdateCallback callback = () -> {
-    };
+    private DataUpdateCallback callback = () -> {};
     private ScheduledFuture<?> future;
 
     // In-Game values
@@ -40,7 +39,6 @@ public class Tetris {
     private int level = 0;
     private int combo = 0;
     private int speed = DEFAULT_SPEED;
-
 
     private boolean gameOver = false;
     private boolean pause = true;
@@ -60,7 +58,7 @@ public class Tetris {
             future.cancel(true);
         }
 
-        future = executor.scheduleAtFixedRate(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
+        future = executor.scheduleWithFixedDelay(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
     }
 
     private Piece getNextTetromino() {
@@ -356,15 +354,17 @@ public class Tetris {
     // Setters
 
     public void setPause(boolean pause) {
-        if (pause && future != null) {
-            delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
-            future.cancel(true);
-        } else {
-            updateSpeed(delayLeft, 1f);
-            delayLeft = 0;
+        if (!gameOver) {
+            if (pause && future != null) {
+                delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
+                future.cancel(true);
+            } else {
+                updateSpeed(delayLeft, 1f);
+                delayLeft = 0;
+            }
+            this.pause = pause;
+            callback.invalidate();
         }
-        this.pause = pause;
-        callback.invalidate();
     }
 
     public void setSoftDrop(boolean softDrop) {
