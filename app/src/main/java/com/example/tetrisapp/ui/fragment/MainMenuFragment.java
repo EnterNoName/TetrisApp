@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,11 +31,16 @@ import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
 import com.example.tetrisapp.model.Update;
 import com.example.tetrisapp.util.ConnectionHelper;
+import com.example.tetrisapp.util.DownloadUtil;
 import com.example.tetrisapp.util.PermissionHelper;
+import com.example.tetrisapp.util.Singleton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.EOFException;
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -85,29 +91,15 @@ public class MainMenuFragment extends Fragment {
                                 if (response.isSuccessful()) {
                                     assert response.body() != null;
                                     if (BuildConfig.VERSION_NAME.compareTo(response.body().version) < 0) {
-                                        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
-                                                .setTitle(response.body().title)
-                                                .setMessage(response.body().description)
-                                                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
-
-                                                })
-                                                .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
-                                                    requestPermissions();
-                                                    if (hasWriteStoragePermission && hasInstallPackagesPermission) {
-                                                        installUpdate(response.body().url);
-                                                    }
-                                                })
-                                                .show();
+                                        showUpdateDialog(response);
                                     }
                                 }
                             }
 
                             @Override
                             public void onFailure(Call<Update> call, Throwable t) {
-                                try {
-                                    throw t;
-                                } catch (Throwable e) {
-                                    e.printStackTrace();
+                                if (!(t instanceof EOFException)) {
+                                    t.printStackTrace();
                                 }
                             }
                         });
@@ -118,9 +110,31 @@ public class MainMenuFragment extends Fragment {
         );
     }
 
-    @SuppressLint("UseCompatLoadingForDrawables")
+    private void showUpdateDialog(Response<Update> response) {
+        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle(response.body().title)
+                .setMessage(response.body().description)
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
+
+                })
+                .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
+                    requestPermissions();
+                    if (hasWriteStoragePermission && hasInstallPackagesPermission) {
+                        String URL = response.body().url;
+                        Executors.newSingleThreadScheduledExecutor().schedule(
+                                new DownloadUtil(requireActivity(),
+                                        URL,
+                                        getString(R.string.app_name) + ".apk"),
+                                0,
+                                TimeUnit.MILLISECONDS
+                        );
+                    }
+                })
+                .show();
+    }
+
     private void initClickListeners() {
-        binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_mainMenuFragment_to_gameFragment));
+        binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
         binding.btnExit.setOnClickListener(v -> requireActivity().finishAndRemoveTask());
     }
 
@@ -156,53 +170,5 @@ public class MainMenuFragment extends Fragment {
                 },
                 () -> {activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));}
         );
-    }
-
-    private long downloadFileToExternalStorage(String url, String fileName, String description, String title) {
-        File target = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                fileName
-        );
-        if (target.exists()) target.delete();
-
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-
-        request.setDescription(description);
-        request.setTitle(title);
-        request.allowScanningByMediaScanner();
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-
-        DownloadManager manager = (DownloadManager) requireActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-        return manager.enqueue(request);
-    }
-
-    private void installUpdate(String url) {
-        String fileName = getString(R.string.app_name) + ".apk";
-        File file = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                fileName
-        );
-
-        final long downloadId = downloadFileToExternalStorage(url, fileName, getString(R.string.desc_download_notification), getString(R.string.app_name));
-        DownloadManager manager = (DownloadManager) requireActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-
-        BroadcastReceiver onComplete = new BroadcastReceiver() {
-            public void onReceive(Context ctx, Intent intent) {
-                Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                install.setDataAndType(
-                        FileProvider.getUriForFile(requireContext(), BuildConfig.APPLICATION_ID + ".provider", file),
-                        manager.getMimeTypeForDownloadedFile(downloadId));
-                startActivity(install);
-
-                requireActivity().unregisterReceiver(this);
-                requireActivity().finish();
-            }
-        };
-
-        requireActivity().registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 }
