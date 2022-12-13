@@ -1,12 +1,12 @@
 package com.example.tetrisapp.ui.fragment;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -19,11 +19,11 @@ import com.example.tetrisapp.databinding.GameFragmentBinding;
 import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
-import com.example.tetrisapp.ui.view.GameView;
 import com.example.tetrisapp.util.TouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -32,18 +32,16 @@ public class GameFragment extends Fragment {
     private final PieceConfiguration configuration = new PieceConfigurationImpl();
     private GameFragmentBinding binding;
     private Tetris game;
-    private GameView surfaceView;
+
+    private final ScheduledExecutorService executor =  Executors.newSingleThreadScheduledExecutor();
 
     private static final int MOVEMENT_INTERVAL = 125;
+    private static final int COUNTDOWN = 5;
+    private int countdownRemaining = COUNTDOWN;
 
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> futureMoveRight = null;
     private ScheduledFuture<?> futureMoveLeft = null;
-
-    private ScheduledFuture<?> futureCountdown = null;
-    private int countdownTimer = 0;
-
-    private Animation scaleAnim;
+    private Future<?> countdownFuture = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,20 +65,16 @@ public class GameFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         if (game == null) {
             game = new Tetris(configuration, new String[]{"I", "J", "L", "T"}, new String[]{"Z", "S", "Z", "S"});
         }
-        scaleAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale);
+
         binding.gameView.setGame(game);
         game.setCallback(this::updateViews);
+
         initOnClickListeners();
         updateViews();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        game.setPause(true);
     }
 
     @Override
@@ -90,9 +84,7 @@ public class GameFragment extends Fragment {
     }
 
     private void countdown() {
-        countdownTimer = 3;
-        binding.tvCountdown.setVisibility(View.INVISIBLE);
-        futureCountdown = executor.scheduleAtFixedRate(new CountdownRunnable(), 0, 1, TimeUnit.SECONDS);
+        countdownFuture = executor.submit(new CountdownRunnable());
     }
 
     private void confirmExit() {
@@ -100,11 +92,14 @@ public class GameFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
                 .setTitle(getString(R.string.exit_dialog_title))
                 .setMessage(getString(R.string.exit_dialog_description))
+                .setOnDismissListener((dialog) -> {
+                    game.setPause(false);
+                })
                 .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
                     game.setPause(false);
                 })
                 .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
-                    Navigation.findNavController(binding.getRoot()).popBackStack();
+                    Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment);
                 })
                 .show();
     }
@@ -123,6 +118,9 @@ public class GameFragment extends Fragment {
         binding.include.level.setText(game.getLevel() + "");
         binding.include.lines.setText(game.getLines() + "");
         binding.include.combo.setText(game.getCombo() + "");
+        if (game.isGameOver()) {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_gameOverFragment);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -152,7 +150,7 @@ public class GameFragment extends Fragment {
         binding.btnRotateLeft.setOnClickListener(v -> game.rotateTetrominoLeft());
         binding.btnRotateRight.setOnClickListener(v -> game.rotateTetrominoRight());
         binding.btnPause.setOnClickListener(v -> {
-//            game.setPause(true);
+            game.setPause(true);
             Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment);
         });
         binding.btnDown.setOnTouchListener(new TouchListener(getContext()) {
@@ -178,6 +176,9 @@ public class GameFragment extends Fragment {
         @Override
         public void run() {
             game.moveTetrominoRight();
+            requireActivity().runOnUiThread(() -> {
+                binding.gameView.invalidate();
+            });
         }
     }
 
@@ -185,6 +186,9 @@ public class GameFragment extends Fragment {
         @Override
         public void run() {
             game.moveTetrominoLeft();
+            requireActivity().runOnUiThread(() -> {
+                binding.gameView.invalidate();
+            });
         }
     }
 
@@ -192,25 +196,63 @@ public class GameFragment extends Fragment {
         @SuppressLint("SetTextI18n")
         @Override
         public void run() {
-            if (countdownTimer <= 0) {
-                binding.tvCountdown.setText("GO!");
-                binding.tvCountdown.startAnimation(scaleAnim);
-                executor.schedule(new CountdownFinishRunnable(), 0, TimeUnit.MILLISECONDS);
-            } else {
-                binding.tvCountdown.setText(countdownTimer + "");
-                binding.tvCountdown.startAnimation(scaleAnim);
-                countdownTimer--;
-            }
+            requireActivity().runOnUiThread(() -> {
+                binding.tvCountdown.setVisibility(View.VISIBLE);
+                animate(binding.tvCountdown, new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(@NonNull Animator animation) {
+                        if (countdownRemaining > 0) {
+                            binding.tvCountdown.setText(countdownRemaining + "");
+                        } else {
+                            countdownRemaining = COUNTDOWN;
+                            binding.tvCountdown.setText("GO!");
+                        }
+                    }
+
+                    @Override
+                    public void onAnimationEnd(@NonNull Animator animation) {
+                        binding.tvCountdown.setVisibility(View.GONE);
+                        game.setPause(false);
+                        countdownFuture.cancel(true);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(@NonNull Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(@NonNull Animator animation) {
+                        countdownRemaining--;
+                        if (countdownRemaining > 0) {
+                            binding.tvCountdown.setText(countdownRemaining + "");
+                        } else {
+                            countdownRemaining = COUNTDOWN;
+                            binding.tvCountdown.setText("GO!");
+                        }
+                    }
+                });
+            });
         }
     }
 
-    private class CountdownFinishRunnable implements Runnable {
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void run() {
-            binding.tvCountdown.setVisibility(View.INVISIBLE);
-            game.setPause(false);
-            futureCountdown.cancel(true);
-        }
+    public void animate(View view, Animator.AnimatorListener listener) {
+        ValueAnimator alphaAnimator = ValueAnimator.ofFloat(1, 0);
+        alphaAnimator.addListener(listener);
+        alphaAnimator.setDuration(1000);
+        alphaAnimator.setRepeatCount(COUNTDOWN);
+        alphaAnimator.addUpdateListener(val -> {
+            view.setAlpha((Float) val.getAnimatedValue());
+        });
+        ValueAnimator scaleAnimator = ValueAnimator.ofFloat(1, 1.5f);
+        scaleAnimator.setDuration(1000);
+        scaleAnimator.setRepeatCount(COUNTDOWN);
+        scaleAnimator.addUpdateListener(val -> {
+            view.setScaleX((Float) val.getAnimatedValue());
+            view.setScaleY((Float) val.getAnimatedValue());
+        });
+
+        alphaAnimator.start();
+        scaleAnimator.start();
     }
 }
