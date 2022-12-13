@@ -1,4 +1,4 @@
-package com.example.tetrisapp.ui.view;
+package com.example.tetrisapp.model.game.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -77,6 +77,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         thread = new GenericDrawThread<>(getHolder(), this);
+        thread.setLock(game.getPlayfield());
         thread.setRunning(true);
         thread.start();
     }
