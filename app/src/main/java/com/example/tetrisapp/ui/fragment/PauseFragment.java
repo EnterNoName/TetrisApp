@@ -17,6 +17,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PauseFragment extends Fragment {
     private PauseFragmentBinding binding;
+    private boolean dialogOpen = false;
 
     @Nullable
     @Override
@@ -28,20 +29,24 @@ public class PauseFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         binding.btnResume.setOnClickListener(v -> Navigation.findNavController(v).popBackStack());
-        binding.btnExit.setOnClickListener(v -> confirmExit());
+        binding.btnLeave.setOnClickListener(v -> confirmExit());
 
         super.onViewCreated(view, savedInstanceState);
     }
 
     private void confirmExit() {
-        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
-                .setTitle(getString(R.string.exit_dialog_title))
-                .setMessage(getString(R.string.exit_dialog_description))
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
-                })
-                .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
-                    Navigation.findNavController(binding.getRoot()).popBackStack(R.id.mainMenuFragment, true);
-                })
-                .show();
+        if (!dialogOpen) {
+            dialogOpen = true;
+            new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                    .setTitle(getString(R.string.exit_dialog_title))
+                    .setMessage(getString(R.string.exit_dialog_description))
+                    .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
+                        dialogOpen = false;
+                    })
+                    .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
+                        Navigation.findNavController(binding.getRoot()).navigate(R.id.action_pauseFragment_to_mainMenuFragment);
+                    })
+                    .show();
+        }
     }
 }
