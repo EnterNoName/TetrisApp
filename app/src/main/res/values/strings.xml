@@ -42,4 +42,7 @@
     <string name="disagree">No</string>
     <string name="cancel">Cancel</string>
     <string name="desc_menu">Exit to menu</string>
+    <string name="desc_share">Share score</string>
+    <string name="desc_retry">Play again</string>
+    <string name="desc_leave">To the main menu</string>
 </resources>

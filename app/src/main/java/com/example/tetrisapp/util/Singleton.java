@@ -7,5 +7,5 @@ public class Singleton {
 
     private Singleton() {}
 
-    public Random random = new Random();
+    public final Random random = new Random();
 }
