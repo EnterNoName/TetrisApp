@@ -1,4 +1,4 @@
-package com.example.tetrisapp.ui.view;
+package com.example.tetrisapp.model.game.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
