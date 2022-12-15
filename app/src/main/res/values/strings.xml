@@ -23,7 +23,7 @@
     <string name="desc_resume">Resume</string>
     <string name="pause_text">Paused</string>
 
-    <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/latest</string>
+    <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/</string>
 
     <string name="desc_download_notification">Downloading…</string>
     <string name="update_feature_title">Want to stay up to date?</string>
