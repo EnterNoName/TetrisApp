@@ -1,4 +1,4 @@
-package com.example.tetrisapp.model.game.view;
+package com.example.tetrisapp.ui.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,10 +15,14 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.model.game.Piece;
+import com.example.tetrisapp.model.game.Playfield;
+import com.example.tetrisapp.util.Singleton;
+
+import java.util.concurrent.Future;
 
 public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
     private final Paint paint = new Paint();
-    private GenericDrawThread<PieceView> thread;
+    private GenericDrawThread<PieceView, Boolean> thread;
     private Piece piece = null;
 
     private int pointSize;
@@ -45,11 +49,11 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void init() {
         getHolder().addCallback(this);
+        thread = new GenericDrawThread<>(getHolder(), this, false);
     }
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        thread = new GenericDrawThread<>(getHolder(), this);
         thread.setRunning(true);
         thread.start();
     }

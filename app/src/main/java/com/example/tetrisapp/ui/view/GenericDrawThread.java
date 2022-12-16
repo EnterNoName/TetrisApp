@@ -1,18 +1,19 @@
-package com.example.tetrisapp.model.game.view;
+package com.example.tetrisapp.ui.view;
 
 import android.graphics.Canvas;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class GenericDrawThread<T extends SurfaceView> extends Thread {
+public class GenericDrawThread<T extends SurfaceView, S> extends Thread {
+    private boolean threadRunning = false;
     private final SurfaceHolder surfaceHolder;
     private final T surfaceView;
-    private boolean threadRunning = false;
-    private Object lock = null;
+    private final S lock;
 
-    public GenericDrawThread(SurfaceHolder surfaceHolder, T surfaceView) {
+    public GenericDrawThread(SurfaceHolder surfaceHolder, T surfaceView, S lock) {
         this.surfaceHolder = surfaceHolder;
         this.surfaceView = surfaceView;
+        this.lock = lock;
     }
 
     public void setRunning(boolean b) {
@@ -25,22 +26,12 @@ public class GenericDrawThread<T extends SurfaceView> extends Thread {
             Canvas c = null;
             c = surfaceHolder.lockCanvas();
             synchronized (surfaceHolder) {
-                if (lock != null) {
-                    synchronized (lock) {
-                        surfaceView.draw(c);
-                    }
-                } else {
-                    surfaceView.draw(c);
-                }
+                surfaceView.draw(c);
             }
 
             if (c != null) {
                 surfaceHolder.unlockCanvasAndPost(c);
             }
         }
-    }
-
-    public void setLock(Object lock) {
-        this.lock = lock;
     }
 }

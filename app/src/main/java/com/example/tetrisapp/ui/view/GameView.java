@@ -1,4 +1,4 @@
-package com.example.tetrisapp.model.game.view;
+package com.example.tetrisapp.ui.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,11 +15,15 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.model.game.Piece;
+import com.example.tetrisapp.model.game.Playfield;
 import com.example.tetrisapp.model.game.Tetris;
+import com.example.tetrisapp.util.Singleton;
+
+import java.util.concurrent.Future;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private final Paint paint = new Paint();
-    private GenericDrawThread<GameView> thread;
+    private GenericDrawThread<GameView, Boolean> thread;
     private Tetris game = null;
 
     private int pointSize;
@@ -29,6 +33,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private final int borderWidth = 5;
 
     private int color = 0xff000000;
+    private static final int SHADOW_COLOR = 0x11000000;
 
     public GameView(Context context) {
         super(context);
@@ -61,6 +66,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private void init() {
         getHolder().addCallback(this);
+        thread = new GenericDrawThread<>(getHolder(), this, false);
     }
 
     private void calculateDimensions(int width, int height) {
@@ -76,8 +82,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        thread = new GenericDrawThread<>(getHolder(), this);
-        thread.setLock(game.getPlayfield());
         thread.setRunning(true);
         thread.start();
     }
@@ -113,17 +117,12 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void drawShadow(Canvas canvas) {
-        Piece tetromino = game.getCurrentPiece();
-
-        int yOffset = 0;
-        while (game.getPlayfield().isValidMove(tetromino.getMatrix(), tetromino.getRow() + yOffset + 1, tetromino.getCol())) {
-            yOffset++;
-        }
+        Piece tetromino = game.getShadow();
 
         for (int y = 0; y < tetromino.getMatrix().length; y++) {
             for (int x = 0; x < tetromino.getMatrix()[y].length; x++) {
-                if (tetromino.getMatrix()[y][x] == 1 & (tetromino.getRow() + y - 2 + yOffset) >= 0) {
-                    drawPoint(tetromino.getCol() + x, tetromino.getRow() + y - 2 + yOffset, 0x11000000, tetromino.getOverlayResId(), canvas);
+                if (tetromino.getMatrix()[y][x] == 1 & (tetromino.getRow() + y - 2) >= 0) {
+                    drawPoint(tetromino.getCol() + x, tetromino.getRow() + y - 2, SHADOW_COLOR, tetromino.getOverlayResId(), canvas);
                 }
             }
         }

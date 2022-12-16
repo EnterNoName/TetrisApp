@@ -4,6 +4,7 @@ import com.example.tetrisapp.data.TetrominoRandomizer;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.util.ArrayHelper;
 import com.example.tetrisapp.util.MathHelper;
+import com.example.tetrisapp.util.Singleton;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ public class Tetris {
 
     // In-Game values
     private Piece tetromino;
+    private Piece shadow;
     private Piece heldPiece;
 
     private final PieceConfiguration configuration;
@@ -51,6 +53,7 @@ public class Tetris {
         this.randomizer = new TetrominoRandomizer(configuration.getNames(), starterPieces, initialHistory);
         this.configuration = configuration;
         tetromino = getNextTetromino();
+        calculateShadow();
     }
 
     private void updateSpeed(int delay, float multiplier) {
@@ -59,6 +62,16 @@ public class Tetris {
         }
 
         future = executor.scheduleWithFixedDelay(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
+    }
+
+    private void calculateShadow() {
+        int yOffset = 0;
+        while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + yOffset + 1, tetromino.getCol())) {
+            yOffset++;
+        }
+
+        shadow = tetromino.copy();
+        shadow.setRow(shadow.getRow() + yOffset);
     }
 
     private Piece getNextTetromino() {
@@ -97,6 +110,7 @@ public class Tetris {
 
         tetromino = getNextTetromino();
         int linesCleared = clearLines();
+        calculateShadow();
         updateGameValues(linesCleared);
         updateSpeed(0, 1f);
         this.softDrop = false;
@@ -199,12 +213,14 @@ public class Tetris {
     public void moveTetrominoRight() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
             tetromino.setCol(tetromino.getCol() + 1);
+            calculateShadow();
         }
     }
 
     public void moveTetrominoLeft() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
             tetromino.setCol(tetromino.getCol() - 1);
+            calculateShadow();
         }
     }
 
@@ -214,6 +230,7 @@ public class Tetris {
 
             if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
                 tetromino.setMatrix(rotatedMatrix);
+                calculateShadow();
             }
         }
     }
@@ -224,11 +241,12 @@ public class Tetris {
 
             if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
                 tetromino.setMatrix(rotatedMatrix);
+                calculateShadow();
             }
         }
     }
 
-    private void moveTetrominoDown() {
+    private synchronized void moveTetrominoDown() {
         if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
             tetromino.setRow(tetromino.getRow() + 1);
 
@@ -267,6 +285,8 @@ public class Tetris {
                 tetromino.setCol(col);
             }
 
+            calculateShadow();
+
             holdUsed = true;
             callback.invalidate();
         }
@@ -277,12 +297,10 @@ public class Tetris {
     private class GameExecutor implements Runnable {
         @Override
         public void run() {
-            synchronized (playfield) {
-                if (gameOver) {
-                    future.cancel(true);
-                } else {
-                    moveTetrominoDown();
-                }
+            if (gameOver) {
+                future.cancel(true);
+            } else {
+                moveTetrominoDown();
             }
         }
     }
@@ -349,6 +367,10 @@ public class Tetris {
         if (future != null)
             return future.getDelay(TimeUnit.MILLISECONDS);
         return 0;
+    }
+
+    public Piece getShadow() {
+        return this.shadow;
     }
 
     // Setters
