@@ -11,8 +11,11 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
+import com.example.tetrisapp.data.AppDatabase;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
+import com.example.tetrisapp.util.Singleton;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
@@ -55,9 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private final View.OnTouchListener mDelayHideTouchListener = (view, motionEvent) -> {
         switch (motionEvent.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (AUTO_HIDE) {
-                    delayedHide(AUTO_HIDE_DELAY_MILLIS);
-                }
+                hide();
                 break;
             case MotionEvent.ACTION_UP:
                 view.performClick();
@@ -76,21 +77,22 @@ public class MainActivity extends AppCompatActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mContentView = binding.fragmentContainerView;
-        mContentView.setOnClickListener(v -> delayedHide(100));
+        mContentView.setOnTouchListener(mDelayHideTouchListener);
+
+        Singleton.INSTANCE.db = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "db").build();
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
-        delayedHide(100);
+        hide();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        delayedHide(100);
+        hide();
     }
 
     private void toggle() {
