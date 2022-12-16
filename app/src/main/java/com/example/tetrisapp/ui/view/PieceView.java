@@ -6,23 +6,16 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.model.game.Piece;
-import com.example.tetrisapp.model.game.Playfield;
-import com.example.tetrisapp.util.Singleton;
 
-import java.util.concurrent.Future;
-
-public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
+public class PieceView extends View {
     private final Paint paint = new Paint();
-    private GenericDrawThread<PieceView, Boolean> thread;
     private Piece piece = null;
 
     private int pointSize;
@@ -43,24 +36,17 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
         } finally {
             a.recycle();
         }
-
         init();
     }
 
     private void init() {
-        getHolder().addCallback(this);
-        thread = new GenericDrawThread<>(getHolder(), this, false);
+
     }
 
     @Override
-    public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        thread.setRunning(true);
-        thread.start();
-    }
-
-    @Override
-    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-        calculateDimensions(width, height);
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        calculateDimensions(w, h);
     }
 
     private void calculateDimensions(int width, int height) {
@@ -89,22 +75,9 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
-    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        boolean retry = true;
-        thread.setRunning(false);
-        while (retry) {
-            try {
-                thread.join();
-                retry = false;
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
-    @Override
-    public void draw(Canvas canvas) {
+    public void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
         if (canvas != null) {
-            super.draw(canvas);
             canvas.drawColor(color);
             if (piece != null) {
                 drawTetromino(canvas);
@@ -147,5 +120,6 @@ public class PieceView extends SurfaceView implements SurfaceHolder.Callback {
     public void setPiece(Piece piece) {
         this.piece = piece;
         calculateDimensions(getWidth(), getHeight());
+        invalidate();
     }
 }

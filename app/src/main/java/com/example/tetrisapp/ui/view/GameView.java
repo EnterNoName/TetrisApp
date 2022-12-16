@@ -6,24 +6,20 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.model.game.Piece;
-import com.example.tetrisapp.model.game.Playfield;
 import com.example.tetrisapp.model.game.Tetris;
-import com.example.tetrisapp.util.Singleton;
 
-import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-public class GameView extends SurfaceView implements SurfaceHolder.Callback {
+public class GameView extends View {
     private final Paint paint = new Paint();
-    private GenericDrawThread<GameView, Boolean> thread;
     private Tetris game = null;
 
     private int pointSize;
@@ -52,8 +48,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         } finally {
             a.recycle();
         }
-
         init();
+    }
+
+    private void init() {
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::invalidate, 0, 1000 / 60, TimeUnit.MILLISECONDS);
     }
 
     public void setGame(Tetris game) {
@@ -62,11 +61,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     public Tetris getGame() {
         return game;
-    }
-
-    private void init() {
-        getHolder().addCallback(this);
-        thread = new GenericDrawThread<>(getHolder(), this, false);
     }
 
     private void calculateDimensions(int width, int height) {
@@ -81,39 +75,21 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
-    public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        thread.setRunning(true);
-        thread.start();
-    }
-
-    @Override
-    public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-        calculateDimensions(width, height);
-    }
-
-    @Override
-    public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        boolean retry = true;
-        thread.setRunning(false);
-        while (retry) {
-            try {
-                thread.join();
-                retry = false;
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
-    @Override
-    public void draw(Canvas canvas) {
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
         if (game != null && canvas != null) {
-            super.draw(canvas);
             canvas.drawColor(color);
             drawGrid(canvas);
             drawPlayfield(canvas);
             drawShadow(canvas);
             drawTetromino(canvas);
         }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        calculateDimensions(w, h);
     }
 
     private void drawShadow(Canvas canvas) {

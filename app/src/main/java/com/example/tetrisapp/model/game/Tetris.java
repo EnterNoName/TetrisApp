@@ -4,7 +4,6 @@ import com.example.tetrisapp.data.TetrominoRandomizer;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.util.ArrayHelper;
 import com.example.tetrisapp.util.MathHelper;
-import com.example.tetrisapp.util.Singleton;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +22,10 @@ public class Tetris {
     public static final int LOCK_DELAY = 500;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private DataUpdateCallback callback = () -> {};
+    private Callback dataUpdateCallback = () -> {
+    };
+    private Callback onMoveCallback = () -> {
+    };
     private ScheduledFuture<?> future;
 
     // In-Game values
@@ -54,6 +56,9 @@ public class Tetris {
         this.configuration = configuration;
         tetromino = getNextTetromino();
         calculateShadow();
+
+        onMoveCallback.call();
+        dataUpdateCallback.call();
     }
 
     private void updateSpeed(int delay, float multiplier) {
@@ -99,7 +104,6 @@ public class Tetris {
                 if (tetromino.getMatrix()[row][col] == 1) {
                     if (tetromino.getRow() + row < 2) {
                         gameOver = true;
-                        callback.invalidate();
                         return;
                     }
 
@@ -115,35 +119,38 @@ public class Tetris {
         updateSpeed(0, 1f);
         this.softDrop = false;
         this.holdUsed = false;
-        callback.invalidate();
+
+        onMoveCallback.call();
+        dataUpdateCallback.call();
     }
 
     private void updateGameValues(int linesCleared) {
         if (linesCleared == 0) {
             this.combo = 0;
-        } else {
-            this.lines += linesCleared;
-            this.level = this.lines / 10;
-            switch (linesCleared) {
-                case 1:
-                    this.score += (40 + 10 * this.combo) * (this.level + 1);
-                    break;
-                case 2:
-                    this.score += (100 + 10 * this.combo) * (this.level + 1);
-                    break;
-                case 3:
-                    this.score += (300 + 10 * this.combo) * (this.level + 1);
-                    break;
-                case 4:
-                    this.score += (1200 + 10 * this.combo) * (this.level + 1);
-                    break;
-                default:
-                    this.score += (300 + 10 * this.combo) * linesCleared * (this.level + 1);
-                    break;
-            }
-            this.combo += linesCleared;
-            this.speed = (int) (DEFAULT_SPEED * Math.pow(0.9, this.level));
+            return;
         }
+
+        this.lines += linesCleared;
+        this.level = this.lines / 10;
+        switch (linesCleared) {
+            case 1:
+                this.score += (40 + 10 * this.combo) * (this.level + 1);
+                break;
+            case 2:
+                this.score += (100 + 10 * this.combo) * (this.level + 1);
+                break;
+            case 3:
+                this.score += (300 + 10 * this.combo) * (this.level + 1);
+                break;
+            case 4:
+                this.score += (1200 + 10 * this.combo) * (this.level + 1);
+                break;
+            default:
+                this.score += (300 + 10 * this.combo) * linesCleared * (this.level + 1);
+                break;
+        }
+        this.combo += linesCleared;
+        this.speed = (int) (DEFAULT_SPEED * Math.pow(0.9, this.level));
     }
 
     private int clearLines() {
@@ -213,6 +220,7 @@ public class Tetris {
     public void moveTetrominoRight() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
             tetromino.setCol(tetromino.getCol() + 1);
+            onMoveCallback.call();
             calculateShadow();
         }
     }
@@ -220,35 +228,42 @@ public class Tetris {
     public void moveTetrominoLeft() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
             tetromino.setCol(tetromino.getCol() - 1);
+            onMoveCallback.call();
             calculateShadow();
         }
     }
 
     public void rotateTetrominoRight() {
-        if (!pause) {
-            byte[][] rotatedMatrix = MathHelper.rotateMatrixClockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+        if (pause) return;
 
-            if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
-                tetromino.setMatrix(rotatedMatrix);
-                calculateShadow();
-            }
+        byte[][] rotatedMatrix = MathHelper.rotateMatrixClockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+
+        if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
+            tetromino.setMatrix(rotatedMatrix);
+            onMoveCallback.call();
+            calculateShadow();
         }
+
     }
 
     public void rotateTetrominoLeft() {
-        if (!pause) {
-            byte[][] rotatedMatrix = MathHelper.rotateMatrixCounterclockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+        if (pause) return;
 
-            if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
-                tetromino.setMatrix(rotatedMatrix);
-                calculateShadow();
-            }
+        byte[][] rotatedMatrix = MathHelper.rotateMatrixCounterclockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+
+        if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
+            tetromino.setMatrix(rotatedMatrix);
+            onMoveCallback.call();
+            calculateShadow();
         }
     }
 
-    private synchronized void moveTetrominoDown() {
+    private void moveTetrominoDown() {
+        if (pause) return;
+
         if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
             tetromino.setRow(tetromino.getRow() + 1);
+            onMoveCallback.call();
 
             lockDelay = false;
         } else {
@@ -263,17 +278,19 @@ public class Tetris {
     }
 
     public void hardDrop() {
-        if (!pause) {
-            future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
-            while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
-                tetromino.setRow(tetromino.getRow() + 1);
-            }
-            placeTetromino();
+        if (pause) return;
+
+        future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
+        while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
+            tetromino.setRow(tetromino.getRow() + 1);
         }
+        placeTetromino();
     }
 
     public void hold() {
-        if (!holdUsed && !pause) {
+        if (pause) return;
+
+        if (!holdUsed) {
             if (heldPiece == null) {
                 heldPiece = configuration.get(tetromino.getName()).copy();
                 tetromino = getNextTetromino();
@@ -286,9 +303,10 @@ public class Tetris {
             }
 
             calculateShadow();
+            onMoveCallback.call();
+            dataUpdateCallback.call();
 
             holdUsed = true;
-            callback.invalidate();
         }
     }
 
@@ -385,29 +403,32 @@ public class Tetris {
                 delayLeft = 0;
             }
             this.pause = pause;
-            callback.invalidate();
         }
     }
 
     public void setSoftDrop(boolean softDrop) {
         if (!pause) {
+            this.softDrop = softDrop;
+
             if (softDrop) {
                 updateSpeed(0, 0.25f);
             } else {
                 updateSpeed(0, 1f);
             }
-
-            this.softDrop = softDrop;
         }
     }
 
     // Callback
 
-    public void setCallback(DataUpdateCallback callback) {
-        this.callback = callback;
+    public void setCallback(Callback callback) {
+        this.dataUpdateCallback = callback;
     }
 
-    public interface DataUpdateCallback {
-        void invalidate();
+    public void setOnMove(Callback callback) {
+        this.onMoveCallback = callback;
+    }
+
+    public interface Callback {
+        void call();
     }
 }

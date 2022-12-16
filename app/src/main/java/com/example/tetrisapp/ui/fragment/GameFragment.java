@@ -33,7 +33,7 @@ public class GameFragment extends Fragment {
     private GameFragmentBinding binding;
     private Tetris game;
 
-    private final ScheduledExecutorService executor =  Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     private static final int MOVEMENT_INTERVAL = 125;
     private static final int COUNTDOWN = 5;
@@ -72,6 +72,7 @@ public class GameFragment extends Fragment {
 
         binding.gameView.setGame(game);
         game.setCallback(this::updateViews);
+        game.setOnMove(() -> binding.gameView.postInvalidate());
 
         initOnClickListeners();
         updateViews();
@@ -119,7 +120,11 @@ public class GameFragment extends Fragment {
         binding.include.lines.setText(game.getLines() + "");
         binding.include.combo.setText(game.getCombo() + "");
         if (game.isGameOver()) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_gameOverFragment);
+            GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
+            action.setScore(game.getScore());
+            action.setLevel(game.getLevel());
+            action.setLines(game.getLines());
+            Navigation.findNavController(binding.getRoot()).navigate(action);
         }
     }
 
@@ -176,9 +181,6 @@ public class GameFragment extends Fragment {
         @Override
         public void run() {
             game.moveTetrominoRight();
-            requireActivity().runOnUiThread(() -> {
-                binding.gameView.invalidate();
-            });
         }
     }
 
@@ -186,9 +188,6 @@ public class GameFragment extends Fragment {
         @Override
         public void run() {
             game.moveTetrominoLeft();
-            requireActivity().runOnUiThread(() -> {
-                binding.gameView.invalidate();
-            });
         }
     }
 
