@@ -79,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
         mContentView = binding.fragmentContainerView;
         mContentView.setOnTouchListener(mDelayHideTouchListener);
 
-        Singleton.INSTANCE.db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "db").build();
+        Singleton.INSTANCE.setDb(Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "db").build());
     }
 
     @Override

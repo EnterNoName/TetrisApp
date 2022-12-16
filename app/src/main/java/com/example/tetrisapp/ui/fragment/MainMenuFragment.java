@@ -1,18 +1,10 @@
 package com.example.tetrisapp.ui.fragment;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.DownloadManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +13,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -33,12 +24,10 @@ import com.example.tetrisapp.model.Update;
 import com.example.tetrisapp.util.ConnectionHelper;
 import com.example.tetrisapp.util.DownloadUtil;
 import com.example.tetrisapp.util.PermissionHelper;
-import com.example.tetrisapp.util.Singleton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.EOFException;
-import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -85,24 +74,24 @@ public class MainMenuFragment extends Fragment {
     private void checkUpdate() {
         connectionHelper.checkInternetConnection(
                 () -> {
-                        updateService.getUpdate().enqueue(new Callback<Update>() {
-                            @Override
-                            public void onResponse(Call<Update> call, Response<Update> response) {
-                                if (response.isSuccessful()) {
-                                    assert response.body() != null;
-                                    if (BuildConfig.VERSION_NAME.compareTo(response.body().version) < 0) {
-                                        showUpdateDialog(response);
-                                    }
+                    updateService.getUpdate().enqueue(new Callback<Update>() {
+                        @Override
+                        public void onResponse(Call<Update> call, Response<Update> response) {
+                            if (response.isSuccessful()) {
+                                assert response.body() != null;
+                                if (BuildConfig.VERSION_NAME.compareTo(response.body().version) < 0) {
+                                    showUpdateDialog(response);
                                 }
                             }
+                        }
 
-                            @Override
-                            public void onFailure(Call<Update> call, Throwable t) {
-                                if (!(t instanceof EOFException)) {
-                                    t.printStackTrace();
-                                }
+                        @Override
+                        public void onFailure(Call<Update> call, Throwable t) {
+                            if (!(t instanceof EOFException)) {
+                                t.printStackTrace();
                             }
-                        });
+                        }
+                    });
                 },
                 () -> {
                     // TODO
@@ -142,16 +131,23 @@ public class MainMenuFragment extends Fragment {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             permissionHelper.checkPermission(
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    () -> {hasWriteStoragePermission = true;},
+                    () -> {
+                        hasWriteStoragePermission = true;
+                    },
                     () -> {
                         permissionHelper.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            () -> {hasWriteStoragePermission = true;},
-                            () -> {
-                            Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                                    .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
-                        });
-                        },
-                    () -> {}
+                                () -> {
+                                    hasWriteStoragePermission = true;
+                                },
+                                () -> {
+                                    Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
+                                            .setAction(R.string.update_feature_retry, v -> {
+                                                requestPermissions();
+                                            }).show();
+                                });
+                    },
+                    () -> {
+                    }
             );
         } else {
             hasWriteStoragePermission = true;
@@ -159,16 +155,24 @@ public class MainMenuFragment extends Fragment {
 
         permissionHelper.checkPermission(
                 Manifest.permission.REQUEST_INSTALL_PACKAGES,
-                () -> {hasInstallPackagesPermission = true;},
+                () -> {
+                    hasInstallPackagesPermission = true;
+                },
                 () -> {
                     permissionHelper.requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            () -> {hasInstallPackagesPermission = true;},
+                            () -> {
+                                hasInstallPackagesPermission = true;
+                            },
                             () -> {
                                 Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                                        .setAction(R.string.update_feature_retry, v -> {requestPermissions();}).show();
+                                        .setAction(R.string.update_feature_retry, v -> {
+                                            requestPermissions();
+                                        }).show();
                             });
                 },
-                () -> {activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));}
+                () -> {
+                    activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));
+                }
         );
     }
 }

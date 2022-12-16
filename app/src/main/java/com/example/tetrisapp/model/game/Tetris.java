@@ -104,6 +104,8 @@ public class Tetris {
                 if (tetromino.getMatrix()[row][col] == 1) {
                     if (tetromino.getRow() + row < 2) {
                         gameOver = true;
+                        onMoveCallback.call();
+                        dataUpdateCallback.call();
                         return;
                     }
 

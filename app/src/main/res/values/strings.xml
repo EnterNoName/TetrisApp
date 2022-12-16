@@ -23,6 +23,9 @@
     <string name="desc_resume">Resume</string>
     <string name="pause_text">Paused</string>
 
+    <string name="current_high_score">Current high score:\n%d</string>
+    <string name="new_high_score">New high score:\n%d</string>
+
     <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/</string>
 
     <string name="desc_download_notification">Downloading…</string>

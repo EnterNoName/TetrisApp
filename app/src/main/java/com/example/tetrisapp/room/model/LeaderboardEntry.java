@@ -3,13 +3,17 @@ package com.example.tetrisapp.room.model;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
+
+import com.example.tetrisapp.room.converter.DateConverter;
 
 import java.util.Date;
 
 @Entity
+@TypeConverters({DateConverter.class})
 public class LeaderboardEntry {
-    @PrimaryKey
-    public int id;
+    @PrimaryKey(autoGenerate = true)
+    public long id;
 
     @ColumnInfo(name = "score")
     public int score;

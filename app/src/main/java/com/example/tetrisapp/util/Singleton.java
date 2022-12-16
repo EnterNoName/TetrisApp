@@ -12,5 +12,14 @@ public class Singleton {
 
     public final Random random = new Random();
 
-    public AppDatabase db;
+    private AppDatabase db = null;
+
+    public AppDatabase getDb() {
+        return db;
+    }
+
+    public void setDb(AppDatabase db) {
+        if (this.db != null) return;
+        this.db = db;
+    }
 }
