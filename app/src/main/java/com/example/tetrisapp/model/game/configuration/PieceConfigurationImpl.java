@@ -85,7 +85,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                 ),
         }).iterator();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Piece piece = iterator.next();
             pieceMap.put(piece.getName(), piece);
         }

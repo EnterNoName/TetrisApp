@@ -13,8 +13,8 @@ public class TouchListener implements View.OnTouchListener {
     private static final int SWIPE_DISTANCE_THRESHOLD = 200;
     private static final int SWIPE_VELOCITY_THRESHOLD = 400;
 
-    public TouchListener (Context ctx){
-        gestureDetector = new GestureDetector(ctx, new GestureListener(){
+    public TouchListener(Context ctx) {
+        gestureDetector = new GestureDetector(ctx, new GestureListener() {
             @Override
             public boolean onSwipe(Direction direction, float distance, float velocity) {
                 if (distance >= SWIPE_DISTANCE_THRESHOLD && velocity >= SWIPE_VELOCITY_THRESHOLD) {
@@ -57,6 +57,7 @@ public class TouchListener implements View.OnTouchListener {
                 break;
         }
 
+        v.performClick();
         return gestureDetector.onTouchEvent(event);
     }
 

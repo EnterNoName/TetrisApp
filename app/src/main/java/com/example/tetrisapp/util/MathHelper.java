@@ -36,7 +36,7 @@ public class MathHelper {
     public static <T> void floodFill(T[][] matrix, int i, int j, ShouldFillCallback<T> shouldFillCallback, FillCallback<T> fillCallback) {
         if (
                 i < 0 || j < 0 || i >= matrix.length || j >= matrix[i].length ||
-                !shouldFillCallback.call(matrix[i][j])
+                        !shouldFillCallback.call(matrix[i][j])
         ) return;
 
         matrix[i][j] = fillCallback.call(matrix, i, j);

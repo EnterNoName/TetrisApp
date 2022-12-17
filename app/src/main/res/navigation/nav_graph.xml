@@ -79,7 +79,9 @@
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_gameOverFragment_to_gameFragment"
-            app:destination="@id/gameFragment" />
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/gameFragment"
+            app:popUpToInclusive="true" />
         <argument
             android:name="score"
             app:argType="integer"

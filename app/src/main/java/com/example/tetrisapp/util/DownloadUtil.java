@@ -13,7 +13,6 @@ import android.webkit.MimeTypeMap;
 import androidx.core.content.FileProvider;
 
 import com.example.tetrisapp.BuildConfig;
-import com.example.tetrisapp.R;
 
 import java.io.File;
 

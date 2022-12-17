@@ -41,7 +41,7 @@ public class ConnectionHelper {
             @Override
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
-                if(isInternetAvailable()) {
+                if (isInternetAvailable()) {
                     onAvailable.call();
                 } else {
                     onLost.call();

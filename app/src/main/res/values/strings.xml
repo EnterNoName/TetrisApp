@@ -48,4 +48,8 @@
     <string name="desc_share">Share score</string>
     <string name="desc_retry">Play again</string>
     <string name="desc_leave">To the main menu</string>
+
+    <string name="share_subject">Check out my latest score on Brick Shit House™</string>
+    <string name="share_text">I\'ve got a new score of %d on Brick Shit House™\n Can you do better than me?\n\nDownload the app at https://github.com/MichaelRayven/TetrisApp/releases/latest</string>
+    <string name="share_using">Share using</string>
 </resources>
