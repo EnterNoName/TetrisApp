@@ -1,7 +1,7 @@
 package com.example.tetrisapp.ui.fragment;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,6 +17,7 @@ import androidx.navigation.Navigation;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.GameOverFragmentBinding;
 import com.example.tetrisapp.room.model.LeaderboardEntry;
+import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.Singleton;
 
 import java.util.Date;
@@ -79,9 +80,20 @@ public class GameOverFragment extends Fragment {
 
         binding.btnLeave.setOnClickListener(v -> {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameOverFragment_to_mainMenuFragment);
+            ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnRetry.setOnClickListener(v -> {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameOverFragment_to_gameFragment);
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnShare.setOnClickListener(v -> {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+            shareIntent.putExtra(Intent.EXTRA_TEXT, String.format(getString(R.string.share_text), args.getScore()));
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
+
+            ((MainActivity) requireActivity()).getClickMP().start();
         });
     }
 }

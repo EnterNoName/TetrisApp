@@ -11,8 +11,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.databinding.GameOverFragmentBinding;
 import com.example.tetrisapp.databinding.PauseFragmentBinding;
+import com.example.tetrisapp.ui.activity.MainActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PauseFragment extends Fragment {
@@ -28,8 +28,14 @@ public class PauseFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        binding.btnResume.setOnClickListener(v -> Navigation.findNavController(v).popBackStack());
-        binding.btnLeave.setOnClickListener(v -> confirmExit());
+        binding.btnResume.setOnClickListener(v -> {
+            Navigation.findNavController(v).popBackStack();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnLeave.setOnClickListener(v -> {
+            confirmExit();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
 
         super.onViewCreated(view, savedInstanceState);
     }

@@ -19,6 +19,7 @@ import com.example.tetrisapp.databinding.GameFragmentBinding;
 import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
+import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.TouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -71,11 +72,13 @@ public class GameFragment extends Fragment {
         }
 
         binding.gameView.setGame(game);
-        game.setCallback(this::updateViews);
-        game.setOnMove(() -> binding.gameView.postInvalidate());
 
         initOnClickListeners();
-        updateViews();
+        initGameListeners();
+
+        updateScoreboard();
+        updateNextPieceViews();
+        updateHoldPieceView();
     }
 
     @Override
@@ -106,26 +109,50 @@ public class GameFragment extends Fragment {
     }
 
     @SuppressLint("SetTextI18n")
-    private void updateViews() {
-        binding.include.pvNext1.setPiece(configuration.get(game.getTetrominoSequence().get(0)).copy());
-        binding.include.pvNext2.setPiece(configuration.get(game.getTetrominoSequence().get(1)).copy());
-        binding.include.pvNext3.setPiece(configuration.get(game.getTetrominoSequence().get(2)).copy());
-        binding.include.pvNext4.setPiece(configuration.get(game.getTetrominoSequence().get(3)).copy());
-        if (game.getHeldPiece() != null) {
-            binding.include.pvHold.setPiece(game.getHeldPiece().copy());
-        }
-
+    private void updateScoreboard() {
         binding.include.score.setText(game.getScore() + "");
         binding.include.level.setText(game.getLevel() + "");
         binding.include.lines.setText(game.getLines() + "");
         binding.include.combo.setText(game.getCombo() + "");
-        if (game.isGameOver()) {
+    }
+
+    private void updateNextPieceViews() {
+        binding.include.pvNext1.setPiece(configuration.get(game.getTetrominoSequence().get(0)).copy());
+        binding.include.pvNext2.setPiece(configuration.get(game.getTetrominoSequence().get(1)).copy());
+        binding.include.pvNext3.setPiece(configuration.get(game.getTetrominoSequence().get(2)).copy());
+        binding.include.pvNext4.setPiece(configuration.get(game.getTetrominoSequence().get(3)).copy());
+    }
+
+    private void updateHoldPieceView() {
+        if (game.getHeldPiece() != null) {
+            binding.include.pvHold.setPiece(game.getHeldPiece().copy());
+        }
+    }
+
+    private void initGameListeners() {
+        game.setOnGameValuesUpdate(this::updateScoreboard);
+        game.setOnHold(this::updateHoldPieceView);
+        game.setOnMove(() -> binding.gameView.postInvalidate());
+        game.setOnSolidify(() -> {
+            ((MainActivity) requireActivity()).getSolidifyMP().start();
+            this.updateNextPieceViews();
+        });
+        game.setOnGameOver(() -> {
+            ((MainActivity) requireActivity()).getMainThemeMP().pause();
+            ((MainActivity) requireActivity()).getGameOverMP().start();
+
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
             action.setScore(game.getScore());
             action.setLevel(game.getLevel());
             action.setLines(game.getLines());
             Navigation.findNavController(binding.getRoot()).navigate(action);
-        }
+        });
+        game.setOnPause(() -> {
+            ((MainActivity) requireActivity()).getMainThemeMP().pause();
+        });
+        game.setOnResume(() -> {
+            ((MainActivity) requireActivity()).getMainThemeMP().start();
+        });
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -134,6 +161,7 @@ public class GameFragment extends Fragment {
             @Override
             public void onTapDown() {
                 futureMoveLeft = executor.scheduleAtFixedRate(new MoveLeftRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
+                ((MainActivity) requireActivity()).getClickMP().start();
             }
 
             @Override
@@ -145,6 +173,7 @@ public class GameFragment extends Fragment {
             @Override
             public void onTapDown() {
                 futureMoveRight = executor.scheduleAtFixedRate(new MoveRightRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
+                ((MainActivity) requireActivity()).getClickMP().start();
             }
 
             @Override
@@ -152,11 +181,18 @@ public class GameFragment extends Fragment {
                 if (futureMoveRight != null) futureMoveRight.cancel(true);
             }
         });
-        binding.btnRotateLeft.setOnClickListener(v -> game.rotateTetrominoLeft());
-        binding.btnRotateRight.setOnClickListener(v -> game.rotateTetrominoRight());
+        binding.btnRotateLeft.setOnClickListener(v -> {
+            game.rotateTetrominoLeft();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnRotateRight.setOnClickListener(v -> {
+            game.rotateTetrominoRight();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
         binding.btnPause.setOnClickListener(v -> {
             game.setPause(true);
             Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment);
+            ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnDown.setOnTouchListener(new TouchListener(getContext()) {
             @Override
@@ -167,6 +203,7 @@ public class GameFragment extends Fragment {
             @Override
             public void onTapDown() {
                 game.setSoftDrop(true);
+                ((MainActivity) requireActivity()).getClickMP().start();
             }
 
             @Override
@@ -174,7 +211,10 @@ public class GameFragment extends Fragment {
                 game.setSoftDrop(false);
             }
         });
-        binding.include.cvHold.setOnClickListener(v -> game.hold());
+        binding.include.cvHold.setOnClickListener(v -> {
+            game.hold();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
     }
 
     private class MoveRightRunnable implements Runnable {
@@ -202,9 +242,11 @@ public class GameFragment extends Fragment {
                     public void onAnimationStart(@NonNull Animator animation) {
                         if (countdownRemaining > 0) {
                             binding.tvCountdown.setText(countdownRemaining + "");
+                            ((MainActivity) requireActivity()).getCountdownMP().start();
                         } else {
                             countdownRemaining = COUNTDOWN;
                             binding.tvCountdown.setText("GO!");
+                            ((MainActivity) requireActivity()).getGameStartMP().start();
                         }
                     }
 
@@ -225,9 +267,11 @@ public class GameFragment extends Fragment {
                         countdownRemaining--;
                         if (countdownRemaining > 0) {
                             binding.tvCountdown.setText(countdownRemaining + "");
+                            ((MainActivity) requireActivity()).getCountdownMP().start();
                         } else {
                             countdownRemaining = COUNTDOWN;
                             binding.tvCountdown.setText("GO!");
+                            ((MainActivity) requireActivity()).getGameStartMP().start();
                         }
                     }
                 });

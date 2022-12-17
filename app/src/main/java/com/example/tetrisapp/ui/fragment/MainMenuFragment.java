@@ -2,6 +2,7 @@ package com.example.tetrisapp.ui.fragment;
 
 import android.Manifest;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -21,6 +22,7 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
 import com.example.tetrisapp.model.Update;
+import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionHelper;
 import com.example.tetrisapp.util.DownloadUtil;
 import com.example.tetrisapp.util.PermissionHelper;
@@ -44,6 +46,7 @@ public class MainMenuFragment extends Fragment {
     private PermissionHelper permissionHelper;
     private ConnectionHelper connectionHelper;
     private Retrofit retrofit;
+
     UpdateService updateService;
     ActivityResultLauncher<Intent> activityResultLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -123,8 +126,30 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void initClickListeners() {
-        binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
-        binding.btnExit.setOnClickListener(v -> requireActivity().finishAndRemoveTask());
+        binding.btnSingleplayer.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment);
+            ((MainActivity) requireActivity()).getClickMP().start();
+            ((MainActivity) requireActivity()).getGameStartBtnMP().start();
+        });
+        binding.btnExit.setOnClickListener(v -> {
+            requireActivity().finishAndRemoveTask();
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnLeaderboard.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnSettings.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnMultiplayer.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnSocials.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
+        binding.btnSignIn.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).getClickMP().start();
+        });
     }
 
     private void requestPermissions() {

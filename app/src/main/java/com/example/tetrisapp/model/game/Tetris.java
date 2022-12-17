@@ -22,10 +22,16 @@ public class Tetris {
     public static final int LOCK_DELAY = 500;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private Callback dataUpdateCallback = () -> {
-    };
-    private Callback onMoveCallback = () -> {
-    };
+    private Callback onGameValuesUpdateCallback = () -> {};
+    private Callback onMoveCallback = () -> {};
+    private Callback onPauseCallback = () -> {};
+    private Callback onResumeCallback = () -> {};
+    private Callback onGameOverCallback = () -> {};
+    private Callback onLineClearCallback = () -> {};
+    private Callback onSolidifyCallback = () -> {};
+    private Callback onHoldCallback = () -> {};
+    private Callback onHardDropCallback = () -> {};
+
     private ScheduledFuture<?> future;
 
     // In-Game values
@@ -57,8 +63,7 @@ public class Tetris {
         tetromino = getNextTetromino();
         calculateShadow();
 
-        onMoveCallback.call();
-        dataUpdateCallback.call();
+        onGameValuesUpdateCallback.call();
     }
 
     private void updateSpeed(int delay, float multiplier) {
@@ -104,8 +109,7 @@ public class Tetris {
                 if (tetromino.getMatrix()[row][col] == 1) {
                     if (tetromino.getRow() + row < 2) {
                         gameOver = true;
-                        onMoveCallback.call();
-                        dataUpdateCallback.call();
+                        onGameOverCallback.call();
                         return;
                     }
 
@@ -114,6 +118,8 @@ public class Tetris {
             }
         }
 
+        onSolidifyCallback.call();
+
         tetromino = getNextTetromino();
         int linesCleared = clearLines();
         calculateShadow();
@@ -121,9 +127,6 @@ public class Tetris {
         updateSpeed(0, 1f);
         this.softDrop = false;
         this.holdUsed = false;
-
-        onMoveCallback.call();
-        dataUpdateCallback.call();
     }
 
     private void updateGameValues(int linesCleared) {
@@ -153,6 +156,9 @@ public class Tetris {
         }
         this.combo += linesCleared;
         this.speed = (int) (DEFAULT_SPEED * Math.pow(0.9, this.level));
+
+        onGameValuesUpdateCallback.call();
+        onLineClearCallback.call();
     }
 
     private int clearLines() {
@@ -282,6 +288,7 @@ public class Tetris {
     public void hardDrop() {
         if (pause) return;
 
+        onHardDropCallback.call();
         future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
         while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
             tetromino.setRow(tetromino.getRow() + 1);
@@ -305,8 +312,7 @@ public class Tetris {
             }
 
             calculateShadow();
-            onMoveCallback.call();
-            dataUpdateCallback.call();
+            onHoldCallback.call();
 
             holdUsed = true;
         }
@@ -363,11 +369,15 @@ public class Tetris {
         return combo;
     }
 
+    public int getSpeed() {
+        return speed;
+    }
+
     public boolean isGameOver() {
         return gameOver;
     }
 
-    public boolean isPause() {
+    public boolean isPaused() {
         return pause;
     }
 
@@ -400,9 +410,12 @@ public class Tetris {
             if (pause && future != null) {
                 delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
                 future.cancel(true);
+
+                onPauseCallback.call();
             } else {
                 updateSpeed(delayLeft, 1f);
                 delayLeft = 0;
+                onResumeCallback.call();
             }
             this.pause = pause;
         }
@@ -422,12 +435,40 @@ public class Tetris {
 
     // Callback
 
-    public void setCallback(Callback callback) {
-        this.dataUpdateCallback = callback;
+    public void setOnGameValuesUpdate(Callback callback) {
+        this.onGameValuesUpdateCallback = callback;
     }
 
     public void setOnMove(Callback callback) {
         this.onMoveCallback = callback;
+    }
+
+    public void setOnPause(Callback callback) {
+        this.onPauseCallback = callback;
+    }
+
+    public void setOnResume(Callback callback) {
+        this.onResumeCallback = callback;
+    }
+
+    public void setOnGameOver(Callback callback) {
+        this.onGameOverCallback = callback;
+    }
+
+    public void setOnSolidify(Callback callback) {
+        this.onSolidifyCallback = callback;
+    }
+
+    public void setOnLineClear(Callback callback) {
+        this.onLineClearCallback = callback;
+    }
+
+    public void setOnHold(Callback callback) {
+        this.onHoldCallback = callback;
+    }
+
+    public void setOnHardDrop(Callback callback) {
+        this.onHardDropCallback = callback;
     }
 
     public interface Callback {

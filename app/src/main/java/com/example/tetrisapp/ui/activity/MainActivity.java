@@ -1,5 +1,6 @@
 package com.example.tetrisapp.ui.activity;
 
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,12 +14,21 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
+import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.AppDatabase;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
 import com.example.tetrisapp.util.Singleton;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
+
+    private MediaPlayer mainThemeMP;
+    private MediaPlayer clickMP;
+    private MediaPlayer countdownMP;
+    private MediaPlayer solidifyMP;
+    private MediaPlayer gameStartMP;
+    private MediaPlayer gameOverMP;
+    private MediaPlayer gameStartBtnMP;
 
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
@@ -79,6 +89,16 @@ public class MainActivity extends AppCompatActivity {
         mContentView = binding.fragmentContainerView;
         mContentView.setOnTouchListener(mDelayHideTouchListener);
 
+        mainThemeMP = MediaPlayer.create(this, R.raw.main);
+        countdownMP = MediaPlayer.create(this, R.raw.countdown);
+        gameStartMP = MediaPlayer.create(this, R.raw.gamestart);
+        gameOverMP = MediaPlayer.create(this, R.raw.gameover);
+        solidifyMP = MediaPlayer.create(this, R.raw.solidify);
+        clickMP = MediaPlayer.create(this, R.raw.click);
+        gameStartBtnMP = MediaPlayer.create(this, R.raw.gamestartbtn);
+
+        mainThemeMP.setLooping(true);
+
         Singleton.INSTANCE.setDb(Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "db").build());
     }
@@ -135,5 +155,33 @@ public class MainActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+    public MediaPlayer getMainThemeMP() {
+        return mainThemeMP;
+    }
+
+    public MediaPlayer getClickMP() {
+        return clickMP;
+    }
+
+    public MediaPlayer getCountdownMP() {
+        return countdownMP;
+    }
+
+    public MediaPlayer getSolidifyMP() {
+        return solidifyMP;
+    }
+
+    public MediaPlayer getGameStartMP() {
+        return gameStartMP;
+    }
+
+    public MediaPlayer getGameOverMP() {
+        return gameOverMP;
+    }
+
+    public MediaPlayer getGameStartBtnMP() {
+        return gameStartBtnMP;
     }
 }
