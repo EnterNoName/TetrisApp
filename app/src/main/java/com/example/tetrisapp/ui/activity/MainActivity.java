@@ -104,6 +104,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        mainThemeMP.release();
+        countdownMP.release();
+        gameOverMP.release();
+        gameStartBtnMP.release();
+        gameStartMP.release();
+        clickMP.release();
+        solidifyMP.release();
+        super.onDestroy();
+    }
+
+    @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         hide();
