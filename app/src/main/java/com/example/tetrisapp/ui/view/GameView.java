@@ -30,6 +30,7 @@ public class GameView extends View {
 
     private int color = 0xff000000;
     private static final int SHADOW_COLOR = 0x11000000;
+    private static final int FPS = 120;
 
     public GameView(Context context) {
         super(context);
@@ -52,7 +53,7 @@ public class GameView extends View {
     }
 
     private void init() {
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::invalidate, 0, 1000 / 60, TimeUnit.MILLISECONDS);
+        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::postInvalidate, 0, 1000 / FPS, TimeUnit.MILLISECONDS);
     }
 
     public void setGame(Tetris game) {
@@ -163,20 +164,21 @@ public class GameView extends View {
 
     private void drawTetromino(Canvas canvas) {
         Piece tetromino = game.getCurrentPiece();
-        int color = tetromino.getColor();
+        int tetrominoColor = tetromino.getColor();
 
         int delay = (int) game.getDelay();
         if (game.isLockDelay() && delay > 0) {
-            color = ColorUtils.blendARGB(
-                    color,
+            float x = delay * 1f / Tetris.LOCK_DELAY;
+            tetrominoColor = ColorUtils.blendARGB(
+                    tetrominoColor,
                     0xFFFFFFFF,
-                    (float) (-Math.pow(delay / (Tetris.LOCK_DELAY * 20f) - 10, 2) + 100f));
+                    (float) (-2 * Math.pow(x, 2) + 2 * x + 0.5f));
         }
 
         for (int y = 0; y < tetromino.getMatrix().length; y++) {
             for (int x = 0; x < tetromino.getMatrix()[y].length; x++) {
                 if (tetromino.getMatrix()[y][x] == 1 & (tetromino.getRow() + y - 2) >= 0) {
-                    drawPoint(tetromino.getCol() + x, tetromino.getRow() + y - 2, color, tetromino.getOverlayResId(), canvas);
+                    drawPoint(tetromino.getCol() + x, tetromino.getRow() + y - 2, tetrominoColor, tetromino.getOverlayResId(), canvas);
                 }
             }
         }
