@@ -9,17 +9,23 @@ import com.example.tetrisapp.room.model.LeaderboardEntry;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+
 @Dao
 public interface LeaderboardDao {
     @Query("SELECT * FROM leaderboardentry")
-    List<LeaderboardEntry> getAll();
+    Maybe<List<LeaderboardEntry>> getAll();
 
     @Query("SELECT * FROM leaderboardentry WHERE score = (SELECT MAX(score) FROM leaderboardentry) LIMIT 1")
-    LeaderboardEntry getBest();
+    Single<LeaderboardEntry> getBest();
+
+    @Query("SELECT * FROM leaderboardentry ORDER BY score DESC")
+    Single<List<LeaderboardEntry>> getSorted();
 
     @Insert
-    void insert(LeaderboardEntry... entry);
+    Single<Long> insert(LeaderboardEntry leaderboardEntry);
 
     @Delete
-    void delete(LeaderboardEntry entry);
+    Single<Integer> delete(LeaderboardEntry entry);
 }

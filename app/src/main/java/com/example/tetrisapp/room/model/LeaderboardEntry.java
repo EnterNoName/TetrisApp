@@ -13,7 +13,7 @@ import java.util.Date;
 @TypeConverters({DateConverter.class})
 public class LeaderboardEntry {
     @PrimaryKey(autoGenerate = true)
-    public long id;
+    public long id = 0;
 
     @ColumnInfo(name = "score")
     public int score;
