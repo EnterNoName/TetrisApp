@@ -82,8 +82,10 @@ public class ScoresFragment extends Fragment {
                 Singleton.INSTANCE.getDb().leaderboardDao().delete(leaderboardEntries.get(pos))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe((integer) -> requireActivity().runOnUiThread(() -> binding.list.getAdapter().notifyItemRemoved(pos)),
-                                throwable -> Log.e("ScoresFragment", throwable.getLocalizedMessage()));
+                        .subscribe((integer) -> {
+                            leaderboardEntries.remove(pos);
+                            requireActivity().runOnUiThread(() -> binding.list.getAdapter().notifyItemRemoved(pos));
+                        }, throwable -> Log.e("ScoresFragment", throwable.getLocalizedMessage()));
             }
 
             @Override
