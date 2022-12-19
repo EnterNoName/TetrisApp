@@ -36,11 +36,6 @@ public class PieceView extends View {
         } finally {
             a.recycle();
         }
-        init();
-    }
-
-    private void init() {
-
     }
 
     @Override
