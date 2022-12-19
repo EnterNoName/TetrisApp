@@ -16,8 +16,12 @@ import androidx.room.Room;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.AppDatabase;
+import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
 import com.example.tetrisapp.util.Singleton;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
@@ -29,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer gameStartMP;
     private MediaPlayer gameOverMP;
     private MediaPlayer gameStartBtnMP;
+
+    private Retrofit retrofit;
+    private UpdateService updateService;
 
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
@@ -96,6 +103,12 @@ public class MainActivity extends AppCompatActivity {
         solidifyMP = MediaPlayer.create(this, R.raw.solidify);
         clickMP = MediaPlayer.create(this, R.raw.click);
         gameStartBtnMP = MediaPlayer.create(this, R.raw.gamestartbtn);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.update_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        updateService = retrofit.create(UpdateService.class);
 
         mainThemeMP.setLooping(true);
 
@@ -195,5 +208,9 @@ public class MainActivity extends AppCompatActivity {
 
     public MediaPlayer getGameStartBtnMP() {
         return gameStartBtnMP;
+    }
+
+    public UpdateService getUpdateService() {
+        return updateService;
     }
 }

@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,6 @@ import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
 import com.example.tetrisapp.model.Update;
 import com.example.tetrisapp.ui.activity.MainActivity;
@@ -37,15 +35,10 @@ import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainMenuFragment extends Fragment {
     private MainMenuFragmentBinding binding;
     private ConnectionHelper connectionHelper;
-
-    private Retrofit retrofit;
-    private UpdateService updateService;
 
     private Response<Update> update = null;
 
@@ -72,18 +65,13 @@ public class MainMenuFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         connectionHelper = new ConnectionHelper(requireActivity());
-        retrofit = new Retrofit.Builder()
-                .baseUrl(getString(R.string.update_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        updateService = retrofit.create(UpdateService.class);
         initClickListeners();
         checkUpdate();
     }
 
     private void checkUpdate() {
         connectionHelper.checkInternetConnection(
-                () -> updateService.getUpdate().enqueue(new Callback<Update>() {
+                () -> ((MainActivity) requireActivity()).getUpdateService().getUpdate().enqueue(new Callback<Update>() {
                     @Override
                     public void onResponse(Call<Update> call, Response<Update> response) {
                         if (response.isSuccessful() && response.body() != null) {
@@ -137,6 +125,7 @@ public class MainMenuFragment extends Fragment {
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnLeaderboard.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_scoresFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnSettings.setOnClickListener(v -> {
