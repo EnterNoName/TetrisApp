@@ -77,8 +77,7 @@ public class GameFragment extends Fragment {
         initGameListeners();
 
         updateScoreboard();
-        updateNextPieceViews();
-        updateHoldPieceView();
+        updatePieceViews();
     }
 
     @Override
@@ -96,49 +95,48 @@ public class GameFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
                 .setTitle(getString(R.string.exit_dialog_title))
                 .setMessage(getString(R.string.exit_dialog_description))
-                .setOnDismissListener((dialog) -> {
-                    game.setPause(false);
-                })
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
-                    game.setPause(false);
-                })
-                .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
-                    Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment);
-                })
+                .setOnDismissListener((dialog) -> game.setPause(false))
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> game.setPause(false))
+                .setPositiveButton(getString(R.string.agree), (dialog, which) -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment))
                 .show();
     }
 
     @SuppressLint("SetTextI18n")
     private void updateScoreboard() {
-        binding.include.score.setText(game.getScore() + "");
-        binding.include.level.setText(game.getLevel() + "");
-        binding.include.lines.setText(game.getLines() + "");
-        binding.include.combo.setText(game.getCombo() + "");
+        requireActivity().runOnUiThread(() -> {
+            binding.include.score.setText(game.getScore() + "");
+            binding.include.level.setText(game.getLevel() + "");
+            binding.include.lines.setText(game.getLines() + "");
+            binding.include.combo.setText(game.getCombo() + "");
+        });
     }
 
-    private void updateNextPieceViews() {
-        binding.include.pvNext1.setPiece(configuration.get(game.getTetrominoSequence().get(0)).copy());
-        binding.include.pvNext2.setPiece(configuration.get(game.getTetrominoSequence().get(1)).copy());
-        binding.include.pvNext3.setPiece(configuration.get(game.getTetrominoSequence().get(2)).copy());
-        binding.include.pvNext4.setPiece(configuration.get(game.getTetrominoSequence().get(3)).copy());
-    }
+    private void updatePieceViews() {
+        requireActivity().runOnUiThread(() -> {
+            binding.include.pvNext1.setPiece(configuration.get(game.getTetrominoSequence().get(0)).copy());
+            binding.include.pvNext2.setPiece(configuration.get(game.getTetrominoSequence().get(1)).copy());
+            binding.include.pvNext3.setPiece(configuration.get(game.getTetrominoSequence().get(2)).copy());
+            binding.include.pvNext4.setPiece(configuration.get(game.getTetrominoSequence().get(3)).copy());
+        });
 
-    private void updateHoldPieceView() {
-        if (game.getHeldPiece() != null) {
-            binding.include.pvHold.setPiece(game.getHeldPiece().copy());
-        }
+        requireActivity().runOnUiThread(() -> {
+            if (game.getHeldPiece() != null) {
+                binding.include.pvHold.setPiece(game.getHeldPiece().copy());
+            }
+        });
     }
 
     private void initGameListeners() {
         game.setOnGameValuesUpdate(this::updateScoreboard);
-        game.setOnHold(this::updateHoldPieceView);
+        game.setOnHold(this::updatePieceViews);
         game.setOnMove(() -> binding.gameView.postInvalidate());
         game.setOnSolidify(() -> {
             ((MainActivity) requireActivity()).getSolidifyMP().start();
-            this.updateNextPieceViews();
+            this.updatePieceViews();
         });
         game.setOnGameOver(() -> {
             ((MainActivity) requireActivity()).getMainThemeMP().pause();
+            ((MainActivity) requireActivity()).getMainThemeMP().reset();
             ((MainActivity) requireActivity()).getGameOverMP().start();
 
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
@@ -147,12 +145,8 @@ public class GameFragment extends Fragment {
             action.setLines(game.getLines());
             Navigation.findNavController(binding.getRoot()).navigate(action);
         });
-        game.setOnPause(() -> {
-            ((MainActivity) requireActivity()).getMainThemeMP().pause();
-        });
-        game.setOnResume(() -> {
-            ((MainActivity) requireActivity()).getMainThemeMP().start();
-        });
+        game.setOnPause(() -> ((MainActivity) requireActivity()).getMainThemeMP().pause());
+        game.setOnResume(() -> ((MainActivity) requireActivity()).getMainThemeMP().start());
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -284,9 +278,7 @@ public class GameFragment extends Fragment {
         alphaAnimator.addListener(listener);
         alphaAnimator.setDuration(1000);
         alphaAnimator.setRepeatCount(COUNTDOWN);
-        alphaAnimator.addUpdateListener(val -> {
-            view.setAlpha((Float) val.getAnimatedValue());
-        });
+        alphaAnimator.addUpdateListener(val -> view.setAlpha((Float) val.getAnimatedValue()));
         ValueAnimator scaleAnimator = ValueAnimator.ofFloat(1, 1.5f);
         scaleAnimator.setDuration(1000);
         scaleAnimator.setRepeatCount(COUNTDOWN);
