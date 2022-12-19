@@ -67,11 +67,11 @@ public class Tetris {
     }
 
     private void updateSpeed(int delay, float multiplier) {
-        if (future != null) {
+        if (future != null && !future.isCancelled()) {
             future.cancel(true);
         }
 
-        future = executor.scheduleWithFixedDelay(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
+        future = executor.scheduleAtFixedRate(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
     }
 
     private void calculateShadow() {
@@ -118,15 +118,18 @@ public class Tetris {
             }
         }
 
-        onSolidifyCallback.call();
-
         tetromino = getNextTetromino();
         int linesCleared = clearLines();
         calculateShadow();
+
+        onSolidifyCallback.call();
+
         updateGameValues(linesCleared);
         updateSpeed(0, 1f);
         this.softDrop = false;
         this.holdUsed = false;
+
+        onGameValuesUpdateCallback.call();
     }
 
     private void updateGameValues(int linesCleared) {
@@ -155,9 +158,8 @@ public class Tetris {
                 break;
         }
         this.combo += linesCleared;
-        this.speed = (int) (DEFAULT_SPEED * Math.pow(0.9, this.level));
+        this.speed = Math.max(DEFAULT_SPEED - this.level * 50, 50);
 
-        onGameValuesUpdateCallback.call();
         onLineClearCallback.call();
     }
 
