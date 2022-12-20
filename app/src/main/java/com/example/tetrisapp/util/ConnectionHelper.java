@@ -33,6 +33,10 @@ public class ConnectionHelper {
         }
     }
 
+    public void checkInternetConnection(Callback onAvailable) {
+        checkInternetConnection(onAvailable, () -> {});
+    }
+
     public void checkInternetConnection(Callback onAvailable, Callback onLost) {
         this.onAvailable = onAvailable;
         this.onLost = onLost;

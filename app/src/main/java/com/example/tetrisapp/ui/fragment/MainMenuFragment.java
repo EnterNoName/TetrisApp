@@ -3,13 +3,18 @@ package com.example.tetrisapp.ui.fragment;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -28,8 +33,12 @@ import com.example.tetrisapp.util.ConnectionHelper;
 import com.example.tetrisapp.util.DownloadUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.io.EOFException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.concurrent.Executors;
 
 import retrofit2.Call;
@@ -42,6 +51,7 @@ public class MainMenuFragment extends Fragment {
 
     private Response<Update> update = null;
 
+    // Permission handling
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (!checkInstallPackagesPermissions()) {
             Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
@@ -49,16 +59,26 @@ public class MainMenuFragment extends Fragment {
         } else {
             requestPermissions();
         }
-    });;
+    });
     private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         requestPermissions();
-    });;
+    });
+
+    private FirebaseAuth mAuth;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = MainMenuFragmentBinding.inflate(inflater, container, false);
+        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
     }
 
     @Override
@@ -67,6 +87,38 @@ public class MainMenuFragment extends Fragment {
         connectionHelper = new ConnectionHelper(requireActivity());
         initClickListeners();
         checkUpdate();
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            new DownloadImageTask(binding.ivUser).execute(user.getPhotoUrl().toString());
+            binding.tvProfileName.setText(user.getDisplayName());
+        }
+    }
+
+    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public DownloadImageTask(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String urldisplay = urls[0];
+            Bitmap image = null;
+            try {
+                InputStream in = new URL(urldisplay).openStream();
+                image = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return image;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
     }
 
     private void checkUpdate() {
@@ -88,10 +140,7 @@ public class MainMenuFragment extends Fragment {
                             t.printStackTrace();
                         }
                     }
-                }),
-                () -> {
-                }
-        );
+                }));
     }
 
     private void installUpdate() {
@@ -138,6 +187,7 @@ public class MainMenuFragment extends Fragment {
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnSignIn.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_loginFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
     }
