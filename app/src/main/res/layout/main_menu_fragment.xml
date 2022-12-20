@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/fira_sans_medium"
             android:includeFontPadding="false"
-            android:text="@string/sign_in"
+            android:text="@string/sign_in_underlined"
             android:layout_marginEnd="12dp"
             android:textColor="?colorOnPrimary"
             android:textSize="20sp"
