@@ -19,6 +19,8 @@ import com.example.tetrisapp.data.AppDatabase;
 import com.example.tetrisapp.data.service.UpdateService;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
 import com.example.tetrisapp.util.Singleton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -36,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Retrofit retrofit;
     private UpdateService updateService;
+
+    private FirebaseAuth mAuth;
 
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
@@ -112,8 +116,19 @@ public class MainActivity extends AppCompatActivity {
 
         mainThemeMP.setLooping(true);
 
+        mAuth = FirebaseAuth.getInstance();
+
         Singleton.INSTANCE.setDb(Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "db").build());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // TODO: Do something
+        }
     }
 
     @Override
