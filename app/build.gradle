@@ -1,9 +1,21 @@
 plugins {
     id 'com.android.application'
     id 'androidx.navigation.safeargs'
+    id 'com.google.gms.google-services'
 }
 
 android {
+    signingConfigs {
+        release {
+            Properties keystoreProps = new Properties()
+            keystoreProps.load(new FileInputStream(file('keystore.config')))
+
+            storeFile file(keystoreProps['storeFile'])
+            storePassword keystoreProps['storePassword']
+            keyPassword keystoreProps['keyPassword']
+            keyAlias keystoreProps['keyAlias']
+        }
+    }
     namespace 'com.example.tetrisapp'
     compileSdk 33
 
@@ -16,12 +28,17 @@ android {
 
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.release
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
         }
     }
 
@@ -63,4 +80,6 @@ dependencies {
 
     implementation platform('com.google.firebase:firebase-bom:31.1.1')
     implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.android.gms:play-services-auth:20.4.0'
 }
