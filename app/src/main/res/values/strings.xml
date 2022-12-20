@@ -36,6 +36,7 @@
     <string name="update_feature_decline">No, thanks</string>
     <string name="update_feature_unavailable">Auto-update feature will be disabled.</string>
     <string name="update_feature_retry">Enable</string>
+    <string name="desc_update_feature">Update feature depiction</string>
 
     <string name="exit_dialog_title">Exit the game?</string>
     <string name="exit_dialog_description">All current progress will be lost!</string>
@@ -54,9 +55,10 @@
     <string name="share_using">Share using</string>
     <string name="game_over">Game over!</string>
     <string name="personal_scores">Personal Scores</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
     <string name="sign_in_google">Sign-in with Google</string>
     <string name="register_account">Don\'t have an account?</string>
+    <string name="login_account">Already have an account?</string>
     <string name="sign_in">Sign-in</string>
+    <string name="sign_up">Sign-up</string>
 </resources>

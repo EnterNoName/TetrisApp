@@ -10,7 +10,7 @@
         android:id="@+id/btnBack"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="16dp"
         android:background="@drawable/background_button"
         android:contentDescription="@string/desc_resume"
         android:padding="8dp"
