@@ -66,8 +66,8 @@ public class Tetris {
         onGameValuesUpdateCallback.call();
     }
 
-    private void updateSpeed(int delay, float multiplier) {
-        if (future != null && !future.isCancelled()) {
+    private synchronized void updateSpeed(int delay, float multiplier) {
+        if (future != null) {
             future.cancel(true);
         }
 
@@ -289,7 +289,6 @@ public class Tetris {
 
     public void hardDrop() {
         if (pause) return;
-
         onHardDropCallback.call();
         future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
         while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
