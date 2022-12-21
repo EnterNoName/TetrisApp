@@ -130,6 +130,7 @@ public class ScoresFragment extends Fragment {
         DividerItemDecoration divider = new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL);
         divider.setDrawable(requireActivity().getDrawable(R.drawable.recyclerview_divider));
         binding.list.addItemDecoration(divider);
+        binding.list.setAdapter(new ScoreRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
 
         // Load RecyclerView items
         Singleton.INSTANCE.getDb().leaderboardDao().getSorted().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(leaderboardEntries -> {

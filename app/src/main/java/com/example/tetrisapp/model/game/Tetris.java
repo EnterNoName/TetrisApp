@@ -108,8 +108,10 @@ public class Tetris {
             for (int col = 0; col < tetromino.getMatrix()[row].length; col++) {
                 if (tetromino.getMatrix()[row][col] == 1) {
                     if (tetromino.getRow() + row < 2) {
-                        gameOver = true;
-                        onGameOverCallback.call();
+                        if (!gameOver) {
+                            gameOver = true;
+                            onGameOverCallback.call();
+                        }
                         return;
                     }
 

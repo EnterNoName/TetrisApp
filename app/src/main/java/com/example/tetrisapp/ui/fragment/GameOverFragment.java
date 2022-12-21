@@ -27,6 +27,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class GameOverFragment extends Fragment {
+    private final static String TAG = "GameOverFragment";
     private GameOverFragmentBinding binding;
 
     @Override
@@ -67,12 +68,14 @@ public class GameOverFragment extends Fragment {
                     binding.tvHighScore.setText(currentHighScore >= args.getScore() ?
                             String.format(getString(R.string.current_high_score), currentHighScore) :
                             String.format(getString(R.string.new_high_score), args.getScore()));
+
                     insertScoreInDB();
                 }, throwable -> {
                     if (throwable instanceof EmptyResultSetException) {
                         binding.tvHighScore.setText(0 >= args.getScore() ?
                                 String.format(getString(R.string.current_high_score), 0) :
                                 String.format(getString(R.string.new_high_score), args.getScore()));
+
                         insertScoreInDB();
                     } else {
                         Log.e("GameOverFragment", throwable.getLocalizedMessage());
@@ -94,12 +97,7 @@ public class GameOverFragment extends Fragment {
 
             Singleton.INSTANCE.getDb().leaderboardDao().insert(entry)
                     .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            aLong -> {
-                            },
-                            throwable -> Log.e("GameOverFragment", throwable.getLocalizedMessage())
-                    );
+                    .subscribe(i -> {}, throwable -> Log.e(TAG, throwable.getLocalizedMessage()));
         }
     }
 
