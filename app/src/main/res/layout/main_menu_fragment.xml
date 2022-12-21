@@ -36,8 +36,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/btnSignIn"
             app:layout_constraintEnd_toStartOf="@+id/tvProfileName"
             app:layout_constraintStart_toStartOf="@+id/btnSignIn"
-            app:layout_constraintTop_toTopOf="@+id/btnSignIn"
-            app:tint="?colorOnPrimary" />
+            app:layout_constraintTop_toTopOf="@+id/btnSignIn" />
 
         <TextView
             android:id="@+id/tvProfileName"

@@ -23,12 +23,8 @@
             app:popEnterAnim="@android:anim/fade_in"
             app:popExitAnim="@android:anim/fade_out" />
         <action
-            android:id="@+id/action_mainMenuFragment_to_loginFragment"
-            app:destination="@id/loginFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+            android:id="@+id/action_mainMenuFragment_to_accountFragment"
+            app:destination="@id/accountFragment" />
     </fragment>
     <fragment
         android:id="@+id/gameFragment"
@@ -114,8 +110,7 @@
         android:name="com.example.tetrisapp.ui.fragment.ScoresFragment"
         android:label="ScoresFragment" />
     <fragment
-        android:id="@+id/loginFragment"
-        android:name="com.example.tetrisapp.ui.fragment.LoginFragment"
-        android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
+        android:id="@+id/accountFragment"
+        android:name="com.example.tetrisapp.ui.fragment.AccountFragment"
+        android:label="AccountFragment" />
 </navigation>

@@ -3,18 +3,13 @@ package com.example.tetrisapp.ui.fragment;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -24,6 +19,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.Transformation;
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
@@ -37,8 +35,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.io.EOFException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.concurrent.Executors;
 
 import retrofit2.Call;
@@ -46,6 +42,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainMenuFragment extends Fragment {
+    private static final String TAG = "MainMenuFragment";
     private MainMenuFragmentBinding binding;
     private ConnectionHelper connectionHelper;
 
@@ -91,33 +88,12 @@ public class MainMenuFragment extends Fragment {
 
     private void updateUI(FirebaseUser user) {
         if (user != null) {
-            new DownloadImageTask(binding.ivUser).execute(user.getPhotoUrl().toString());
-            binding.tvProfileName.setText(user.getDisplayName());
-        }
-    }
-
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView bmImage;
-
-        public DownloadImageTask(ImageView bmImage) {
-            this.bmImage = bmImage;
-        }
-
-        protected Bitmap doInBackground(String... urls) {
-            String urldisplay = urls[0];
-            Bitmap image = null;
-            try {
-                InputStream in = new URL(urldisplay).openStream();
-                image = BitmapFactory.decodeStream(in);
-            } catch (Exception e) {
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
+            if (user.getPhotoUrl() != null) {
+                Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(binding.ivUser);
             }
-            return image;
-        }
-
-        protected void onPostExecute(Bitmap result) {
-            bmImage.setImageBitmap(result);
+            if (user.getDisplayName() != null) {
+                binding.tvProfileName.setText(user.getDisplayName());
+            }
         }
     }
 
@@ -187,7 +163,7 @@ public class MainMenuFragment extends Fragment {
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnSignIn.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_loginFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
     }
