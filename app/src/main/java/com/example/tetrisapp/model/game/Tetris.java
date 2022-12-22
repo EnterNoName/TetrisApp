@@ -409,8 +409,12 @@ public class Tetris {
     // Setters
 
     public void setPause(boolean pause) {
+        if (pause == this.pause) return;
+
         if (!gameOver) {
-            if (pause && future != null) {
+            if (pause) {
+                if (future == null) return;
+
                 delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
                 future.cancel(true);
 
