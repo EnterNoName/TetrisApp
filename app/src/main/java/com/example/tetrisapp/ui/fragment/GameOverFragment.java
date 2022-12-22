@@ -16,19 +16,25 @@ import androidx.navigation.Navigation;
 import androidx.room.rxjava3.EmptyResultSetException;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.databinding.GameOverFragmentBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.ui.activity.MainActivity;
-import com.example.tetrisapp.util.Singleton;
 
 import java.util.Date;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
+@AndroidEntryPoint
 public class GameOverFragment extends Fragment {
     private final static String TAG = "GameOverFragment";
     private GameOverFragmentBinding binding;
+    @Inject
+    LeaderboardDao leaderboardDao;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,7 +65,7 @@ public class GameOverFragment extends Fragment {
         binding.level.setText(args.getLevel() + "");
         binding.lines.setText(args.getLines() + "");
 
-        Singleton.INSTANCE.getDb().leaderboardDao().getBest()
+        leaderboardDao.getBest()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(leaderboardEntry -> {
@@ -95,7 +101,7 @@ public class GameOverFragment extends Fragment {
             entry.lines = args.getLines();
             entry.date = new Date();
 
-            Singleton.INSTANCE.getDb().leaderboardDao().insert(entry)
+            leaderboardDao.insert(entry)
                     .subscribeOn(Schedulers.io())
                     .subscribe(i -> {}, throwable -> Log.e(TAG, throwable.getLocalizedMessage()));
         }

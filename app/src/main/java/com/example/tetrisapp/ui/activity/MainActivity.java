@@ -12,13 +12,10 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.room.Room;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.data.local.db.AppDatabase;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
-import com.example.tetrisapp.util.Singleton;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -113,9 +110,6 @@ public class MainActivity extends AppCompatActivity {
         updateService = retrofit.create(UpdateService.class);
 
         mainThemeMP.setLooping(true);
-
-        Singleton.INSTANCE.setDb(Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "db").build());
     }
 
     @Override

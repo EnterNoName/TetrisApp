@@ -15,27 +15,30 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.databinding.FragmentScoresListBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
-import com.example.tetrisapp.util.Singleton;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
+@AndroidEntryPoint
 public class ScoresFragment extends Fragment {
+    private static final String TAG = "ScoresFragment";
     private FragmentScoresListBinding binding;
 
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    private int mColumnCount = 1;
+    @Inject
+    LeaderboardDao leaderboardDao;
 
     private int width;
     private int height;
@@ -44,25 +47,10 @@ public class ScoresFragment extends Fragment {
     private ItemTouchHelper swipeHelper;
     private List<LeaderboardEntry> leaderboardEntries = new ArrayList<>();
 
-    public ScoresFragment() {
-    }
-
-    public static ScoresFragment newInstance(int columnCount) {
-        ScoresFragment fragment = new ScoresFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         width = metrics.widthPixels;
@@ -79,7 +67,7 @@ public class ScoresFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int pos = viewHolder.getBindingAdapterPosition();
-                Singleton.INSTANCE.getDb().leaderboardDao().delete(leaderboardEntries.get(pos))
+                leaderboardDao.delete(leaderboardEntries.get(pos))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe((integer) -> {
@@ -117,12 +105,6 @@ public class ScoresFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentScoresListBinding.inflate(inflater, container, false);
 
-        if (mColumnCount <= 1) {
-            binding.list.setLayoutManager(new LinearLayoutManager(requireContext()));
-        } else {
-            binding.list.setLayoutManager(new GridLayoutManager(requireContext(), mColumnCount));
-        }
-
         // RecyclerView swipe handler
         swipeHelper.attachToRecyclerView(binding.list);
 
@@ -133,7 +115,7 @@ public class ScoresFragment extends Fragment {
         binding.list.setAdapter(new ScoreRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
 
         // Load RecyclerView items
-        Singleton.INSTANCE.getDb().leaderboardDao().getSorted().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(leaderboardEntries -> {
+        leaderboardDao.getSorted().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(leaderboardEntries -> {
             this.leaderboardEntries = leaderboardEntries;
             // RecyclerView adapter
             binding.list.setAdapter(new ScoreRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
