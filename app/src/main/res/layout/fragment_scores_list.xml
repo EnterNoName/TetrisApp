@@ -12,6 +12,7 @@
         android:layout_height="48dp"
         android:layout_marginStart="16dp"
         android:background="@drawable/background_button"
+        app:tint="?colorOnPrimary"
         android:contentDescription="@string/desc_resume"
         android:padding="8dp"
         android:scaleType="fitCenter"
@@ -37,12 +38,13 @@
             android:fontFamily="@font/fira_sans_bold"
             android:text="@string/personal_scores"
             android:textAlignment="center"
-            android:textColor="@color/black"
+            android:textColor="?colorOnPrimary"
             android:textSize="24sp" />
 
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
+            app:tint="?colorOnPrimary"
             android:src="@drawable/ic_round_leaderboard_24" />
     </LinearLayout>
 

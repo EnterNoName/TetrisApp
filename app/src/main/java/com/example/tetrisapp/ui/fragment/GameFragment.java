@@ -86,6 +86,12 @@ public class GameFragment extends Fragment {
         countdown();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        game.setPause(true);
+    }
+
     private void countdown() {
         countdownFuture = executor.submit(new CountdownRunnable());
     }

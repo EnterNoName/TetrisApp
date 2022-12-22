@@ -171,8 +171,7 @@
             android:paddingHorizontal="8dp"
             android:paddingVertical="12dp"
             android:src="@drawable/ic_round_replay_24"
-            app:tint="?colorOnPrimary"
-            tools:ignore="ImageContrastCheck,DuplicateSpeakableTextCheck" />
+            app:tint="?colorOnPrimary" />
 
         <ImageButton
             android:id="@+id/btnShare"
@@ -184,8 +183,7 @@
             android:paddingHorizontal="8dp"
             android:paddingVertical="12dp"
             android:src="@drawable/ic_round_share_24"
-            app:tint="?colorOnPrimary"
-            tools:ignore="ImageContrastCheck" />
+            app:tint="?colorOnPrimary" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
