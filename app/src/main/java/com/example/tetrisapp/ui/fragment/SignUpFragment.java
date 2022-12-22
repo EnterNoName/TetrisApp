@@ -95,7 +95,11 @@ public class SignUpFragment extends Fragment {
 
         binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
                 .addOnCompleteListener(requireActivity(), result -> {
-                    activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                    try {
+                        activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                    } catch (Throwable e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                    }
                 })
                 .addOnFailureListener(requireActivity(), e -> {
                     Log.d(TAG, e.getLocalizedMessage());

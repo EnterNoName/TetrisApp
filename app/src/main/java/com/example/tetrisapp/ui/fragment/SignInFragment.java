@@ -100,11 +100,20 @@ public class SignInFragment extends Fragment {
 
         binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
                 .addOnCompleteListener(requireActivity(), result -> {
-                    activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                    try {
+                        activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                    } catch (Throwable e) {
+                        if (e instanceof ApiException) {
+                            Log.d(TAG, "The user doesn't have a signed-in account");
+                        } else {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    }
                 })
                 .addOnFailureListener(requireActivity(), e -> {
                     Log.d(TAG, e.getLocalizedMessage());
-                }));
+                })
+        );
 
         binding.btnSwitchToSignUp.setOnClickListener(v -> {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_signUpFragment);
