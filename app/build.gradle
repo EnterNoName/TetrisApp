@@ -96,4 +96,7 @@ dependencies {
     // Dagger Hilt
     implementation 'com.google.dagger:hilt-android:2.44.2'
     annotationProcessor 'com.google.dagger:hilt-compiler:2.44.2'
+
+    // Pusher for websockets
+    implementation 'com.pusher:pusher-java-client:2.4.2'
 }
