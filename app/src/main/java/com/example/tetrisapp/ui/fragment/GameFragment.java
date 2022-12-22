@@ -12,6 +12,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
@@ -20,6 +21,7 @@ import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
 import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.TouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -30,9 +32,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class GameFragment extends Fragment {
-    private final PieceConfiguration configuration = new PieceConfigurationImpl();
+    private static final String TAG = "GameFragment";
     private GameFragmentBinding binding;
-    private Tetris game;
+    private GameViewModel viewModel;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -47,6 +49,7 @@ public class GameFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(this).get(GameViewModel.class);
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -66,12 +69,7 @@ public class GameFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        if (game == null) {
-            game = new Tetris(configuration, new String[]{"I", "J", "L", "T"}, new String[]{"Z", "S", "Z", "S"});
-        }
-
-        binding.gameView.setGame(game);
+        binding.gameView.setGame(viewModel.getGame());
 
         initOnClickListeners();
         initGameListeners();
@@ -89,7 +87,7 @@ public class GameFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        game.setPause(true);
+        viewModel.getGame().setPause(true);
     }
 
     private void countdown() {
@@ -97,12 +95,12 @@ public class GameFragment extends Fragment {
     }
 
     private void confirmExit() {
-        game.setPause(true);
+        viewModel.getGame().setPause(true);
         new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
                 .setTitle(getString(R.string.exit_dialog_title))
                 .setMessage(getString(R.string.exit_dialog_description))
-                .setOnDismissListener((dialog) -> game.setPause(false))
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> game.setPause(false))
+                .setOnDismissListener((dialog) -> viewModel.getGame().setPause(false))
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> viewModel.getGame().setPause(false))
                 .setPositiveButton(getString(R.string.agree), (dialog, which) -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment))
                 .show();
     }
@@ -110,49 +108,49 @@ public class GameFragment extends Fragment {
     @SuppressLint("SetTextI18n")
     private void updateScoreboard() {
         requireActivity().runOnUiThread(() -> {
-            binding.include.score.setText(game.getScore() + "");
-            binding.include.level.setText(game.getLevel() + "");
-            binding.include.lines.setText(game.getLines() + "");
-            binding.include.combo.setText(game.getCombo() + "");
+            binding.include.score.setText(viewModel.getGame().getScore() + "");
+            binding.include.level.setText(viewModel.getGame().getLevel() + "");
+            binding.include.lines.setText(viewModel.getGame().getLines() + "");
+            binding.include.combo.setText(viewModel.getGame().getCombo() + "");
         });
     }
 
     private void updatePieceViews() {
         requireActivity().runOnUiThread(() -> {
-            binding.include.pvNext1.setPiece(configuration.get(game.getTetrominoSequence().get(0)).copy());
-            binding.include.pvNext2.setPiece(configuration.get(game.getTetrominoSequence().get(1)).copy());
-            binding.include.pvNext3.setPiece(configuration.get(game.getTetrominoSequence().get(2)).copy());
-            binding.include.pvNext4.setPiece(configuration.get(game.getTetrominoSequence().get(3)).copy());
+            binding.include.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
+            binding.include.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
+            binding.include.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
+            binding.include.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
         });
 
         requireActivity().runOnUiThread(() -> {
-            if (game.getHeldPiece() != null) {
-                binding.include.pvHold.setPiece(game.getHeldPiece().copy());
+            if (viewModel.getGame().getHeldPiece() != null) {
+                binding.include.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
             }
         });
     }
 
     private void initGameListeners() {
-        game.setOnGameValuesUpdate(this::updateScoreboard);
-        game.setOnHold(this::updatePieceViews);
-        game.setOnMove(() -> binding.gameView.postInvalidate());
-        game.setOnSolidify(() -> {
+        viewModel.getGame().setOnGameValuesUpdate(this::updateScoreboard);
+        viewModel.getGame().setOnHold(this::updatePieceViews);
+        viewModel.getGame().setOnMove(() -> binding.gameView.postInvalidate());
+        viewModel.getGame().setOnSolidify(() -> {
             ((MainActivity) requireActivity()).getSolidifyMP().start();
             this.updatePieceViews();
         });
-        game.setOnGameOver(() -> {
+        viewModel.getGame().setOnGameOver(() -> {
             ((MainActivity) requireActivity()).getMainThemeMP().pause();
             ((MainActivity) requireActivity()).getMainThemeMP().reset();
             ((MainActivity) requireActivity()).getGameOverMP().start();
 
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
-            action.setScore(game.getScore());
-            action.setLevel(game.getLevel());
-            action.setLines(game.getLines());
+            action.setScore(viewModel.getGame().getScore());
+            action.setLevel(viewModel.getGame().getLevel());
+            action.setLines(viewModel.getGame().getLines());
             Navigation.findNavController(binding.getRoot()).navigate(action);
         });
-        game.setOnPause(() -> ((MainActivity) requireActivity()).getMainThemeMP().pause());
-        game.setOnResume(() -> ((MainActivity) requireActivity()).getMainThemeMP().start());
+        viewModel.getGame().setOnPause(() -> ((MainActivity) requireActivity()).getMainThemeMP().pause());
+        viewModel.getGame().setOnResume(() -> ((MainActivity) requireActivity()).getMainThemeMP().start());
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -182,37 +180,37 @@ public class GameFragment extends Fragment {
             }
         });
         binding.btnRotateLeft.setOnClickListener(v -> {
-            game.rotateTetrominoLeft();
+            viewModel.getGame().rotateTetrominoLeft();
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnRotateRight.setOnClickListener(v -> {
-            game.rotateTetrominoRight();
+            viewModel.getGame().rotateTetrominoRight();
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnPause.setOnClickListener(v -> {
-            game.setPause(true);
+            viewModel.getGame().setPause(true);
             Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
         binding.btnDown.setOnTouchListener(new TouchListener(getContext()) {
             @Override
             public void onDoubleTap() {
-                game.hardDrop();
+                viewModel.getGame().hardDrop();
             }
 
             @Override
             public void onTapDown() {
-                game.setSoftDrop(true);
+                viewModel.getGame().setSoftDrop(true);
                 ((MainActivity) requireActivity()).getClickMP().start();
             }
 
             @Override
             public void onTapUp() {
-                game.setSoftDrop(false);
+                viewModel.getGame().setSoftDrop(false);
             }
         });
         binding.include.cvHold.setOnClickListener(v -> {
-            game.hold();
+            viewModel.getGame().hold();
             ((MainActivity) requireActivity()).getClickMP().start();
         });
     }
@@ -220,14 +218,14 @@ public class GameFragment extends Fragment {
     private class MoveRightRunnable implements Runnable {
         @Override
         public void run() {
-            game.moveTetrominoRight();
+            viewModel.getGame().moveTetrominoRight();
         }
     }
 
     private class MoveLeftRunnable implements Runnable {
         @Override
         public void run() {
-            game.moveTetrominoLeft();
+            viewModel.getGame().moveTetrominoLeft();
         }
     }
 
@@ -253,7 +251,7 @@ public class GameFragment extends Fragment {
                     @Override
                     public void onAnimationEnd(@NonNull Animator animation) {
                         binding.tvCountdown.setVisibility(View.GONE);
-                        game.setPause(false);
+                        viewModel.getGame().setPause(false);
                         countdownFuture.cancel(true);
                     }
 
