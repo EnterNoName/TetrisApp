@@ -15,8 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.data.AppDatabase;
-import com.example.tetrisapp.data.service.UpdateService;
+import com.example.tetrisapp.data.local.db.AppDatabase;
+import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
 import com.example.tetrisapp.util.Singleton;
 

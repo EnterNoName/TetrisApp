@@ -1,11 +1,11 @@
-package com.example.tetrisapp.room.model;
+package com.example.tetrisapp.model.local.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
-import com.example.tetrisapp.room.converter.DateConverter;
+import com.example.tetrisapp.data.local.converter.DateConverter;
 
 import java.util.Date;
 

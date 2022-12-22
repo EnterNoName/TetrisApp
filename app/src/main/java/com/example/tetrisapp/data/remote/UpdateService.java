@@ -1,6 +1,6 @@
-package com.example.tetrisapp.data.service;
+package com.example.tetrisapp.data.remote;
 
-import com.example.tetrisapp.model.Update;
+import com.example.tetrisapp.model.remote.Update;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

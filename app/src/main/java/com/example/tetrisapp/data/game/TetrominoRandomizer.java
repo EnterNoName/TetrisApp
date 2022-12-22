@@ -1,4 +1,4 @@
-package com.example.tetrisapp.data;
+package com.example.tetrisapp.data.game;
 
 import static com.example.tetrisapp.util.ArrayHelper.concat;
 

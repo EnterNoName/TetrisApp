@@ -1,11 +1,11 @@
-package com.example.tetrisapp.room.dao;
+package com.example.tetrisapp.data.local.dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
-import com.example.tetrisapp.room.model.LeaderboardEntry;
+import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 
 import java.util.List;
 

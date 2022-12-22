@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentScoresBinding;
-import com.example.tetrisapp.room.model.LeaderboardEntry;
+import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 
 import java.text.SimpleDateFormat;
 import java.util.List;

@@ -17,7 +17,7 @@ import androidx.room.rxjava3.EmptyResultSetException;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.GameOverFragmentBinding;
-import com.example.tetrisapp.room.model.LeaderboardEntry;
+import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.Singleton;
 

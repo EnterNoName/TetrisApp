@@ -20,12 +20,10 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.Transformation;
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
-import com.example.tetrisapp.model.Update;
+import com.example.tetrisapp.model.remote.Update;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionHelper;
 import com.example.tetrisapp.util.DownloadUtil;

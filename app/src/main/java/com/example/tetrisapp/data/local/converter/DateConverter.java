@@ -1,4 +1,4 @@
-package com.example.tetrisapp.room.converter;
+package com.example.tetrisapp.data.local.converter;
 
 import androidx.room.TypeConverter;
 

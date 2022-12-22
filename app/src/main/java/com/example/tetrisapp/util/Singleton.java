@@ -1,6 +1,6 @@
 package com.example.tetrisapp.util;
 
-import com.example.tetrisapp.data.AppDatabase;
+import com.example.tetrisapp.data.local.db.AppDatabase;
 
 import java.util.Random;
 

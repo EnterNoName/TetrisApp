@@ -22,7 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentScoresListBinding;
-import com.example.tetrisapp.room.model.LeaderboardEntry;
+import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.util.Singleton;
 
 import java.util.ArrayList;
