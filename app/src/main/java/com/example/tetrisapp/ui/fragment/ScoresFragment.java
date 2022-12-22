@@ -79,9 +79,9 @@ public class ScoresFragment extends Fragment {
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 if (Math.abs(dX) < width / 3f) {
-                    c.drawColor(requireActivity().getColor(R.color.dark_grey));
+                    c.drawColor(requireActivity().getColor(R.color.grey_700));
                 } else if (dX > width / 3f) {
-                    c.drawColor(requireActivity().getColor(R.color.red));
+                    c.drawColor(requireActivity().getColor(R.color.red_700));
                 }
 
                 int textMargin = (int) getResources().getDimension(R.dimen.text_margin);

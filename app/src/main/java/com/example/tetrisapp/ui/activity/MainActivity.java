@@ -17,12 +17,12 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.ActivityMainBinding;
 
+import dagger.hilt.android.AndroidEntryPoint;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
     private ActivityMainBinding binding;
 
     private MediaPlayer mainThemeMP;
@@ -32,9 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer gameStartMP;
     private MediaPlayer gameOverMP;
     private MediaPlayer gameStartBtnMP;
-
-    private Retrofit retrofit;
-    private UpdateService updateService;
 
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
@@ -102,12 +99,6 @@ public class MainActivity extends AppCompatActivity {
         solidifyMP = MediaPlayer.create(this, R.raw.solidify);
         clickMP = MediaPlayer.create(this, R.raw.click);
         gameStartBtnMP = MediaPlayer.create(this, R.raw.gamestartbtn);
-
-        retrofit = new Retrofit.Builder()
-                .baseUrl(getString(R.string.update_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        updateService = retrofit.create(UpdateService.class);
 
         mainThemeMP.setLooping(true);
     }
@@ -204,9 +195,5 @@ public class MainActivity extends AppCompatActivity {
 
     public MediaPlayer getGameStartBtnMP() {
         return gameStartBtnMP;
-    }
-
-    public UpdateService getUpdateService() {
-        return updateService;
     }
 }

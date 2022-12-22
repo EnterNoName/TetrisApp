@@ -39,7 +39,6 @@
             app:layout_constraintStart_toStartOf="@+id/btnSignIn"
             app:layout_constraintTop_toTopOf="@+id/btnSignIn" />
 
-        <!-- TODO -->
         <TextView
             android:id="@+id/tvProfileName"
             android:layout_width="wrap_content"
@@ -66,7 +65,6 @@
         android:text="@string/singleplayer"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
-        android:backgroundTint="?colorSecondary"
         android:textSize="20sp" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -80,7 +78,6 @@
         android:text="@string/multiplayer"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
-        android:backgroundTint="?colorSecondary"
         android:textSize="20sp" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -94,7 +91,6 @@
         android:text="@string/settings"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
-        android:backgroundTint="?colorSecondary"
         android:textSize="20sp" />
 
     <LinearLayout

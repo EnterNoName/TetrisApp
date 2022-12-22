@@ -12,10 +12,10 @@
         android:layout_marginTop="64dp"
         android:contentDescription="@string/desc_profile"
         android:src="@drawable/ic_round_account_circle_24"
+        app:tint="?colorOnPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?colorOnPrimary" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvUsername"

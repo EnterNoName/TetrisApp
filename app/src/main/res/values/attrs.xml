@@ -2,4 +2,7 @@
     <declare-styleable name="BackgroundView">
         <attr name="backgroundColor" format="color" />
     </declare-styleable>
+
+    <attr name="colorGameButton" format="color" />
+    <attr name="colorOnGameButton" format="color" />
 </resources>

@@ -3,6 +3,8 @@ package com.example.tetrisapp.ui.fragment;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,8 +22,13 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
 import com.example.tetrisapp.model.remote.Update;
 import com.example.tetrisapp.ui.activity.MainActivity;
@@ -35,28 +42,32 @@ import com.google.firebase.auth.FirebaseUser;
 import java.io.EOFException;
 import java.util.concurrent.Executors;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+@AndroidEntryPoint
 public class MainMenuFragment extends Fragment {
     private static final String TAG = "MainMenuFragment";
     private MainMenuFragmentBinding binding;
     private ConnectionHelper connectionHelper;
 
+    @Inject UpdateService updateService;
     private Response<Update> update = null;
 
     // Permission handling
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (!checkInstallPackagesPermissions()) {
-            Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.update_feature_retry, v -> requestPermissions()).show();
-        } else {
-            requestPermissions();
+            showUpdatesDisabledSnackbar();
         }
     });
     private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-        requestPermissions();
+        if (!checkWriteExternalStoragePermissions()) {
+            showUpdatesDisabledSnackbar();
+        }
     });
 
     private FirebaseAuth mAuth;
@@ -87,7 +98,18 @@ public class MainMenuFragment extends Fragment {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             if (user.getPhotoUrl() != null) {
-                Glide.with(this).load(user.getPhotoUrl()).circleCrop().into(binding.ivUser);
+                Glide.with(this).load(user.getPhotoUrl()).circleCrop().error(R.drawable.ic_round_account_circle_24).listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        binding.ivUser.setImageTintList(null);
+                        return false;
+                    }
+                }).into(binding.ivUser);
             }
             if (user.getDisplayName() != null) {
                 binding.tvProfileName.setText(user.getDisplayName());
@@ -96,25 +118,32 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void checkUpdate() {
-        connectionHelper.checkInternetConnection(
-                () -> ((MainActivity) requireActivity()).getUpdateService().getUpdate().enqueue(new Callback<Update>() {
-                    @Override
-                    public void onResponse(Call<Update> call, Response<Update> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            if (BuildConfig.VERSION_CODE < response.body().versionId) {
-                                update = response;
-                                showUpdateDialog();
-                            }
-                        }
-                    }
+        if (update != null) {
+            installUpdate();
+        } else {
+            connectionHelper.checkInternetConnection(this::fetchUpdate);
+        }
+    }
 
-                    @Override
-                    public void onFailure(Call<Update> call, Throwable t) {
-                        if (!(t instanceof EOFException)) {
-                            t.printStackTrace();
-                        }
+    private void fetchUpdate() {
+        updateService.getUpdate().enqueue(new Callback<Update>() {
+            @Override
+            public void onResponse(@NonNull Call<Update> call, @NonNull Response<Update> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (BuildConfig.VERSION_CODE < response.body().versionId) {
+                        update = response;
+                        showUpdateDialog();
                     }
-                }));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Update> call, Throwable t) {
+                if (!(t instanceof EOFException)) {
+                    t.printStackTrace();
+                }
+            }
+        });
     }
 
     private void installUpdate() {
@@ -130,10 +159,13 @@ public class MainMenuFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
                 .setTitle(update.body() != null ? update.body().title : "")
                 .setMessage(update.body().description)
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
-                })
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {})
                 .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
-                    requestPermissions();
+                    if (checkPermissions()) {
+                        installUpdate();
+                    } else {
+                        requestPermissions();
+                    }
                 }).show();
     }
 
@@ -164,6 +196,11 @@ public class MainMenuFragment extends Fragment {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
+        binding.btnRationaleContinue.setOnClickListener(v -> requestPermissions());
+        binding.btnRationaleDecline.setOnClickListener(v -> {
+            hideRequestPermissionRationale();
+            showUpdatesDisabledSnackbar();
+        });
     }
 
     private boolean checkPermissions() {
@@ -171,11 +208,6 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void requestPermissions() {
-        if (checkInstallPackagesPermissions() && checkWriteExternalStoragePermissions()) {
-            installUpdate();
-            return;
-        }
-
         if (!checkInstallPackagesPermissions()) {
             requestInstallPackagesPermissions();
         } else if (!checkWriteExternalStoragePermissions()) {
@@ -191,12 +223,6 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    private void requestInstallPackagesPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activityResultLauncher.launch(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireActivity().getPackageName())));
-        }
-    }
-
     private boolean checkWriteExternalStoragePermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
@@ -205,16 +231,36 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
+    private void requestInstallPackagesPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.REQUEST_INSTALL_PACKAGES)) {
+                showRequestPermissionRationale();
+            } else {
+                activityResultLauncher.launch(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireActivity().getPackageName())));
+            }
+        }
+    }
+
     private void requestWriteExternalStoragePermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                        .setAction(R.string.update_feature_retry, v -> {
-                            activityResultLauncher.launch(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName())));
-                        }).show();
+                showRequestPermissionRationale();
             } else {
                 permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
         }
+    }
+
+    private void showRequestPermissionRationale() {
+        binding.permissionRationale.setVisibility(View.VISIBLE);
+    }
+
+    private void hideRequestPermissionRationale() {
+        binding.permissionRationale.setVisibility(View.GONE);
+    }
+
+    private void showUpdatesDisabledSnackbar() {
+        Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
+                .setAction(R.string.update_feature_retry, v -> requestPermissions()).show();
     }
 }
