@@ -70,4 +70,5 @@
     <string name="switch_to_sign_in">Already have an account?</string>
 
     <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/</string>
+    <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
 </resources>

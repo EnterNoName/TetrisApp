@@ -186,13 +186,13 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/permissionRationale"
-        android:visibility="gone"
+        android:visibility="visible"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:checkable="true"
         android:clickable="true"
         android:focusable="true"
-        android:layout_margin="48dp"
+        android:layout_margin="24dp"
         app:cardBackgroundColor="?colorPrimary"
         app:strokeColor="?colorPrimaryVariant"
         app:cardCornerRadius="12dp"
@@ -209,11 +209,10 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:layout_height="194dp"
-                tools:src="@tools:sample/avatars"
+                android:layout_height="200dp"
+                android:src="@drawable/permission_rationale_image"
                 android:scaleType="centerCrop"
-                android:contentDescription="@string/desc_update_feature"
-                />
+                android:contentDescription="@string/desc_update_feature" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -253,12 +252,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
+                android:gravity="center"
                 android:orientation="horizontal">
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRationaleDecline"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="?colorOnPrimary"
+                    android:layout_marginEnd="64dp"
                     android:text="@string/update_feature_decline"
                     style="?attr/borderlessButtonStyle"
                     />

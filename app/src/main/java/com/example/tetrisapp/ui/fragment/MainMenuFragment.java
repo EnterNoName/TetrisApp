@@ -61,12 +61,16 @@ public class MainMenuFragment extends Fragment {
     // Permission handling
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (!checkInstallPackagesPermissions()) {
-            showUpdatesDisabledSnackbar();
+            showRequestPermissionRationale();
+        } else {
+            requestPermissions();
         }
     });
     private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (!checkWriteExternalStoragePermissions()) {
             showUpdatesDisabledSnackbar();
+        } else {
+            requestPermissions();
         }
     });
 
@@ -191,12 +195,17 @@ public class MainMenuFragment extends Fragment {
         });
         binding.btnSocials.setOnClickListener(v -> {
             ((MainActivity) requireActivity()).getClickMP().start();
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_url)));
+            startActivity(browserIntent);
         });
         binding.btnSignIn.setOnClickListener(v -> {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
-        binding.btnRationaleContinue.setOnClickListener(v -> requestPermissions());
+        binding.btnRationaleContinue.setOnClickListener(v -> {
+            hideRequestPermissionRationale();
+            requestPermissions();
+        });
         binding.btnRationaleDecline.setOnClickListener(v -> {
             hideRequestPermissionRationale();
             showUpdatesDisabledSnackbar();
@@ -212,6 +221,14 @@ public class MainMenuFragment extends Fragment {
             requestInstallPackagesPermissions();
         } else if (!checkWriteExternalStoragePermissions()) {
             requestWriteExternalStoragePermissions();
+        } else {
+            onRequestPermissionsDone();
+        }
+    }
+
+    private void onRequestPermissionsDone() {
+        if (checkPermissions() && update != null) {
+            installUpdate();
         }
     }
 
@@ -233,11 +250,7 @@ public class MainMenuFragment extends Fragment {
 
     private void requestInstallPackagesPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.REQUEST_INSTALL_PACKAGES)) {
-                showRequestPermissionRationale();
-            } else {
-                activityResultLauncher.launch(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireActivity().getPackageName())));
-            }
+            activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireActivity().getPackageName())));
         }
     }
 
@@ -245,6 +258,10 @@ public class MainMenuFragment extends Fragment {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 showRequestPermissionRationale();
+                binding.btnRationaleContinue.setOnClickListener(v -> {
+                    hideRequestPermissionRationale();
+                    activityResultLauncher.launch(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName())));
+                });
             } else {
                 permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
