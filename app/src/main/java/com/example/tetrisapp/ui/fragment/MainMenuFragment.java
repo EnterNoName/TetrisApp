@@ -1,7 +1,9 @@
 package com.example.tetrisapp.ui.fragment;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
@@ -58,19 +60,33 @@ public class MainMenuFragment extends Fragment {
     @Inject UpdateService updateService;
     private Response<Update> update = null;
 
-    // Permission handling
-    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        if (!checkInstallPackagesPermissions()) {
-            showRequestPermissionRationale();
+    private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (checkWriteExternalStoragePermissions()) {
+            //  Permission granted
+            installUpdate();
         } else {
-            requestPermissions();
+            // Permission denied
+            requestWriteExternalStoragePermissions();
         }
     });
     private final ActivityResultLauncher<String> permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
         if (!checkWriteExternalStoragePermissions()) {
-            showUpdatesDisabledSnackbar();
+            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                // Showing explanation rationale
+                showRequestPermissionRationale(
+                        () -> showUpdatesDisabledSnackbar(this::requestWriteExternalStoragePermissions),
+                        this::requestWriteExternalStoragePermissions
+                );
+            } else {
+                // Never ask
+                showUpdatesDisabledSnackbar(() ->
+                    activitySettingsResultLauncher.launch(
+                            new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName()))
+                    ));
+            }
         } else {
-            requestPermissions();
+            //  Permission granted
+            installUpdate();
         }
     });
 
@@ -96,7 +112,12 @@ public class MainMenuFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         connectionHelper = new ConnectionHelper(requireActivity());
         initClickListeners();
-        checkUpdate();
+
+        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+        boolean autoUpdateEnabled = preferences.getBoolean(getString(R.string.setting_auto_update), true);
+        if (autoUpdateEnabled) {
+            checkUpdate();
+        }
     }
 
     private void updateUI(FirebaseUser user) {
@@ -123,14 +144,14 @@ public class MainMenuFragment extends Fragment {
 
     private void checkUpdate() {
         if (update != null) {
-            installUpdate();
+            showUpdateDialog();
         } else {
             connectionHelper.checkInternetConnection(this::fetchUpdate);
         }
     }
 
     private void fetchUpdate() {
-        updateService.getUpdate().enqueue(new Callback<Update>() {
+        updateService.getUpdate().enqueue(new retrofit2.Callback<Update>() {
             @Override
             public void onResponse(@NonNull Call<Update> call, @NonNull Response<Update> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -202,41 +223,15 @@ public class MainMenuFragment extends Fragment {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
             ((MainActivity) requireActivity()).getClickMP().start();
         });
-        binding.btnRationaleContinue.setOnClickListener(v -> {
-            hideRequestPermissionRationale();
-            requestPermissions();
-        });
-        binding.btnRationaleDecline.setOnClickListener(v -> {
-            hideRequestPermissionRationale();
-            showUpdatesDisabledSnackbar();
-        });
     }
 
     private boolean checkPermissions() {
-        return checkInstallPackagesPermissions() && checkWriteExternalStoragePermissions();
+        return checkWriteExternalStoragePermissions();
     }
 
     private void requestPermissions() {
-        if (!checkInstallPackagesPermissions()) {
-            requestInstallPackagesPermissions();
-        } else if (!checkWriteExternalStoragePermissions()) {
+        if (!checkWriteExternalStoragePermissions()) {
             requestWriteExternalStoragePermissions();
-        } else {
-            onRequestPermissionsDone();
-        }
-    }
-
-    private void onRequestPermissionsDone() {
-        if (checkPermissions() && update != null) {
-            installUpdate();
-        }
-    }
-
-    private boolean checkInstallPackagesPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return requireActivity().getPackageManager().canRequestPackageInstalls();
-        } else {
-            return true;
         }
     }
 
@@ -248,36 +243,43 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
-    private void requestInstallPackagesPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activityResultLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireActivity().getPackageName())));
-        }
-    }
-
     private void requestWriteExternalStoragePermissions() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                showRequestPermissionRationale();
-                binding.btnRationaleContinue.setOnClickListener(v -> {
-                    hideRequestPermissionRationale();
-                    activityResultLauncher.launch(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName())));
-                });
-            } else {
-                permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            }
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
     }
 
-    private void showRequestPermissionRationale() {
+    private void showRequestPermissionRationale(Callback callbackOnDecline, Callback callbackOnContinue) {
         binding.permissionRationale.setVisibility(View.VISIBLE);
+        binding.btnRationaleContinue.setOnClickListener(v -> {
+            hideRequestPermissionRationale();
+            callbackOnContinue.call();
+        });
+        binding.btnRationaleDecline.setOnClickListener(v -> {
+            hideRequestPermissionRationale();
+            callbackOnDecline.call();
+        });
     }
 
     private void hideRequestPermissionRationale() {
         binding.permissionRationale.setVisibility(View.GONE);
     }
 
-    private void showUpdatesDisabledSnackbar() {
+    private void showUpdatesDisabledSnackbar(Callback callback) {
+        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(getString(R.string.setting_auto_update),  false);
+        editor.apply();
+
         Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
-                .setAction(R.string.update_feature_retry, v -> requestPermissions()).show();
+                .setAction(R.string.update_feature_retry, v -> {
+                    editor.putBoolean(getString(R.string.setting_auto_update),  true);
+                    editor.apply();
+                    callback.call();
+                }).show();
+    }
+
+    private interface Callback {
+        void call();
     }
 }

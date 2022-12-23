@@ -71,4 +71,6 @@
 
     <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/</string>
     <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
+
+    <string name="setting_auto_update">auto_update_enabled</string>
 </resources>
