@@ -3,6 +3,8 @@ package com.example.tetrisapp.ui.fragment;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,10 +39,11 @@ public class GameFragment extends Fragment {
     private GameViewModel viewModel;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    SharedPreferences preferences;
 
     private static final int MOVEMENT_INTERVAL = 125;
-    private static final int COUNTDOWN = 5;
-    private int countdownRemaining = COUNTDOWN;
+    private int countdown;
+    private int countdownRemaining;
 
     private ScheduledFuture<?> futureMoveRight = null;
     private ScheduledFuture<?> futureMoveLeft = null;
@@ -57,6 +60,10 @@ public class GameFragment extends Fragment {
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+
+        preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+        countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
+        countdownRemaining = countdown;
     }
 
     @Nullable
@@ -242,7 +249,7 @@ public class GameFragment extends Fragment {
                             binding.tvCountdown.setText(countdownRemaining + "");
                             ((MainActivity) requireActivity()).getCountdownMP().start();
                         } else {
-                            countdownRemaining = COUNTDOWN;
+                            countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
                             ((MainActivity) requireActivity()).getGameStartMP().start();
                         }
@@ -267,7 +274,7 @@ public class GameFragment extends Fragment {
                             binding.tvCountdown.setText(countdownRemaining + "");
                             ((MainActivity) requireActivity()).getCountdownMP().start();
                         } else {
-                            countdownRemaining = COUNTDOWN;
+                            countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
                             ((MainActivity) requireActivity()).getGameStartMP().start();
                         }
@@ -281,11 +288,11 @@ public class GameFragment extends Fragment {
         ValueAnimator alphaAnimator = ValueAnimator.ofFloat(1, 0);
         alphaAnimator.addListener(listener);
         alphaAnimator.setDuration(1000);
-        alphaAnimator.setRepeatCount(COUNTDOWN);
+        alphaAnimator.setRepeatCount(countdown);
         alphaAnimator.addUpdateListener(val -> view.setAlpha((Float) val.getAnimatedValue()));
         ValueAnimator scaleAnimator = ValueAnimator.ofFloat(1, 1.5f);
         scaleAnimator.setDuration(1000);
-        scaleAnimator.setRepeatCount(COUNTDOWN);
+        scaleAnimator.setRepeatCount(countdown);
         scaleAnimator.addUpdateListener(val -> {
             view.setScaleX((Float) val.getAnimatedValue());
             view.setScaleY((Float) val.getAnimatedValue());

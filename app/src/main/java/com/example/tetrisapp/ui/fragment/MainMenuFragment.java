@@ -210,6 +210,7 @@ public class MainMenuFragment extends Fragment {
         });
         binding.btnSettings.setOnClickListener(v -> {
             ((MainActivity) requireActivity()).getClickMP().start();
+            new SettingsFragment().show(requireActivity().getSupportFragmentManager(), SettingsFragment.TAG);
         });
         binding.btnMultiplayer.setOnClickListener(v -> {
             ((MainActivity) requireActivity()).getClickMP().start();
