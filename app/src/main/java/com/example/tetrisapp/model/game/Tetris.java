@@ -19,6 +19,7 @@ import kotlin.Pair;
 public class Tetris {
     public static final int GENERATE_AHEAD = 4;
     public static final int DEFAULT_SPEED = 750;
+    public static final int MIN_SPEED = 100;
     public static final int LOCK_DELAY = 500;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -71,7 +72,7 @@ public class Tetris {
             future.cancel(true);
         }
 
-        future = executor.scheduleAtFixedRate(new GameExecutor(), delay, (int) (speed * multiplier), TimeUnit.MILLISECONDS);
+        future = executor.scheduleAtFixedRate(new GameExecutor(), delay, (long) (Math.max(speed, MIN_SPEED) * multiplier), TimeUnit.MILLISECONDS);
     }
 
     private void calculateShadow() {
@@ -160,7 +161,7 @@ public class Tetris {
                 break;
         }
         this.combo += linesCleared;
-        this.speed = Math.max(DEFAULT_SPEED - this.level * 50, 50);
+        this.speed = DEFAULT_SPEED - this.level * 50;
 
         onLineClearCallback.call();
     }
