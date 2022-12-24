@@ -229,7 +229,7 @@ public class Tetris {
 
     // Controls
 
-    public void moveTetrominoRight() {
+    public synchronized void moveTetrominoRight() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
             tetromino.setCol(tetromino.getCol() + 1);
             onMoveCallback.call();
@@ -237,7 +237,7 @@ public class Tetris {
         }
     }
 
-    public void moveTetrominoLeft() {
+    public synchronized void moveTetrominoLeft() {
         if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
             tetromino.setCol(tetromino.getCol() - 1);
             onMoveCallback.call();
@@ -245,7 +245,7 @@ public class Tetris {
         }
     }
 
-    public void rotateTetrominoRight() {
+    public synchronized void rotateTetrominoRight() {
         if (pause) return;
 
         byte[][] rotatedMatrix = MathHelper.rotateMatrixClockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
@@ -258,7 +258,7 @@ public class Tetris {
 
     }
 
-    public void rotateTetrominoLeft() {
+    public synchronized void rotateTetrominoLeft() {
         if (pause) return;
 
         byte[][] rotatedMatrix = MathHelper.rotateMatrixCounterclockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
@@ -270,7 +270,7 @@ public class Tetris {
         }
     }
 
-    private void moveTetrominoDown() {
+    private synchronized void moveTetrominoDown() {
         if (pause) return;
 
         if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
@@ -289,7 +289,7 @@ public class Tetris {
         }
     }
 
-    public void hardDrop() {
+    public synchronized void hardDrop() {
         if (pause) return;
         onHardDropCallback.call();
         future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
@@ -299,7 +299,7 @@ public class Tetris {
         placeTetromino();
     }
 
-    public void hold() {
+    public synchronized void hold() {
         if (pause) return;
 
         if (!holdUsed) {
@@ -408,7 +408,7 @@ public class Tetris {
 
     // Setters
 
-    public void setPause(boolean pause) {
+    public synchronized void setPause(boolean pause) {
         if (pause == this.pause) return;
 
         if (!gameOver) {
@@ -428,14 +428,17 @@ public class Tetris {
         }
     }
 
-    public void setSoftDrop(boolean softDrop) {
+    public synchronized void setSoftDrop(boolean softDrop) {
+        if (softDrop == this.softDrop) return;
+
         if (!pause) {
             this.softDrop = softDrop;
 
+            delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
             if (softDrop) {
-                updateSpeed(0, 0.25f);
+                updateSpeed(delayLeft / 4, 0.25f);
             } else {
-                updateSpeed(0, 1f);
+                updateSpeed(delayLeft, 1f);
             }
         }
     }
