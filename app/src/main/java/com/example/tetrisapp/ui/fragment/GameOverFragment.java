@@ -17,7 +17,7 @@ import androidx.room.rxjava3.EmptyResultSetException;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
-import com.example.tetrisapp.databinding.GameOverFragmentBinding;
+import com.example.tetrisapp.databinding.FragmentGameOverBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.ui.activity.MainActivity;
 
@@ -32,7 +32,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 @AndroidEntryPoint
 public class GameOverFragment extends Fragment {
     private final static String TAG = "GameOverFragment";
-    private GameOverFragmentBinding binding;
+    private FragmentGameOverBinding binding;
     @Inject
     LeaderboardDao leaderboardDao;
 
@@ -51,7 +51,7 @@ public class GameOverFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = GameOverFragmentBinding.inflate(inflater, container, false);
+        binding = FragmentGameOverBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -103,7 +103,8 @@ public class GameOverFragment extends Fragment {
 
             leaderboardDao.insert(entry)
                     .subscribeOn(Schedulers.io())
-                    .subscribe(i -> {}, throwable -> Log.e(TAG, throwable.getLocalizedMessage()));
+                    .subscribe(i -> {
+                    }, throwable -> Log.e(TAG, throwable.getLocalizedMessage()));
         }
     }
 

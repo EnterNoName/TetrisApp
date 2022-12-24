@@ -9,7 +9,7 @@
         android:id="@+id/mainMenuFragment"
         android:name="com.example.tetrisapp.ui.fragment.MainMenuFragment"
         android:label="main_menu_fragment"
-        tools:layout="@layout/main_menu_fragment" >
+        tools:layout="@layout/fragment_main_menu" >
         <action
             android:id="@+id/action_mainMenuFragment_to_gameFragment"
             app:destination="@id/gameFragment"
@@ -30,7 +30,7 @@
         android:id="@+id/gameFragment"
         android:name="com.example.tetrisapp.ui.fragment.GameFragment"
         android:label="GameFragment"
-        tools:layout="@layout/game_fragment" >
+        tools:layout="@layout/fragment_game" >
 
         <action
             android:id="@+id/action_gameFragment_to_pauseFragment"
@@ -71,7 +71,7 @@
         android:id="@+id/pauseFragment"
         android:name="com.example.tetrisapp.ui.fragment.PauseFragment"
         android:label="pause_fragment"
-        tools:layout="@layout/pause_fragment" >
+        tools:layout="@layout/fragment_pause" >
         <action
             android:id="@+id/action_pauseFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment" />
@@ -80,7 +80,7 @@
         android:id="@+id/gameOverFragment"
         android:name="com.example.tetrisapp.ui.fragment.GameOverFragment"
         android:label="game_over_fragment"
-        tools:layout="@layout/game_over_fragment" >
+        tools:layout="@layout/fragment_game_over" >
         <action
             android:id="@+id/action_gameOverFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment"

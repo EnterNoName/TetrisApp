@@ -18,10 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.databinding.GameFragmentBinding;
-import com.example.tetrisapp.model.game.Tetris;
-import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
-import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
+import com.example.tetrisapp.databinding.FragmentGameBinding;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.TouchListener;
@@ -35,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GameFragment extends Fragment {
     private static final String TAG = "GameFragment";
-    private GameFragmentBinding binding;
+    private FragmentGameBinding binding;
     private GameViewModel viewModel;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -69,7 +66,7 @@ public class GameFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = GameFragmentBinding.inflate(inflater, container, false);
+        binding = FragmentGameBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 

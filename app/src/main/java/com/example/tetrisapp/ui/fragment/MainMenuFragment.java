@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -31,7 +30,7 @@ import com.bumptech.glide.request.target.Target;
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.UpdateService;
-import com.example.tetrisapp.databinding.MainMenuFragmentBinding;
+import com.example.tetrisapp.databinding.FragmentMainMenuBinding;
 import com.example.tetrisapp.model.remote.Update;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionHelper;
@@ -48,16 +47,16 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
 public class MainMenuFragment extends Fragment {
     private static final String TAG = "MainMenuFragment";
-    private MainMenuFragmentBinding binding;
+    private FragmentMainMenuBinding binding;
     private ConnectionHelper connectionHelper;
 
-    @Inject UpdateService updateService;
+    @Inject
+    UpdateService updateService;
     private Response<Update> update = null;
 
     private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -80,9 +79,9 @@ public class MainMenuFragment extends Fragment {
             } else {
                 // Never ask
                 showUpdatesDisabledSnackbar(() ->
-                    activitySettingsResultLauncher.launch(
-                            new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName()))
-                    ));
+                        activitySettingsResultLauncher.launch(
+                                new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + requireActivity().getPackageName()))
+                        ));
             }
         } else {
             //  Permission granted
@@ -95,7 +94,7 @@ public class MainMenuFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = MainMenuFragmentBinding.inflate(inflater, container, false);
+        binding = FragmentMainMenuBinding.inflate(inflater, container, false);
         mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
@@ -184,7 +183,8 @@ public class MainMenuFragment extends Fragment {
         new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
                 .setTitle(update.body() != null ? update.body().title : "")
                 .setMessage(update.body().description)
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {})
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
+                })
                 .setPositiveButton(getString(R.string.agree), (dialog, which) -> {
                     if (checkPermissions()) {
                         installUpdate();
@@ -269,12 +269,12 @@ public class MainMenuFragment extends Fragment {
     private void showUpdatesDisabledSnackbar(Callback callback) {
         SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putBoolean(getString(R.string.setting_auto_update),  false);
+        editor.putBoolean(getString(R.string.setting_auto_update), false);
         editor.apply();
 
         Snackbar.make(binding.getRoot(), R.string.update_feature_unavailable, Snackbar.LENGTH_LONG)
                 .setAction(R.string.update_feature_retry, v -> {
-                    editor.putBoolean(getString(R.string.setting_auto_update),  true);
+                    editor.putBoolean(getString(R.string.setting_auto_update), true);
                     editor.apply();
                     callback.call();
                 }).show();

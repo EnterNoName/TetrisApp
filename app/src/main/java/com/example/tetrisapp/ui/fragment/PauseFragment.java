@@ -11,18 +11,18 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.databinding.PauseFragmentBinding;
+import com.example.tetrisapp.databinding.FragmentPauseBinding;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PauseFragment extends Fragment {
-    private PauseFragmentBinding binding;
+    private FragmentPauseBinding binding;
     private boolean dialogOpen = false;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = PauseFragmentBinding.inflate(inflater, container, false);
+        binding = FragmentPauseBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
