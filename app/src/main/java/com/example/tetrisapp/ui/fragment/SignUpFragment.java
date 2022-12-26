@@ -1,5 +1,6 @@
 package com.example.tetrisapp.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentSignupBinding;
+import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.OnClickListener;
 import com.google.android.gms.auth.api.identity.BeginSignInRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.auth.api.identity.SignInClient;
@@ -72,10 +75,12 @@ public class SignUpFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initClickListeners();
+        initOnClickListeners();
     }
 
-    private void initClickListeners() {
+    @SuppressLint("ClickableViewAccessibility")
+    private void initOnClickListeners() {
+        binding.btnSignUp.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSignUp.setOnClickListener(v -> {
             String email = binding.etEmail.getText().toString();
             String password = binding.etPassword.getText().toString();
@@ -93,6 +98,7 @@ public class SignUpFragment extends Fragment {
             }
         });
 
+        binding.btnSignInGoogle.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
                 .addOnCompleteListener(requireActivity(), result -> {
                     try {
@@ -105,6 +111,7 @@ public class SignUpFragment extends Fragment {
                     Log.d(TAG, e.getLocalizedMessage());
                 }));
 
+        binding.btnSwitchToSignIn.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSwitchToSignIn.setOnClickListener(v -> {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_signInFragment);
         });

@@ -25,16 +25,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private ActivityMainBinding binding;
 
-    private MediaPlayer mainThemeMP;
-    private MediaPlayer clickMP;
-    private MediaPlayer countdownMP;
-    private MediaPlayer solidifyMP;
-    private MediaPlayer gameStartMP;
-    private MediaPlayer gameOverMP;
-    private MediaPlayer gameStartBtnMP;
-
-    private static final boolean AUTO_HIDE = true;
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
     private static final int UI_ANIMATION_DELAY = 300;
 
     private final Handler mHideHandler = new Handler(Looper.myLooper());
@@ -65,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private boolean mVisible;
-    private final Runnable mHideRunnable = () -> hide();
-
     private final View.OnTouchListener mDelayHideTouchListener = (view, motionEvent) -> {
         switch (motionEvent.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -88,31 +75,8 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mContentView = binding.fragmentContainerView;
         mContentView.setOnTouchListener(mDelayHideTouchListener);
-
-        mainThemeMP = MediaPlayer.create(this, R.raw.main);
-        countdownMP = MediaPlayer.create(this, R.raw.countdown);
-        gameStartMP = MediaPlayer.create(this, R.raw.gamestart);
-        gameOverMP = MediaPlayer.create(this, R.raw.gameover);
-        solidifyMP = MediaPlayer.create(this, R.raw.solidify);
-        clickMP = MediaPlayer.create(this, R.raw.click);
-        gameStartBtnMP = MediaPlayer.create(this, R.raw.gamestartbtn);
-
-        mainThemeMP.setLooping(true);
-    }
-
-    @Override
-    protected void onDestroy() {
-        mainThemeMP.release();
-        countdownMP.release();
-        gameOverMP.release();
-        gameStartBtnMP.release();
-        gameStartMP.release();
-        clickMP.release();
-        solidifyMP.release();
-        super.onDestroy();
     }
 
     @Override
@@ -127,21 +91,12 @@ public class MainActivity extends AppCompatActivity {
         hide();
     }
 
-    private void toggle() {
-        if (mVisible) {
-            hide();
-        } else {
-            show();
-        }
-    }
-
-    private void hide() {
+    public void hide() {
         // Hide UI first
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
-        mVisible = false;
 
         // Schedule a runnable to remove the status and navigation bar after a delay
         mHideHandler.removeCallbacks(mShowPart2Runnable);
@@ -157,43 +112,9 @@ public class MainActivity extends AppCompatActivity {
             mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         }
-        mVisible = true;
 
         // Schedule a runnable to display UI elements after a delay
         mHideHandler.removeCallbacks(mHidePart2Runnable);
         mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
-
-    public MediaPlayer getMainThemeMP() {
-        return mainThemeMP;
-    }
-
-    public MediaPlayer getClickMP() {
-        return clickMP;
-    }
-
-    public MediaPlayer getCountdownMP() {
-        return countdownMP;
-    }
-
-    public MediaPlayer getSolidifyMP() {
-        return solidifyMP;
-    }
-
-    public MediaPlayer getGameStartMP() {
-        return gameStartMP;
-    }
-
-    public MediaPlayer getGameOverMP() {
-        return gameOverMP;
-    }
-
-    public MediaPlayer getGameStartBtnMP() {
-        return gameStartBtnMP;
     }
 }

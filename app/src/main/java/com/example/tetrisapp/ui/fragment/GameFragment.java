@@ -5,6 +5,8 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +21,11 @@ import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentGameBinding;
+import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
+import com.example.tetrisapp.util.MediaHelper;
+import com.example.tetrisapp.util.OnClickListener;
 import com.example.tetrisapp.util.TouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -30,6 +35,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class GameFragment extends Fragment {
     private static final String TAG = "GameFragment";
     private FragmentGameBinding binding;
@@ -46,6 +56,9 @@ public class GameFragment extends Fragment {
     private ScheduledFuture<?> futureMoveLeft = null;
     private Future<?> countdownFuture = null;
 
+    private MediaPlayer gameMusic;
+    @Inject MediaHelper mediaHelper;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,12 +74,18 @@ public class GameFragment extends Fragment {
         preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
         countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
         countdownRemaining = countdown;
+
+        gameMusic = MediaPlayer.create(requireContext(), R.raw.main);
+        gameMusic.setOnPreparedListener(MediaPlayer::pause);
+        gameMusic.setVolume(0.5f, 0.5f);
+        gameMusic.setLooping(true);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentGameBinding.inflate(inflater, container, false);
+        binding.getRoot().setKeepScreenOn(true);
         return binding.getRoot();
     }
 
@@ -117,6 +136,9 @@ public class GameFragment extends Fragment {
             binding.include.lines.setText(viewModel.getGame().getLines() + "");
             binding.include.combo.setText(viewModel.getGame().getCombo() + "");
         });
+
+        float playbackSpeed = 2 - viewModel.getGame().getSpeed() / (float) Tetris.DEFAULT_SPEED;
+        gameMusic.setPlaybackParams(new PlaybackParams().setSpeed(playbackSpeed));
     }
 
     private void updatePieceViews() {
@@ -139,13 +161,15 @@ public class GameFragment extends Fragment {
         viewModel.getGame().setOnHold(this::updatePieceViews);
         viewModel.getGame().setOnMove(() -> binding.gameView.postInvalidate());
         viewModel.getGame().setOnSolidify(() -> {
-            ((MainActivity) requireActivity()).getSolidifyMP().start();
+            mediaHelper.playSound(R.raw.solidify);
             this.updatePieceViews();
         });
         viewModel.getGame().setOnGameOver(() -> {
-            ((MainActivity) requireActivity()).getMainThemeMP().pause();
-            ((MainActivity) requireActivity()).getMainThemeMP().reset();
-            ((MainActivity) requireActivity()).getGameOverMP().start();
+            gameMusic.stop();
+            gameMusic.release();
+            gameMusic = null;
+
+            mediaHelper.playSound(R.raw.gameover);
 
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
             action.setScore(viewModel.getGame().getScore());
@@ -153,8 +177,8 @@ public class GameFragment extends Fragment {
             action.setLines(viewModel.getGame().getLines());
             Navigation.findNavController(binding.getRoot()).navigate(action);
         });
-        viewModel.getGame().setOnPause(() -> ((MainActivity) requireActivity()).getMainThemeMP().pause());
-        viewModel.getGame().setOnResume(() -> ((MainActivity) requireActivity()).getMainThemeMP().start());
+        viewModel.getGame().setOnPause(() -> gameMusic.pause());
+        viewModel.getGame().setOnResume(() -> gameMusic.start());
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -163,7 +187,7 @@ public class GameFragment extends Fragment {
             @Override
             public void onTapDown() {
                 futureMoveLeft = executor.scheduleAtFixedRate(new MoveLeftRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                ((MainActivity) requireActivity()).getClickMP().start();
+                mediaHelper.playSound(R.raw.click);
             }
 
             @Override
@@ -171,11 +195,12 @@ public class GameFragment extends Fragment {
                 if (futureMoveLeft != null) futureMoveLeft.cancel(true);
             }
         });
+
         binding.btnRight.setOnTouchListener(new TouchListener(getContext()) {
             @Override
             public void onTapDown() {
                 futureMoveRight = executor.scheduleAtFixedRate(new MoveRightRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                ((MainActivity) requireActivity()).getClickMP().start();
+                mediaHelper.playSound(R.raw.click);
             }
 
             @Override
@@ -183,19 +208,17 @@ public class GameFragment extends Fragment {
                 if (futureMoveRight != null) futureMoveRight.cancel(true);
             }
         });
+
         binding.btnRotateLeft.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoLeft();
-            ((MainActivity) requireActivity()).getClickMP().start();
+            mediaHelper.playSound(R.raw.click);
         });
+
         binding.btnRotateRight.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoRight();
-            ((MainActivity) requireActivity()).getClickMP().start();
+            mediaHelper.playSound(R.raw.click);
         });
-        binding.btnPause.setOnClickListener(v -> {
-            viewModel.getGame().setPause(true);
-            Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment);
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
+
         binding.btnDown.setOnTouchListener(new TouchListener(getContext()) {
             @Override
             public void onDoubleTap() {
@@ -205,7 +228,7 @@ public class GameFragment extends Fragment {
             @Override
             public void onTapDown() {
                 viewModel.getGame().setSoftDrop(true);
-                ((MainActivity) requireActivity()).getClickMP().start();
+                mediaHelper.playSound(R.raw.click);
             }
 
             @Override
@@ -213,10 +236,14 @@ public class GameFragment extends Fragment {
                 viewModel.getGame().setSoftDrop(false);
             }
         });
+
         binding.include.cvHold.setOnClickListener(v -> {
+            mediaHelper.playSound(R.raw.click);
             viewModel.getGame().hold();
-            ((MainActivity) requireActivity()).getClickMP().start();
         });
+
+        binding.btnPause.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
     }
 
     private class MoveRightRunnable implements Runnable {
@@ -240,16 +267,26 @@ public class GameFragment extends Fragment {
             requireActivity().runOnUiThread(() -> {
                 binding.tvCountdown.setVisibility(View.VISIBLE);
                 animate(binding.tvCountdown, new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(@NonNull Animator animation) {
+                    public void updateUI() {
                         if (countdownRemaining > 0) {
                             binding.tvCountdown.setText(countdownRemaining + "");
-                            ((MainActivity) requireActivity()).getCountdownMP().start();
+                            mediaHelper.playSound(R.raw.countdown);
                         } else {
                             countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
-                            ((MainActivity) requireActivity()).getGameStartMP().start();
+                            mediaHelper.playSound(R.raw.gamestart);
                         }
+                    }
+
+                    @Override
+                    public void onAnimationStart(@NonNull Animator animation) {
+                        updateUI();
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(@NonNull Animator animation) {
+                        countdownRemaining--;
+                        updateUI();
                     }
 
                     @Override
@@ -261,20 +298,7 @@ public class GameFragment extends Fragment {
 
                     @Override
                     public void onAnimationCancel(@NonNull Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(@NonNull Animator animation) {
-                        countdownRemaining--;
-                        if (countdownRemaining > 0) {
-                            binding.tvCountdown.setText(countdownRemaining + "");
-                            ((MainActivity) requireActivity()).getCountdownMP().start();
-                        } else {
-                            countdownRemaining = countdown;
-                            binding.tvCountdown.setText("GO!");
-                            ((MainActivity) requireActivity()).getGameStartMP().start();
-                        }
+                        countdownFuture.cancel(true);
                     }
                 });
             });

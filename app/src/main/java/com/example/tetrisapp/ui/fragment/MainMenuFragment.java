@@ -1,6 +1,7 @@
 package com.example.tetrisapp.ui.fragment;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -35,6 +36,7 @@ import com.example.tetrisapp.model.remote.Update;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionHelper;
 import com.example.tetrisapp.util.DownloadUtil;
+import com.example.tetrisapp.util.OnClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -194,36 +196,31 @@ public class MainMenuFragment extends Fragment {
                 }).show();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initClickListeners() {
-        binding.btnSingleplayer.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment);
-            ((MainActivity) requireActivity()).getClickMP().start();
-            ((MainActivity) requireActivity()).getGameStartBtnMP().start();
-        });
-        binding.btnExit.setOnClickListener(v -> {
-            requireActivity().finishAndRemoveTask();
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
-        binding.btnLeaderboard.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_scoresFragment);
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
-        binding.btnSettings.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).getClickMP().start();
-            new SettingsFragment().show(requireActivity().getSupportFragmentManager(), SettingsFragment.TAG);
-        });
-        binding.btnMultiplayer.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
+        binding.btnSingleplayer.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()).setSound(R.raw.gamestartbtn));
+        binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
+
+        binding.btnMultiplayer.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnMultiplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_joinLobbyFragment));
+
+        binding.btnSettings.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnSettings.setOnClickListener(v -> new SettingsFragment().show(requireActivity().getSupportFragmentManager(), SettingsFragment.TAG));
+
+        binding.btnExit.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnExit.setOnClickListener(v -> requireActivity().finishAndRemoveTask());
+
+        binding.btnLeaderboard.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnLeaderboard.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_scoresFragment));
+
+        binding.btnSocials.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSocials.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).getClickMP().start();
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_url)));
             startActivity(browserIntent);
         });
-        binding.btnSignIn.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
+
+        binding.btnSignIn.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnSignIn.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment));
     }
 
     private boolean checkPermissions() {

@@ -1,5 +1,6 @@
 package com.example.tetrisapp.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentSigninBinding;
+import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.OnClickListener;
 import com.google.android.gms.auth.api.identity.BeginSignInRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.auth.api.identity.SignInClient;
@@ -86,10 +89,12 @@ public class SignInFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initClickListeners();
+        initOnClickListeners();
     }
 
-    private void initClickListeners() {
+    @SuppressLint("ClickableViewAccessibility")
+    private void initOnClickListeners() {
+        binding.btnSignIn.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSignIn.setOnClickListener(v -> {
             String email = binding.etEmail.getText().toString();
             String password = binding.etPassword.getText().toString();
@@ -98,6 +103,7 @@ public class SignInFragment extends Fragment {
             signIn(email, password);
         });
 
+        binding.btnSignInGoogle.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
                 .addOnCompleteListener(requireActivity(), result -> {
                     try {
@@ -110,14 +116,11 @@ public class SignInFragment extends Fragment {
                         }
                     }
                 })
-                .addOnFailureListener(requireActivity(), e -> {
-                    Log.d(TAG, e.getLocalizedMessage());
-                })
+                .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage()))
         );
 
-        binding.btnSwitchToSignUp.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_signUpFragment);
-        });
+        binding.btnSwitchToSignUp.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnSwitchToSignUp.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_signUpFragment));
     }
 
     private void resetFields() {

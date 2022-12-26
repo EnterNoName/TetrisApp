@@ -1,5 +1,6 @@
 package com.example.tetrisapp.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,6 +19,8 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentProfileBinding;
+import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.OnClickListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -26,7 +29,7 @@ public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;
 
     private FirebaseAuth mAuth;
-    private FirebaseUser user;
+    private FirebaseUser mUser;
 
     @Nullable
     @Override
@@ -39,24 +42,25 @@ public class ProfileFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
+        mUser = mAuth.getCurrentUser();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (user == null) {
+        if (mUser == null) {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signInFragment);
-        } else {
-            initClickListeners();
-            updateUI();
+            return;
         }
+
+        initOnClickListeners();
+        updateUI();
     }
 
     private void updateUI() {
-        binding.tvEmailAddress.setText(user.getEmail());
-        binding.tvUsername.setText(user.getDisplayName());
-        Glide.with(this).load(user.getPhotoUrl()).circleCrop().error(R.drawable.ic_round_account_circle_24).listener(new RequestListener<Drawable>() {
+        binding.tvEmailAddress.setText(mUser.getEmail());
+        binding.tvUsername.setText(mUser.getDisplayName());
+        Glide.with(this).load(mUser.getPhotoUrl()).circleCrop().error(R.drawable.ic_round_account_circle_24).listener(new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                 return false;
@@ -70,7 +74,9 @@ public class ProfileFragment extends Fragment {
         }).into(binding.ivProfileImage);
     }
 
-    private void initClickListeners() {
+    @SuppressLint("ClickableViewAccessibility")
+    private void initOnClickListeners() {
+        binding.btnSignOut.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
         binding.btnSignOut.setOnClickListener(v -> {
             mAuth.signOut();
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signInFragment);

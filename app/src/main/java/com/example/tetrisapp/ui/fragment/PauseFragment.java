@@ -1,5 +1,6 @@
 package com.example.tetrisapp.ui.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.navigation.Navigation;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentPauseBinding;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.OnClickListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PauseFragment extends Fragment {
@@ -28,16 +30,18 @@ public class PauseFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        binding.btnResume.setOnClickListener(v -> {
-            Navigation.findNavController(v).popBackStack();
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
-        binding.btnLeave.setOnClickListener(v -> {
-            confirmExit();
-            ((MainActivity) requireActivity()).getClickMP().start();
-        });
-
         super.onViewCreated(view, savedInstanceState);
+
+        initOnClickListeners();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void initOnClickListeners() {
+        binding.btnResume.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnResume.setOnClickListener(v -> Navigation.findNavController(v).popBackStack());
+
+        binding.btnLeave.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnLeave.setOnClickListener(v -> confirmExit());
     }
 
     private void confirmExit() {
