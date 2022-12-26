@@ -4,6 +4,8 @@ import android.app.Application;
 import android.util.Log;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.remote.GameService;
+import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.pusher.client.Pusher;
 import com.pusher.client.PusherOptions;
@@ -37,6 +39,18 @@ public class RemoteModule {
     @Singleton
     static UpdateService provideUpdateService(Retrofit retrofit) {
         return retrofit.create(UpdateService.class);
+    }
+
+    @Provides
+    @Singleton
+    static LobbyService provideLobbyService(Retrofit retrofit) {
+        return retrofit.create(LobbyService.class);
+    }
+
+    @Provides
+    @Singleton
+    static GameService provideGameService(Retrofit retrofit) {
+        return retrofit.create(GameService.class);
     }
 
     @Provides
