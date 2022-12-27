@@ -1,7 +1,5 @@
 package com.example.tetrisapp.util;
 
-import android.content.Context;
-import android.media.MediaPlayer;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
@@ -9,23 +7,16 @@ import android.view.View;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.ui.activity.MainActivity;
 
-import javax.inject.Inject;
-
-import dagger.hilt.EntryPoint;
-import dagger.hilt.InstallIn;
-import dagger.hilt.android.EntryPointAccessors;
-import dagger.hilt.components.SingletonComponent;
-
-public class OnClickListener implements View.OnTouchListener {
+public class OnTouchListener implements View.OnTouchListener {
     private long mLastClickTime = 0;
     private int soundResId = R.raw.click;
     private final MainActivity activity;
 
-    public OnClickListener(MainActivity activity) {
+    public OnTouchListener(MainActivity activity) {
         this.activity = activity;
     }
 
-    public OnClickListener setSound(int resId) {
+    public OnTouchListener setSound(int resId) {
         this.soundResId = resId;
         return this;
     }
@@ -41,8 +32,8 @@ public class OnClickListener implements View.OnTouchListener {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) return true;
                 mLastClickTime = SystemClock.elapsedRealtime();
 
-                MediaHelper mediaHelper = new MediaHelper(activity.getApplicationContext());
-                mediaHelper.playSound(R.raw.click);
+                MediaPlayerUtil mediaHelper = new MediaPlayerUtil(activity.getApplicationContext());
+                mediaHelper.playSound(soundResId);
 
                 v.performClick();
                 break;

@@ -1,8 +1,8 @@
 package com.example.tetrisapp.data.game;
 
-import static com.example.tetrisapp.util.ArrayHelper.concat;
+import static com.example.tetrisapp.util.ArrayUtil.concat;
 
-import com.example.tetrisapp.util.MathHelper;
+import com.example.tetrisapp.util.MathUtil;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -34,7 +34,7 @@ public class TetrominoRandomizer implements Iterator<String> {
         if (isFirst) {
             isFirst = false;
 
-            String firstPiece = firstPieces[MathHelper.getRandomInt(0, firstPieces.length - 1)];
+            String firstPiece = firstPieces[MathUtil.getRandomInt(0, firstPieces.length - 1)];
             history.addAll(Arrays.asList(initialHistory));
             history.add(firstPiece);
 
@@ -45,7 +45,7 @@ public class TetrominoRandomizer implements Iterator<String> {
         int ind = 0;
 
         for (int roll = 0; roll < 6; roll++) {
-            ind = MathHelper.getRandomInt(0, pool.length - 1);
+            ind = MathUtil.getRandomInt(0, pool.length - 1);
             piece = pool[ind];
 
             if (!history.contains(piece) || roll == 5) {

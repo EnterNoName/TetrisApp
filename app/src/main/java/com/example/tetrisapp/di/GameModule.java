@@ -2,10 +2,7 @@ package com.example.tetrisapp.di;
 
 import android.app.Application;
 
-import com.example.tetrisapp.data.game.TetrominoRandomizer;
-import com.example.tetrisapp.util.MediaHelper;
-
-import java.util.Random;
+import com.example.tetrisapp.util.MediaPlayerUtil;
 
 import javax.inject.Singleton;
 
@@ -19,7 +16,7 @@ import dagger.hilt.components.SingletonComponent;
 public class GameModule {
     @Provides
     @Singleton
-    static MediaHelper provideMediaHelper(Application app) {
-        return new MediaHelper(app.getApplicationContext());
+    static MediaPlayerUtil provideMediaHelper(Application app) {
+        return new MediaPlayerUtil(app.getApplicationContext());
     }
 }

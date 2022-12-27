@@ -20,7 +20,7 @@ import com.bumptech.glide.request.target.Target;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentProfileBinding;
 import com.example.tetrisapp.ui.activity.MainActivity;
-import com.example.tetrisapp.util.OnClickListener;
+import com.example.tetrisapp.util.OnTouchListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -76,7 +76,7 @@ public class ProfileFragment extends Fragment {
 
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
-        binding.btnSignOut.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnSignOut.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSignOut.setOnClickListener(v -> {
             mAuth.signOut();
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signInFragment);

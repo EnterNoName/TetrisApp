@@ -2,13 +2,14 @@ package com.example.tetrisapp.util;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-public class ArrayHelper {
+public class ArrayUtil {
     @SafeVarargs
     public static <T> T[] concat(T[] array1, T[] array2, T[]... args) {
         T[] result = Stream.concat(Arrays.stream(array1), Arrays.stream(array2))
-                .toArray(size -> (T[]) Array.newInstance(array1.getClass().getComponentType(), size));
+                .toArray(size -> (T[]) Array.newInstance(Objects.requireNonNull(array1.getClass().getComponentType()), size));
 
         for (T[] array : args) {
             result = Stream.concat(Arrays.stream(result), Arrays.stream(array))

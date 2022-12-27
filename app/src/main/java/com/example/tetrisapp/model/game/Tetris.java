@@ -2,8 +2,8 @@ package com.example.tetrisapp.model.game;
 
 import com.example.tetrisapp.data.game.TetrominoRandomizer;
 import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
-import com.example.tetrisapp.util.ArrayHelper;
-import com.example.tetrisapp.util.MathHelper;
+import com.example.tetrisapp.util.ArrayUtil;
+import com.example.tetrisapp.util.MathUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -177,14 +177,14 @@ public class Tetris {
                     clearLinesCount++;
                 } while (Arrays.stream(playfield.getState()[row - clearLinesCount]).allMatch(Objects::nonNull));
 
-                String[][] playfieldStateCopy = ArrayHelper.deepCopy(playfield.getState());
+                String[][] playfieldStateCopy = ArrayUtil.deepCopy(playfield.getState());
                 ArrayList<ArrayList<Pair<Integer, Integer>>> positionsList = new ArrayList<>();
 
                 for (int y = row - clearLinesCount; y >= 2; y--) {
                     for (int x = 0; x < playfield.getState()[y].length; x++) {
                         if (playfield.getState()[y][x] != null) {
                             ArrayList<Pair<Integer, Integer>> positions = new ArrayList<>();
-                            MathHelper.floodFill(playfield.getState(), y, x, Objects::nonNull, (matrix, i, j) -> {
+                            MathUtil.floodFill(playfield.getState(), y, x, Objects::nonNull, (matrix, i, j) -> {
                                 positions.add(new Pair<>(i, j));
                                 return null;
                             });
@@ -249,7 +249,7 @@ public class Tetris {
     public synchronized void rotateTetrominoRight() {
         if (pause) return;
 
-        byte[][] rotatedMatrix = MathHelper.rotateMatrixClockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+        byte[][] rotatedMatrix = MathUtil.rotateMatrixClockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
 
         if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
             tetromino.setMatrix(rotatedMatrix);
@@ -262,7 +262,7 @@ public class Tetris {
     public synchronized void rotateTetrominoLeft() {
         if (pause) return;
 
-        byte[][] rotatedMatrix = MathHelper.rotateMatrixCounterclockwise(ArrayHelper.deepCopy(tetromino.getMatrix()));
+        byte[][] rotatedMatrix = MathUtil.rotateMatrixCounterclockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
 
         if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
             tetromino.setMatrix(rotatedMatrix);

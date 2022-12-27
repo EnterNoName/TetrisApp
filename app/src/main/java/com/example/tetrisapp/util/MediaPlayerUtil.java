@@ -3,10 +3,10 @@ package com.example.tetrisapp.util;
 import android.content.Context;
 import android.media.MediaPlayer;
 
-public class MediaHelper {
+public class MediaPlayerUtil {
     private Context context;
 
-    public MediaHelper(Context context) {
+    public MediaPlayerUtil(Context context) {
         this.context = context;
     }
 
