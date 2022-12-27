@@ -22,6 +22,7 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.databinding.FragmentScoresListBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
+import com.example.tetrisapp.ui.adapters.ScoreRecyclerViewAdapter;
 
 import java.util.ArrayList;
 import java.util.List;

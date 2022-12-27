@@ -1,4 +1,4 @@
-package com.example.tetrisapp.ui.fragment;
+package com.example.tetrisapp.ui.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;

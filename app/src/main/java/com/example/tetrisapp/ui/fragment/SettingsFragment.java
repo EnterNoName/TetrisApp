@@ -13,7 +13,8 @@ import androidx.annotation.Nullable;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentSettingsListBinding;
-import com.example.tetrisapp.util.RecyclerViewInterface;
+import com.example.tetrisapp.interfaces.RecyclerViewInterface;
+import com.example.tetrisapp.ui.adapters.SettingsRecyclerViewAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.ArrayList;
