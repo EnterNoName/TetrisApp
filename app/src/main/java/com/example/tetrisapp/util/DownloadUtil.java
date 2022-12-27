@@ -1,58 +1,72 @@
 package com.example.tetrisapp.util;
 
-import android.app.Activity;
 import android.app.DownloadManager;
+import android.app.RecoverableSecurityException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.annotation.NonNull;
+import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.core.content.FileProvider;
+import androidx.work.Data;
+import androidx.work.ListenableWorker;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.example.tetrisapp.BuildConfig;
+import com.example.tetrisapp.interfaces.DownloadCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class DownloadUtil implements Runnable {
-    Activity activity;
-    String URL;
-    String fileName;
-    String notificationDescription = "";
-    String notificationTitle = "";
+public class DownloadUtil {
+    private final Context context;
+    private final String URL;
+    private final String fileName;
+    private final String notificationDescription;
+    private final String notificationTitle;
+    private final String dirPath = Environment.DIRECTORY_DOWNLOADS;
 
-    public DownloadUtil(Activity activity, String URL, String fileName, String notificationDescription, String notificationTitle) {
-        this.activity = activity;
+    private long downloadId;
+
+    public DownloadUtil(Context context, String URL, String fileName) {
+        this.context = context;
+        this.URL = URL;
+        this.notificationDescription = "";
+        this.notificationTitle = "";
+        this.fileName = fileName;
+
+        downloadFileToExternalStorage();
+    }
+
+    public DownloadUtil(Context context, String URL, String fileName, String notificationDescription, String notificationTitle) {
+        this.context = context;
         this.URL = URL;
         this.notificationDescription = notificationDescription;
         this.notificationTitle = notificationTitle;
         this.fileName = fileName;
+
+        downloadFileToExternalStorage();
     }
 
-    public DownloadUtil(Activity activity, String URL, String fileName) {
-        this.activity = activity;
-        this.URL = URL;
-        this.fileName = fileName;
-    }
-
-    public static String getMimeType(String url) {
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
-        if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
-        return type;
-    }
-
-    private long downloadFileToExternalStorage() {
-        File target = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                fileName
-        );
-        if (target.exists()) target.delete();
-
+    private void downloadFileToExternalStorage() {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(URL));
 
         request.setDescription(notificationDescription);
@@ -60,39 +74,32 @@ public class DownloadUtil implements Runnable {
         request.allowScanningByMediaScanner();
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+        request.setDestinationInExternalPublicDir(dirPath, fileName);
 
-        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-        return manager.enqueue(request);
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        this.downloadId = manager.enqueue(request);
     }
 
-    private void installUpdate() {
-        File file = new File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                fileName
-        );
+    public void setOnCompleteListener(DownloadCallback callback) {
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
 
         BroadcastReceiver onComplete = new BroadcastReceiver() {
             public void onReceive(Context ctx, Intent intent) {
-                Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                install.setDataAndType(
-                        FileProvider.getUriForFile(activity, BuildConfig.APPLICATION_ID + ".provider", file),
-                        getMimeType(file.getPath()));
-                activity.startActivity(install);
-
-                activity.unregisterReceiver(this);
-                activity.finish();
+                callback.call(manager.getUriForDownloadedFile(downloadId));
+                context.unregisterReceiver(this);
             }
         };
 
-        activity.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        manager.remove(this.downloadId);
     }
 
-    @Override
-    public void run() {
-        downloadFileToExternalStorage();
-        installUpdate();
+    public void deleteDownload() {
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+
+        manager.remove(this.downloadId);
+    }
+
+    public long getDownloadId() {
+        return downloadId;
     }
 }
