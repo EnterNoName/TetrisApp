@@ -47,7 +47,7 @@ public class PauseFragment extends Fragment {
     private void confirmExit() {
         if (!dialogOpen) {
             dialogOpen = true;
-            new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+            new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
                     .setTitle(getString(R.string.exit_dialog_title))
                     .setMessage(getString(R.string.exit_dialog_description))
                     .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {

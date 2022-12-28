@@ -24,9 +24,9 @@ import com.example.tetrisapp.databinding.FragmentGameBinding;
 import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
-import com.example.tetrisapp.util.MediaHelper;
-import com.example.tetrisapp.util.OnClickListener;
-import com.example.tetrisapp.util.TouchListener;
+import com.example.tetrisapp.util.MediaPlayerUtil;
+import com.example.tetrisapp.util.OnTouchListener;
+import com.example.tetrisapp.util.OnGestureListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.concurrent.Executors;
@@ -57,7 +57,8 @@ public class GameFragment extends Fragment {
     private Future<?> countdownFuture = null;
 
     private MediaPlayer gameMusic;
-    @Inject MediaHelper mediaHelper;
+    @Inject
+    MediaPlayerUtil mediaHelper;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,7 +120,7 @@ public class GameFragment extends Fragment {
 
     private void confirmExit() {
         viewModel.getGame().setPause(true);
-        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+        new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.exit_dialog_title))
                 .setMessage(getString(R.string.exit_dialog_description))
                 .setOnDismissListener((dialog) -> viewModel.getGame().setPause(false))
@@ -183,7 +184,7 @@ public class GameFragment extends Fragment {
 
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
-        binding.btnLeft.setOnTouchListener(new TouchListener(getContext()) {
+        binding.btnLeft.setOnTouchListener(new OnGestureListener(getContext()) {
             @Override
             public void onTapDown() {
                 futureMoveLeft = executor.scheduleAtFixedRate(new MoveLeftRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
@@ -196,7 +197,7 @@ public class GameFragment extends Fragment {
             }
         });
 
-        binding.btnRight.setOnTouchListener(new TouchListener(getContext()) {
+        binding.btnRight.setOnTouchListener(new OnGestureListener(getContext()) {
             @Override
             public void onTapDown() {
                 futureMoveRight = executor.scheduleAtFixedRate(new MoveRightRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
@@ -219,7 +220,7 @@ public class GameFragment extends Fragment {
             mediaHelper.playSound(R.raw.click);
         });
 
-        binding.btnDown.setOnTouchListener(new TouchListener(getContext()) {
+        binding.btnDown.setOnTouchListener(new OnGestureListener(getContext()) {
             @Override
             public void onDoubleTap() {
                 viewModel.getGame().hardDrop();
@@ -242,7 +243,7 @@ public class GameFragment extends Fragment {
             viewModel.getGame().hold();
         });
 
-        binding.btnPause.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnPause.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
     }
 

@@ -205,7 +205,7 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void showUpdateDialog() {
-        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+        new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
                 .setTitle(update.body() != null ? update.body().title : "")
                 .setMessage(update.body().description)
                 .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
