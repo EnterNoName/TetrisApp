@@ -15,6 +15,7 @@
     app:contentPaddingRight="16dp"
     app:contentPaddingBottom="12dp"
     app:contentPaddingTop="12dp"
+    app:cardBackgroundColor="?colorPrimary"
     android:layout_marginHorizontal="24dp"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
