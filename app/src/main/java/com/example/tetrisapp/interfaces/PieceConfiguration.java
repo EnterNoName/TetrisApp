@@ -1,4 +1,4 @@
-package com.example.tetrisapp.model.game.configuration;
+package com.example.tetrisapp.interfaces;
 
 import com.example.tetrisapp.model.game.Piece;
 
@@ -8,4 +8,8 @@ public interface PieceConfiguration {
     String[] getNames();
 
     Piece get(String name);
+
+    String[] getStarterPieces();
+
+    String[] getInitialHistory();
 }

@@ -1,11 +1,11 @@
 package com.example.tetrisapp.data.remote;
 
-import com.example.tetrisapp.model.remote.Update;
+import com.example.tetrisapp.model.remote.response.UpdatePayload;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface UpdateService {
     @GET("latest")
-    Call<Update> getUpdate();
+    Call<UpdatePayload> getUpdate();
 }

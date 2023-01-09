@@ -20,7 +20,7 @@ import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.databinding.FragmentGameOverBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.ui.activity.MainActivity;
-import com.example.tetrisapp.util.OnClickListener;
+import com.example.tetrisapp.util.OnTouchListener;
 
 import java.util.Date;
 
@@ -111,13 +111,13 @@ public class GameOverFragment extends Fragment {
 
     @SuppressLint("ClickableViewAccessibility")
     private void initClickListeners() {
-        binding.btnLeave.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnLeave.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnLeave.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameOverFragment_to_mainMenuFragment));
 
-        binding.btnRetry.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnRetry.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnRetry.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameOverFragment_to_gameFragment));
 
-        binding.btnShare.setOnTouchListener(new OnClickListener((MainActivity) requireActivity()));
+        binding.btnShare.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnShare.setOnClickListener(v -> {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");

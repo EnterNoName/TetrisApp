@@ -1,7 +1,8 @@
 package com.example.tetrisapp.model.game;
 
 import com.example.tetrisapp.data.game.TetrominoRandomizer;
-import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
+import com.example.tetrisapp.interfaces.TetrisInterface;
+import com.example.tetrisapp.interfaces.PieceConfiguration;
 import com.example.tetrisapp.util.ArrayUtil;
 import com.example.tetrisapp.util.MathUtil;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import kotlin.Pair;
 
-public class Tetris {
+public class Tetris implements TetrisInterface {
     public static final int GENERATE_AHEAD = 4;
     public static final int DEFAULT_SPEED = 750;
     public static final int MIN_SPEED = 100;

@@ -39,7 +39,7 @@ import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.FragmentMainMenuBinding;
-import com.example.tetrisapp.model.remote.Update;
+import com.example.tetrisapp.model.remote.response.UpdatePayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionUtil;
 import com.example.tetrisapp.util.DownloadUtil;
@@ -68,7 +68,7 @@ public class MainMenuFragment extends Fragment {
 
     @Inject
     UpdateService updateService;
-    private Response<Update> update = null;
+    private Response<UpdatePayload> update = null;
 
     private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (checkWriteExternalStoragePermissions()) {
@@ -168,9 +168,9 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void fetchUpdate() {
-        updateService.getUpdate().enqueue(new retrofit2.Callback<Update>() {
+        updateService.getUpdate().enqueue(new retrofit2.Callback<UpdatePayload>() {
             @Override
-            public void onResponse(@NonNull Call<Update> call, @NonNull Response<Update> response) {
+            public void onResponse(@NonNull Call<UpdatePayload> call, @NonNull Response<UpdatePayload> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (BuildConfig.VERSION_CODE < response.body().versionId) {
                         update = response;
@@ -180,7 +180,7 @@ public class MainMenuFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<Update> call, Throwable t) {
+            public void onFailure(Call<UpdatePayload> call, Throwable t) {
                 if (!(t instanceof EOFException)) {
                     t.printStackTrace();
                 }

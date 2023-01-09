@@ -1,8 +1,8 @@
 package com.example.tetrisapp.data.remote;
 
-import com.example.tetrisapp.model.remote.CreateLobbyPayload;
-import com.example.tetrisapp.model.remote.DefaultResponse;
-import com.example.tetrisapp.model.remote.TokenPayload;
+import com.example.tetrisapp.model.remote.request.CreateLobbyPayload;
+import com.example.tetrisapp.model.remote.response.DefaultPayload;
+import com.example.tetrisapp.model.remote.request.TokenPayload;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -11,11 +11,11 @@ import retrofit2.http.Path;
 
 public interface LobbyService {
     @POST("lobby/create")
-    Call<DefaultResponse> createLobby(@Body CreateLobbyPayload body);
+    Call<DefaultPayload> createLobby(@Body CreateLobbyPayload body);
 
     @POST("lobby/join/{code}")
-    Call<DefaultResponse> joinLobby(@Body TokenPayload body, @Path("code") String code);
+    Call<DefaultPayload> joinLobby(@Body TokenPayload body, @Path("code") String code);
 
     @POST("lobby/exit")
-    Call<DefaultResponse> exitLobby(@Body TokenPayload body);
+    Call<DefaultPayload> exitLobby(@Body TokenPayload body);
 }

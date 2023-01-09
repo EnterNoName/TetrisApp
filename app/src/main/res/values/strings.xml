@@ -69,9 +69,17 @@
     <string name="switch_to_sign_up">Don\'t have an account?</string>
     <string name="switch_to_sign_in">Already have an account?</string>
 
-    <string name="update_url" translatable="false">https://tetris-app-backend.vercel.app/api/</string>
+<!--    <string name="update_url" translatable="false">http://192.168.1.5:3000/api/</string>-->
+    <string name="update_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
     <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
 
     <string name="setting_auto_update" translatable="false">auto_update_enabled</string>
     <string name="setting_countdown" translatable="false">countdown_duration</string>
+
+    <string name="invite_code">Invite Code</string>
+    <string name="join_lobby">Join Lobby</string>
+    <string name="create_lobby">Create Lobby</string>
+
+    <string name="lobby_exit_alert_title">Exit the lobby?</string>
+    <string name="lobby_exit_alert_message">By pressing "Yes" you will be disconnected from the current lobby.</string>
 </resources>

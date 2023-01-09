@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentAccountBinding;
 
 public class AccountFragment extends Fragment {

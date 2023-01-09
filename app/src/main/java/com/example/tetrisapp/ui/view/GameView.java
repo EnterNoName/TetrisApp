@@ -12,6 +12,7 @@ import androidx.core.graphics.ColorUtils;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.interfaces.TetrisInterface;
 import com.example.tetrisapp.model.game.Piece;
 import com.example.tetrisapp.model.game.Tetris;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GameView extends View {
     private final Paint paint = new Paint();
-    private Tetris game = null;
+    private TetrisInterface game = null;
 
     private int pointSize;
     private int xOffset;
@@ -56,11 +57,11 @@ public class GameView extends View {
         Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::postInvalidate, 0, 1000 / FPS, TimeUnit.MILLISECONDS);
     }
 
-    public void setGame(Tetris game) {
+    public void setGame(TetrisInterface game) {
         this.game = game;
     }
 
-    public Tetris getGame() {
+    public TetrisInterface getGame() {
         return game;
     }
 

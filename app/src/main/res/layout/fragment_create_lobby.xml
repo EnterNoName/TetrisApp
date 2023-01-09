@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_bold"
+        android:text="Lobby Settings"
+        android:textColor="?colorOnPrimary"
+        android:textSize="24sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/etCountdown"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Countdown duration"
+        android:inputType="number"
+        android:minHeight="48dp"
+        android:textColor="?colorOnPrimary"
+        android:importantForAutofill="no" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnResetSettings"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="Reset Settings"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnCreateLobby"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="Create Lobby"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchEnablePause"
+        android:layout_width="0dp"
+        android:paddingHorizontal="4dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_medium"
+        android:textColor="?colorOnPrimary"
+        android:textSize="20sp"
+        android:text="Enable pause"
+        tools:ignore="MissingConstraints" />
+
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flowSettings"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="vertical"
+        app:constraint_referenced_ids="etCountdown, switchEnablePause"
+        app:flow_verticalGap="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettings" />
+
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow4"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:orientation="vertical"
+        app:constraint_referenced_ids="btnResetSettings,btnCreateLobby"
+        app:flow_verticalGap="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

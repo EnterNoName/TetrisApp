@@ -1,8 +1,8 @@
-package com.example.tetrisapp.model.remote;
+package com.example.tetrisapp.model.remote.response;
 
 import com.google.gson.annotations.SerializedName;
 
-public class DefaultResponse {
+public class DefaultPayload {
     @SerializedName("status")
     public String status;
 

@@ -1,10 +1,10 @@
-package com.example.tetrisapp.model.remote;
+package com.example.tetrisapp.model.remote.response;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
 
-public class Update {
+public class UpdatePayload {
     @SerializedName("title")
     public String title;
     @SerializedName("description")
@@ -20,7 +20,7 @@ public class Update {
     @SerializedName("date")
     public Date date;
 
-    public Update(String title, String description, String type, String version, Integer versionId, String url, Date date) {
+    public UpdatePayload(String title, String description, String type, String version, Integer versionId, String url, Date date) {
         this.title = title;
         this.description = description;
         this.type = type;

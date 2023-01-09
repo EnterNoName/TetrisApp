@@ -1,4 +1,4 @@
-package com.example.tetrisapp.model.remote;
+package com.example.tetrisapp.model.remote.request;
 
 import com.google.gson.annotations.SerializedName;
 

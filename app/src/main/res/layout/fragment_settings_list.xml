@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,7 +15,6 @@
     app:contentPaddingRight="16dp"
     app:contentPaddingBottom="12dp"
     app:contentPaddingTop="12dp"
-    app:cardBackgroundColor="?colorPrimary"
     android:layout_marginHorizontal="24dp"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
@@ -53,5 +52,5 @@
                     tools:context=".ui.fragment.SettingsFragment"
                     tools:listitem="@layout/fragment_settings" />
         </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

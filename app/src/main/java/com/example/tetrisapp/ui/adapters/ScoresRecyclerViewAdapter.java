@@ -17,12 +17,12 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
-public class ScoreRecyclerViewAdapter extends RecyclerView.Adapter<ScoreRecyclerViewAdapter.ViewHolder> {
+public class ScoresRecyclerViewAdapter extends RecyclerView.Adapter<ScoresRecyclerViewAdapter.ViewHolder> {
 
     private final List<LeaderboardEntry> mValues;
     private final Context ctx;
 
-    public ScoreRecyclerViewAdapter(Context context, List<LeaderboardEntry> items) {
+    public ScoresRecyclerViewAdapter(Context context, List<LeaderboardEntry> items) {
         mValues = items;
         ctx = context;
     }

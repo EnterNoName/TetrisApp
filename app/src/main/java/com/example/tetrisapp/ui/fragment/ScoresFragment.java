@@ -22,7 +22,7 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.databinding.FragmentScoresListBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
-import com.example.tetrisapp.ui.adapters.ScoreRecyclerViewAdapter;
+import com.example.tetrisapp.ui.adapters.ScoresRecyclerViewAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,13 +113,13 @@ public class ScoresFragment extends Fragment {
         DividerItemDecoration divider = new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL);
         divider.setDrawable(requireActivity().getDrawable(R.drawable.recyclerview_divider));
         binding.list.addItemDecoration(divider);
-        binding.list.setAdapter(new ScoreRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
+        binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
 
         // Load RecyclerView items
         leaderboardDao.getSorted().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(leaderboardEntries -> {
             this.leaderboardEntries = leaderboardEntries;
             // RecyclerView adapter
-            binding.list.setAdapter(new ScoreRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
+            binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), this.leaderboardEntries));
         }, throwable -> {
             if (!(throwable instanceof NullPointerException)) {
                 Log.e("ScoresFragment", throwable.getLocalizedMessage());

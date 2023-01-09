@@ -173,7 +173,7 @@
 
     <androidx.constraintlayout.helper.widget.Flow
         android:id="@+id/flowButtonsVertical"
-        android:layout_width="251dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="80dp"
         android:layout_marginBottom="32dp"

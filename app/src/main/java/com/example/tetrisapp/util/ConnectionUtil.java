@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 
 import java.net.InetAddress;
 
-public class ConnectionHelper {
+public class ConnectionUtil {
     private final Activity activity;
     NetworkRequest networkRequest = new NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -20,7 +20,7 @@ public class ConnectionHelper {
     Callback onAvailable;
     Callback onLost;
 
-    public ConnectionHelper(Activity activity) {
+    public ConnectionUtil(Activity activity) {
         this.activity = activity;
     }
 

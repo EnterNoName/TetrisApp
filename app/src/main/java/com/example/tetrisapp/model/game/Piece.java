@@ -2,7 +2,7 @@ package com.example.tetrisapp.model.game;
 
 import androidx.annotation.NonNull;
 
-import com.example.tetrisapp.util.ArrayHelper;
+import com.example.tetrisapp.util.ArrayUtil;
 
 public class Piece {
     private int row = 0;
@@ -29,7 +29,7 @@ public class Piece {
     }
 
     public Piece copy() {
-        return new Piece(row, col, name, ArrayHelper.deepCopy(matrix), color, overlayResId);
+        return new Piece(row, col, name, ArrayUtil.deepCopy(matrix), color, overlayResId);
     }
 
     public int getRow() {

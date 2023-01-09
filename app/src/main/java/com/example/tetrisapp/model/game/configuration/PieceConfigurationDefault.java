@@ -1,6 +1,7 @@
 package com.example.tetrisapp.model.game.configuration;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.interfaces.PieceConfiguration;
 import com.example.tetrisapp.model.game.Piece;
 
 import java.util.Arrays;
@@ -8,7 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class PieceConfigurationImpl implements PieceConfiguration {
+public class PieceConfigurationDefault implements PieceConfiguration {
     Map<String, Piece> pieceMap = new HashMap<>();
 
     {
@@ -22,7 +23,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0, 0}
                         },
                         0xFF00FFFF,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "J",
@@ -32,7 +33,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0}
                         },
                         0xFF0000FF,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "L",
@@ -42,7 +43,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0}
                         },
                         0xFFFF7F00,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "O",
@@ -51,7 +52,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {1, 1}
                         },
                         0xFFFFFF00,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "S",
@@ -61,7 +62,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0}
                         },
                         0xFF00FF00,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "Z",
@@ -71,7 +72,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0}
                         },
                         0xFFFF0000,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
                 new Piece(
                         "T",
@@ -81,7 +82,7 @@ public class PieceConfigurationImpl implements PieceConfiguration {
                                 {0, 0, 0}
                         },
                         0xFF800080,
-                        R.drawable.point_overlay
+                        R.drawable.point_overlay_default
                 ),
         }).iterator();
 
@@ -104,5 +105,15 @@ public class PieceConfigurationImpl implements PieceConfiguration {
     @Override
     public Piece get(String name) {
         return pieceMap.getOrDefault(name, null);
+    }
+
+    @Override
+    public String[] getStarterPieces() {
+        return new String[]{"I", "J", "L", "T"};
+    }
+
+    @Override
+    public String[] getInitialHistory() {
+        return new String[]{"Z", "S", "Z", "S"};
     }
 }

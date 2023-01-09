@@ -49,6 +49,7 @@ public class GameFragment extends Fragment {
     SharedPreferences preferences;
 
     private static final int MOVEMENT_INTERVAL = 125;
+
     private int countdown;
     private int countdownRemaining;
 
@@ -57,13 +58,13 @@ public class GameFragment extends Fragment {
     private Future<?> countdownFuture = null;
 
     private MediaPlayer gameMusic;
-    @Inject
-    MediaPlayerUtil mediaHelper;
+    @Inject MediaPlayerUtil mediaHelper;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(GameViewModel.class);
+
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -247,6 +248,8 @@ public class GameFragment extends Fragment {
         binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
     }
 
+
+    // Runnables
     private class MoveRightRunnable implements Runnable {
         @Override
         public void run() {
@@ -306,6 +309,7 @@ public class GameFragment extends Fragment {
         }
     }
 
+    // Animation
     public void animate(View view, Animator.AnimatorListener listener) {
         ValueAnimator alphaAnimator = ValueAnimator.ofFloat(1, 0);
         alphaAnimator.addListener(listener);

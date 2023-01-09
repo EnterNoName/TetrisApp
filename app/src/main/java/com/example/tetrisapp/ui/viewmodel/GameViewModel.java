@@ -3,12 +3,13 @@ package com.example.tetrisapp.ui.viewmodel;
 import androidx.lifecycle.ViewModel;
 
 import com.example.tetrisapp.model.game.Tetris;
-import com.example.tetrisapp.model.game.configuration.PieceConfiguration;
-import com.example.tetrisapp.model.game.configuration.PieceConfigurationImpl;
+import com.example.tetrisapp.interfaces.PieceConfiguration;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurationDefault;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 
 public class GameViewModel extends ViewModel {
-    private final PieceConfiguration configuration = new PieceConfigurationImpl();
-    private Tetris game = new Tetris(configuration, new String[]{"I", "J", "L", "T"}, new String[]{"Z", "S", "Z", "S"});
+    private final PieceConfiguration configuration = PieceConfigurations.GLASS.getConfiguration();
+    private Tetris game = new Tetris(configuration, configuration.getStarterPieces(), configuration.getInitialHistory());
 
     public Tetris getGame() {
         return game;

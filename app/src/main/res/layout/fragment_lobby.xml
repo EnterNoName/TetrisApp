@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/fira_sans_bold"
+        android:text="Nickname’s Lobby"
+        android:textColor="?colorOnPrimary"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/montserrat_medium"
+        android:text="Players:"
+        android:textColor="?colorOnPrimary"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:name="com.example.tetrisapp.ui.fragment.LobbyFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginVertical="16dp"
+        android:layout_marginHorizontal="56dp"
+        app:layoutManager="LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/tvInviteCode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
+        tools:context=".ui.fragment.LobbyFragment"
+        tools:listitem="@layout/fragment_user" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnStartGame"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="Start Game"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnExitLobby"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="Exit Lobby"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/tvInviteCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_medium"
+        android:textAlignment="center"
+        android:textColor="?colorOnPrimary"
+        android:textSize="18sp"
+        android:text="Invite Code:" />
+
+    <LinearLayout
+        android:id="@+id/layoutInviteCode"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_game_value_large"
+        android:gravity="center"
+        android:paddingHorizontal="8dp"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/inviteCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="28sp"
+            tools:text="#AB6NAJ" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            app:tint="?colorOnPrimary"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_round_content_copy_24" />
+    </LinearLayout>
+
+
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flow5"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:flow_verticalGap="8dp"
+        android:layout_marginBottom="64dp"
+        app:constraint_referenced_ids="tvInviteCode,layoutInviteCode,btnStartGame,btnExitLobby"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
