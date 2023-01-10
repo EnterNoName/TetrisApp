@@ -6,6 +6,9 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.data.remote.UpdateService;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Singleton;
 
@@ -19,7 +22,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Module
 @InstallIn(SingletonComponent.class)
 public class RemoteModule {
-
     @Provides
     @Singleton
     static Retrofit provideRetrofitClient(Application app) {
@@ -45,5 +47,23 @@ public class RemoteModule {
     @Singleton
     static GameService provideGameService(Retrofit retrofit) {
         return retrofit.create(GameService.class);
+    }
+
+    @Provides
+    @Singleton
+    static FirebaseApp provideFirebaseApp(Application app) {
+        return FirebaseApp.initializeApp(app);
+    }
+
+    @Provides
+    @Singleton
+    static FirebaseAuth provideFirebaseAuth(FirebaseApp app) {
+        return FirebaseAuth.getInstance(app);
+    }
+
+    @Provides
+    @Singleton
+    static FirebaseUser provideFirebaseUser(FirebaseAuth auth) {
+        return auth.getCurrentUser();
     }
 }
