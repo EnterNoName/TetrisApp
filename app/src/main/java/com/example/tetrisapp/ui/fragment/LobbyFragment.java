@@ -1,7 +1,11 @@
 package com.example.tetrisapp.ui.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.databinding.FragmentLobbyBinding;
 import com.example.tetrisapp.model.local.model.UserInfo;
@@ -27,13 +32,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
 import com.pusher.client.Pusher;
 import com.pusher.client.channel.PresenceChannel;
-import com.pusher.client.channel.PresenceChannelEventListener;
-import com.pusher.client.channel.PusherEvent;
 import com.pusher.client.channel.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -46,11 +48,12 @@ import retrofit2.Response;
 public class LobbyFragment extends Fragment implements Callback<DefaultPayload> {
     public static final String TAG = "LobbyFragment";
     private FragmentLobbyBinding binding;
-    private boolean exitedLobby = false;
 
     private FirebaseAuth mAuth;
     @Inject
     LobbyService lobbyService;
+    @Inject
+    GameService gameService;
 
     private Pusher pusher;
     private PresenceChannel channel;
@@ -95,7 +98,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         PusherUtil.unsubscribePresence();
 
         mAuth.getCurrentUser()
-                .getIdToken(false)
+                .getIdToken(true)
                 .addOnCompleteListener(task -> lobbyService
                         .exitLobby(new TokenPayload(task.getResult().getToken()))
                         .enqueue(this));
@@ -116,35 +119,32 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                 .getIdToken(true)
                 .addOnCompleteListener(task -> {
                     pusher = PusherUtil.getPusherInstance(task.getResult().getToken(), getString(R.string.update_url) + "auth");
-                    channel = PusherUtil.getPresenceChannel(pusher,"presence-" + args.getInviteCode(), new PresenceChannelEventListener() {
-                        @Override
-                        @SuppressLint("NotifyDataSetChanged")
-                        public void onUsersInformationReceived(String channelName, Set<User> users) {
-                            insertUsers(users);
-                        }
+                    channel = PusherUtil.getPresenceChannel(
+                            "presence-" + args.getInviteCode(),
+                            (channelName, user) -> {
+                                addUserToLobbyUserList(user);
+                            },
+                            (channelName, user) -> {
+                                removeUserFromLobbyUserList(user);
+                            },
+                            (message, e) -> {
+                                Log.e(TAG, message);
+                                exitLobby();
+                            }
+                    );
 
-                        @Override
-                        public void userSubscribed(String channelName, User user) {
-                            addUserToLobbyUserList(user);
-                        }
-
-                        @Override
-                        public void userUnsubscribed(String channelName, User user) {
-                            removeUserFromLobbyUserList(user);
-                        }
-
-                        @Override
-                        public void onAuthenticationFailure(String message, Exception e) {
-                        }
-
-                        @Override
-                        public void onSubscriptionSucceeded(String channelName) {
-                        }
-
-                        @Override
-                        public void onEvent(PusherEvent event) {
-                        }
+                    PusherUtil.bindPresenceChannel(channel, "game-started", event -> {
+                        Log.d(TAG, "Event received: " + event.getEventName());
+                        requireActivity().runOnUiThread(() -> {
+                            LobbyFragmentDirections.ActionLobbyFragmentToGameFragment action = LobbyFragmentDirections.actionLobbyFragmentToGameFragment();
+                            action.setLobbyCode(args.getInviteCode());
+                            Navigation.findNavController(binding.getRoot()).navigate(action);
+                        });
                     });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, e.getLocalizedMessage());
+                    exitLobby();
                 });
     }
 
@@ -152,6 +152,28 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     private void initOnClickListeners() {
         binding.btnExitLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnExitLobby.setOnClickListener(v -> exitLobby());
+
+        binding.btnStartGame.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnStartGame.setOnClickListener(v -> {
+            mAuth.getCurrentUser()
+                    .getIdToken(false)
+                    .addOnCompleteListener(task -> gameService
+                            .startGame(new TokenPayload(task.getResult().getToken()))
+                            .enqueue(this)
+                    ).addOnFailureListener(e -> {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        exitLobby();
+                    });
+        });
+
+        binding.btnCopyInviteCode.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnCopyInviteCode.setOnClickListener(v -> {
+            LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
+
+            ClipboardManager clipboard = (ClipboardManager) requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText(getString(R.string.invite_code), args.getInviteCode());
+            clipboard.setPrimaryClip(clip);
+        });
     }
 
     private void updateUI() {
@@ -165,6 +187,8 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
 
     @Override
     public void onFailure(Call<DefaultPayload> call, Throwable t) {
+        Log.e(TAG, t.getLocalizedMessage());
+        exitLobby();
     }
 
     private void exitLobby() {
@@ -191,18 +215,5 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
            userList.add(userPresenceData);
            binding.list.getAdapter().notifyItemInserted(userList.size() - 1);
        });
-    }
-
-    private void insertUsers(Set<User> users) {
-        Gson gson = new Gson();
-        userList.clear();
-
-        users.forEach(user -> {
-            UserInfo userPresenceData = gson.fromJson(user.getInfo(), UserInfo.class);
-            userPresenceData.setUid(user.getId());
-            requireActivity().runOnUiThread(() -> userList.add(userPresenceData));
-        });
-
-        requireActivity().runOnUiThread(() -> binding.list.getAdapter().notifyDataSetChanged());
     }
 }

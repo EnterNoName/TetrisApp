@@ -101,9 +101,11 @@
             android:textSize="28sp"
             tools:text="#AB6NAJ" />
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+        <ImageButton
+            android:id="@+id/btnCopyInviteCode"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="?colorPrimary"
             app:tint="?colorOnPrimary"
             android:layout_marginStart="8dp"
             android:src="@drawable/ic_round_content_copy_24" />
