@@ -1,5 +1,6 @@
 package com.example.tetrisapp.model.remote.request;
 
+import com.example.tetrisapp.model.local.model.Tetromino;
 import com.google.gson.annotations.SerializedName;
 
 public class InvalidatePlayerDataPayload extends TokenPayload {
@@ -25,26 +26,5 @@ public class InvalidatePlayerDataPayload extends TokenPayload {
         this.level = level;
         this.tetromino = tetromino;
         this.playfield = playfield;
-    }
-
-    public class Tetromino {
-        @SerializedName("name")
-        public String name;
-
-        @SerializedName("matrix")
-        public byte[][] matrix;
-
-        @SerializedName("x")
-        public int x;
-
-        @SerializedName("y")
-        public int y;
-
-        public Tetromino(String name, byte[][] matrix, int x, int y) {
-            this.name = name;
-            this.matrix = matrix;
-            this.x = x;
-            this.y = y;
-        }
     }
 }
