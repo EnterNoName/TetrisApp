@@ -96,6 +96,7 @@ public class GameView extends View {
 
     private void drawShadow(Canvas canvas) {
         Piece tetromino = game.getShadow();
+        if (tetromino == null) return;
 
         for (int y = 0; y < tetromino.getMatrix().length; y++) {
             for (int x = 0; x < tetromino.getMatrix()[y].length; x++) {
@@ -152,6 +153,8 @@ public class GameView extends View {
     }
 
     private void drawPlayfield(Canvas canvas) {
+        if (game.getPlayfield() == null) return;
+
         for (int y = 2; y < 22; y++) {
             for (int x = 0; x < 10; x++) {
                 String point = game.getPlayfield().getState()[y][x];
@@ -165,6 +168,8 @@ public class GameView extends View {
 
     private void drawTetromino(Canvas canvas) {
         Piece tetromino = game.getCurrentPiece();
+        if (tetromino == null) return;
+
         int tetrominoColor = tetromino.getColor();
 
         int delay = (int) game.getDelay();

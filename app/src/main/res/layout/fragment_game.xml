@@ -12,16 +12,17 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:backgroundColor="?colorPrimary"
+        android:layout_marginRight="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/include"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <include
-        android:id="@+id/include"
-        layout="@layout/sidebar"
+    <ViewStub android:id="@+id/stub"
+        android:inflatedId="@+id/included"
         android:layout_width="70dp"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toEndOf="@id/gameView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

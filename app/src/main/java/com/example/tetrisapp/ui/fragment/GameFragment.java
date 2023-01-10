@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -20,14 +21,30 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.databinding.FragmentGameBinding;
+import com.example.tetrisapp.databinding.SidebarBinding;
+import com.example.tetrisapp.databinding.SidebarMultiplayerBinding;
+import com.example.tetrisapp.model.game.MockPlayfield;
+import com.example.tetrisapp.model.game.MockTetris;
+import com.example.tetrisapp.model.game.Piece;
+import com.example.tetrisapp.model.game.Playfield;
 import com.example.tetrisapp.model.game.Tetris;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
+import com.example.tetrisapp.model.local.model.Tetromino;
+import com.example.tetrisapp.model.local.model.UserGameData;
+import com.example.tetrisapp.model.remote.request.InvalidatePlayerDataPayload;
+import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.MediaPlayerUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.example.tetrisapp.util.OnGestureListener;
+import com.example.tetrisapp.util.PusherUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.gson.Gson;
+import com.pusher.client.channel.PresenceChannel;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,27 +55,34 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
-public class GameFragment extends Fragment {
+public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     private static final String TAG = "GameFragment";
-    private FragmentGameBinding binding;
-    private GameViewModel viewModel;
-
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    SharedPreferences preferences;
-
     private static final int MOVEMENT_INTERVAL = 125;
+
+    private GameViewModel viewModel;
+    private FragmentGameBinding binding;
+    private SidebarBinding sidebarBinding = null;
+    private SidebarMultiplayerBinding sidebarMultiplayerBinding = null;
 
     private int countdown;
     private int countdownRemaining;
 
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> futureMoveRight = null;
     private ScheduledFuture<?> futureMoveLeft = null;
     private Future<?> countdownFuture = null;
 
     private MediaPlayer gameMusic;
     @Inject MediaPlayerUtil mediaHelper;
+    private FirebaseAuth mAuth;
+    @Inject GameService gameService;
+
+    private MockTetris mockTetris;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,7 +97,7 @@ public class GameFragment extends Fragment {
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
 
-        preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
         countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
         countdownRemaining = countdown;
 
@@ -88,6 +112,8 @@ public class GameFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentGameBinding.inflate(inflater, container, false);
         binding.getRoot().setKeepScreenOn(true);
+
+        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 
@@ -96,11 +122,30 @@ public class GameFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         binding.gameView.setGame(viewModel.getGame());
 
+        // Inflate view stub
+        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
+        binding.stub.setOnInflateListener((stub, inflated) -> {
+            if (args.getLobbyCode() != null) {
+                sidebarMultiplayerBinding = SidebarMultiplayerBinding.bind(inflated);
+            } else {
+                sidebarBinding = SidebarBinding.bind(inflated);
+            }
+        });
+
+        if (args.getLobbyCode() != null) {
+            binding.stub.setLayoutResource(R.layout.sidebar_multiplayer);
+        } else {
+            binding.stub.setLayoutResource(R.layout.sidebar);
+        }
+        binding.stub.inflate();
+
         initOnClickListeners();
         initGameListeners();
 
         updateScoreboard();
         updatePieceViews();
+
+        if (sidebarMultiplayerBinding != null) initCompetitorGameView();
     }
 
     @Override
@@ -115,28 +160,72 @@ public class GameFragment extends Fragment {
         viewModel.getGame().setPause(true);
     }
 
-    private void countdown() {
-        countdownFuture = executor.submit(new CountdownRunnable());
+    private void initCompetitorGameView() {
+        mockTetris = new MockTetris();
+        mockTetris.setConfiguration(PieceConfigurations.DEFAULT.getConfiguration());
+
+        sidebarMultiplayerBinding.gameViewCompetitor.setGame(mockTetris);
+
+        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
+        PresenceChannel channel = PusherUtil.getPresenceChannel("presence-" + args.getLobbyCode());
+        PusherUtil.bindPresenceChannel(channel, "user-update-data", event -> {
+            Gson gson = new Gson();
+            UserGameData data = gson.fromJson(event.getData(), UserGameData.class);
+
+            if (data.userId.equals(mAuth.getUid())) return;
+
+            MockPlayfield playfield = new MockPlayfield();
+            playfield.setState(data.playfield);
+
+            Piece piece = mockTetris.getConfiguration().get(data.tetromino.name);
+            piece.setMatrix(data.tetromino.matrix);
+            piece.setCol(data.tetromino.x);
+            piece.setRow(data.tetromino.y);
+
+            mockTetris.setScore(data.score);
+            mockTetris.setLevel(data.level);
+            mockTetris.setLines(data.lines);
+            mockTetris.setPlayfield(playfield);
+            mockTetris.setTetromino(piece);
+
+            sidebarMultiplayerBinding.gameViewCompetitor.postInvalidate();
+        });
     }
 
-    private void confirmExit() {
-        viewModel.getGame().setPause(true);
-        new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-                .setTitle(getString(R.string.exit_dialog_title))
-                .setMessage(getString(R.string.exit_dialog_description))
-                .setOnDismissListener((dialog) -> viewModel.getGame().setPause(false))
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> viewModel.getGame().setPause(false))
-                .setPositiveButton(getString(R.string.agree), (dialog, which) -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment))
-                .show();
+    private void sendGameData() {
+        mAuth.getCurrentUser()
+                .getIdToken(true)
+                .addOnCompleteListener(task -> {
+                    gameService.invalidatePlayerData(new InvalidatePlayerDataPayload(
+                            task.getResult().getToken(),
+                            binding.gameView.getGame().getScore(),
+                            binding.gameView.getGame().getLines(),
+                            binding.gameView.getGame().getLevel(),
+                            new Tetromino(
+                                    binding.gameView.getGame().getCurrentPiece().getName(),
+                                    binding.gameView.getGame().getCurrentPiece().getMatrix(),
+                                    binding.gameView.getGame().getCurrentPiece().getCol(),
+                                    binding.gameView.getGame().getCurrentPiece().getRow()
+                            ),
+                            binding.gameView.getGame().getPlayfield().getState()
+                    )).enqueue(this);
+                });
     }
 
     @SuppressLint("SetTextI18n")
     private void updateScoreboard() {
         requireActivity().runOnUiThread(() -> {
-            binding.include.score.setText(viewModel.getGame().getScore() + "");
-            binding.include.level.setText(viewModel.getGame().getLevel() + "");
-            binding.include.lines.setText(viewModel.getGame().getLines() + "");
-            binding.include.combo.setText(viewModel.getGame().getCombo() + "");
+            if (sidebarBinding != null) {
+                sidebarBinding.score.setText(viewModel.getGame().getScore() + "");
+                sidebarBinding.level.setText(viewModel.getGame().getLevel() + "");
+                sidebarBinding.lines.setText(viewModel.getGame().getLines() + "");
+                sidebarBinding.combo.setText(viewModel.getGame().getCombo() + "");
+            } else {
+                sidebarMultiplayerBinding.score.setText(viewModel.getGame().getScore() + "");
+                sidebarMultiplayerBinding.level.setText(viewModel.getGame().getLevel() + "");
+                sidebarMultiplayerBinding.lines.setText(viewModel.getGame().getLines() + "");
+                sidebarMultiplayerBinding.combo.setText(viewModel.getGame().getCombo() + "");
+            }
         });
 
         float playbackSpeed = 2 - viewModel.getGame().getSpeed() / (float) Tetris.DEFAULT_SPEED;
@@ -145,15 +234,24 @@ public class GameFragment extends Fragment {
 
     private void updatePieceViews() {
         requireActivity().runOnUiThread(() -> {
-            binding.include.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
-            binding.include.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
-            binding.include.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
-            binding.include.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
+            if (sidebarBinding != null) {
+                sidebarBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
+                sidebarBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
+                sidebarBinding.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
+                sidebarBinding.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
+            } else {
+                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
+                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
+            }
         });
 
         requireActivity().runOnUiThread(() -> {
             if (viewModel.getGame().getHeldPiece() != null) {
-                binding.include.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
+                if (sidebarBinding != null) {
+                    sidebarBinding.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
+                } else {
+                    sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
+                }
             }
         });
     }
@@ -161,7 +259,10 @@ public class GameFragment extends Fragment {
     private void initGameListeners() {
         viewModel.getGame().setOnGameValuesUpdate(this::updateScoreboard);
         viewModel.getGame().setOnHold(this::updatePieceViews);
-        viewModel.getGame().setOnMove(() -> binding.gameView.postInvalidate());
+        viewModel.getGame().setOnMove(() -> {
+            if (sidebarMultiplayerBinding != null) {sendGameData();}
+            binding.gameView.postInvalidate();
+        });
         viewModel.getGame().setOnSolidify(() -> {
             mediaHelper.playSound(R.raw.solidify);
             this.updatePieceViews();
@@ -239,15 +340,46 @@ public class GameFragment extends Fragment {
             }
         });
 
-        binding.include.cvHold.setOnClickListener(v -> {
-            mediaHelper.playSound(R.raw.click);
-            viewModel.getGame().hold();
-        });
+        if (sidebarBinding != null) {
+            sidebarBinding.cvHold.setOnClickListener(v -> {
+                mediaHelper.playSound(R.raw.click);
+                viewModel.getGame().hold();
+            });
+        } else {
+            sidebarMultiplayerBinding.cvHold.setOnClickListener(v -> {
+                mediaHelper.playSound(R.raw.click);
+                viewModel.getGame().hold();
+            });
+        }
 
         binding.btnPause.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
     }
 
+    private void confirmExit() {
+        viewModel.getGame().setPause(true);
+        new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
+                .setTitle(getString(R.string.exit_dialog_title))
+                .setMessage(getString(R.string.exit_dialog_description))
+                .setOnDismissListener((dialog) -> viewModel.getGame().setPause(false))
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> viewModel.getGame().setPause(false))
+                .setPositiveButton(getString(R.string.agree), (dialog, which) -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameFragment_to_mainMenuFragment))
+                .show();
+    }
+
+    private void countdown() {
+        countdownFuture = executor.submit(new CountdownRunnable());
+    }
+
+    @Override
+    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
+
+    }
+
+    @Override
+    public void onFailure(Call<DefaultPayload> call, Throwable t) {
+
+    }
 
     // Runnables
     private class MoveRightRunnable implements Runnable {

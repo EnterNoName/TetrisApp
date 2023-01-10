@@ -8,7 +8,7 @@ import com.example.tetrisapp.model.game.configuration.PieceConfigurationDefault;
 import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 
 public class GameViewModel extends ViewModel {
-    private final PieceConfiguration configuration = PieceConfigurations.GLASS.getConfiguration();
+    private final PieceConfiguration configuration = PieceConfigurations.DEFAULT.getConfiguration();
     private Tetris game = new Tetris(configuration, configuration.getStarterPieces(), configuration.getInitialHistory());
 
     public Tetris getGame() {
