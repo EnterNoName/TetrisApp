@@ -1,13 +1,17 @@
 package com.example.tetrisapp.model.game;
 
+import com.example.tetrisapp.interfaces.PlayfieldInterface;
 import com.example.tetrisapp.interfaces.TetrisInterface;
 import com.example.tetrisapp.interfaces.PieceConfiguration;
+
+import java.util.LinkedList;
 
 public class MockTetris implements TetrisInterface {
     private Piece tetromino;
     private Piece shadow;
     private PieceConfiguration configuration;
-    private Playfield playfield = new Playfield();
+    private MockPlayfield playfield = new MockPlayfield();
+    private LinkedList<String> tetrominoSequence = new LinkedList<>();
 
     private int score = 0;
     private int lines = 0;
@@ -28,13 +32,22 @@ public class MockTetris implements TetrisInterface {
     }
 
     @Override
-    public Playfield getPlayfield() {
+    public PlayfieldInterface getPlayfield() {
         return playfield;
     }
 
     @Override
     public PieceConfiguration getConfiguration() {
         return configuration;
+    }
+
+    @Override
+    public LinkedList<String> getTetrominoSequence() {
+        return tetrominoSequence;
+    }
+
+    public void setTetrominoSequence(LinkedList<String> tetrominoSequence) {
+        this.tetrominoSequence = tetrominoSequence;
     }
 
     @Override
@@ -79,7 +92,7 @@ public class MockTetris implements TetrisInterface {
         this.configuration = configuration;
     }
 
-    public void setPlayfield(Playfield playfield) {
+    public void setPlayfield(MockPlayfield playfield) {
         this.playfield = playfield;
     }
 

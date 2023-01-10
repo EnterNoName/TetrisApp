@@ -1,13 +1,19 @@
 package com.example.tetrisapp.model.game;
 
-public class Playfield {
-    private final String[][] state = new String[22][10];
+import com.example.tetrisapp.interfaces.PlayfieldInterface;
 
-    public Playfield() {
-    }
+public class Playfield implements PlayfieldInterface {
+    private String[][] state = new String[22][10];
+
+    public Playfield() {}
 
     public String[][] getState() {
         return state;
+    }
+
+    @Override
+    public void setState(String[][] state) {
+        this.state = state;
     }
 
     public boolean isValidMove(byte[][] matrix, int rowOffset, int colOffset) {
