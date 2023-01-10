@@ -68,6 +68,11 @@
         <action
             android:id="@+id/action_gameFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment" />
+        <argument
+            android:name="lobbyCode"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
 
     </fragment>
     <fragment
@@ -146,6 +151,13 @@
             android:id="@+id/action_lobbyFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_lobbyFragment_to_gameFragment"
+            app:destination="@id/gameFragment" >
+            <argument
+                android:name="lobbyCode"
+                android:defaultValue="@null" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/createLobbyFragment"
