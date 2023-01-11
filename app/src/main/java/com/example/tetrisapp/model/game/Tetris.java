@@ -39,7 +39,7 @@ public class Tetris implements TetrisInterface {
     // In-Game values
     private Piece tetromino;
     private Piece shadow;
-    private Piece heldPiece;
+    private String heldPiece;
 
     private final PieceConfiguration configuration;
     private final Playfield playfield = new Playfield();
@@ -306,11 +306,11 @@ public class Tetris implements TetrisInterface {
 
         if (!holdUsed) {
             if (heldPiece == null) {
-                heldPiece = configuration.get(tetromino.getName()).copy();
+                heldPiece = tetromino.getName();
                 tetromino = getNextTetromino();
             } else {
-                Piece temp = heldPiece.copy();
-                heldPiece = configuration.get(tetromino.getName()).copy();
+                Piece temp = configuration.get(heldPiece).copy();
+                heldPiece = tetromino.getName();
                 tetromino = temp;
                 int col = (int) (playfield.getState()[0].length / 2 - Math.ceil(tetromino.getMatrix().length / 2f));
                 tetromino.setCol(col);
@@ -342,7 +342,7 @@ public class Tetris implements TetrisInterface {
         return tetromino;
     }
 
-    public Piece getHeldPiece() {
+    public String getHeldPiece() {
         return heldPiece;
     }
 
