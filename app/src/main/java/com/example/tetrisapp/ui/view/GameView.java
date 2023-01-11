@@ -27,8 +27,8 @@ public class GameView extends View {
     private int xOffset;
     private int yOffset;
     private final int generalOffset = 20;
-    private final int borderWidth = 5;
 
+    private int borderWidth = 5;
     private int color = 0xff000000;
     private static final int SHADOW_COLOR = 0x11000000;
     private static final int FPS = 120;
@@ -43,10 +43,11 @@ public class GameView extends View {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BackgroundView,
+                R.styleable.GameView,
                 0, 0);
         try {
-            color = a.getColor(R.styleable.BackgroundView_backgroundColor, color);
+            color = a.getColor(R.styleable.GameView_backgroundColor, color);
+            borderWidth = a.getInt(R.styleable.GameView_gridLineWidth, borderWidth);
         } finally {
             a.recycle();
         }
@@ -66,11 +67,7 @@ public class GameView extends View {
     }
 
     private void calculateDimensions(int width, int height) {
-        if ((height - generalOffset * 2) / 20 <= (width - generalOffset * 2) / 10) {
-            pointSize = (height - generalOffset * 2) / 20;
-        } else {
-            pointSize = (width - generalOffset * 2) / 10;
-        }
+        pointSize = Math.min((height - generalOffset * 2) / 20, (width - generalOffset * 2) / 10);
 
         xOffset = (width - pointSize * 10) / 2;
         yOffset = (height - pointSize * 20) / 2;

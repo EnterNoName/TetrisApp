@@ -1,8 +1,14 @@
 <resources>
-    <declare-styleable name="BackgroundView">
-        <attr name="backgroundColor" format="color" />
-    </declare-styleable>
-
+    <attr name="backgroundColor" format="color" />
     <attr name="colorGameButton" format="color" />
     <attr name="colorOnGameButton" format="color" />
+
+    <declare-styleable name="PieceView">
+        <attr name="backgroundColor" />
+    </declare-styleable>
+
+    <declare-styleable name="GameView">
+        <attr name="gridLineWidth" format="integer" />
+        <attr name="backgroundColor" />
+    </declare-styleable>
 </resources>

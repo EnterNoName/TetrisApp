@@ -29,10 +29,10 @@ public class PieceView extends View {
 
         TypedArray a = context.getTheme().obtainStyledAttributes(
                 attrs,
-                R.styleable.BackgroundView,
+                R.styleable.PieceView,
                 0, 0);
         try {
-            color = a.getColor(R.styleable.BackgroundView_backgroundColor, color);
+            color = a.getColor(R.styleable.PieceView_backgroundColor, color);
         } finally {
             a.recycle();
         }
@@ -58,11 +58,7 @@ public class PieceView extends View {
                 }
             }
 
-            if (height / pieceHeight <= width / pieceWidth) {
-                pointSize = height / pieceHeight;
-            } else {
-                pointSize = width / pieceWidth;
-            }
+            pointSize = Math.min(height / pieceHeight, width / pieceWidth);
 
             xOffset = (width - pointSize * pieceWidth) / 2;
             yOffset = (height - pointSize * pieceHeight) / 2;
