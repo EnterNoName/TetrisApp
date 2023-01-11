@@ -8,6 +8,7 @@ import java.util.LinkedList;
 public interface TetrisInterface {
     Piece getShadow();
     Piece getCurrentPiece();
+    String getHeldPiece();
     PlayfieldInterface getPlayfield();
     PieceConfiguration getConfiguration();
     LinkedList<String> getTetrominoSequence();

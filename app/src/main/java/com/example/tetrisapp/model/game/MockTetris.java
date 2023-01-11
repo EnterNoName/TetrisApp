@@ -9,6 +9,7 @@ import java.util.LinkedList;
 public class MockTetris implements TetrisInterface {
     private Piece tetromino;
     private Piece shadow;
+    private String heldPiece;
     private PieceConfiguration configuration;
     private MockPlayfield playfield = new MockPlayfield();
     private LinkedList<String> tetrominoSequence = new LinkedList<>();
@@ -29,6 +30,11 @@ public class MockTetris implements TetrisInterface {
     @Override
     public Piece getCurrentPiece() {
         return tetromino;
+    }
+
+    @Override
+    public String getHeldPiece() {
+        return heldPiece;
     }
 
     @Override
@@ -118,5 +124,9 @@ public class MockTetris implements TetrisInterface {
 
     public void setDelayLeft(int delayLeft) {
         this.delayLeft = delayLeft;
+    }
+
+    public void setHeldPiece(String heldPiece) {
+        this.heldPiece = heldPiece;
     }
 }
