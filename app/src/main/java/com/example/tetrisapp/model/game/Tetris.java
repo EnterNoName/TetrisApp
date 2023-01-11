@@ -232,7 +232,7 @@ public class Tetris implements TetrisInterface {
     // Controls
 
     public synchronized void moveTetrominoRight() {
-        if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
+        if (!pause && !gameOver && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
             tetromino.setCol(tetromino.getCol() + 1);
             onMoveCallback.call();
             calculateShadow();
@@ -240,7 +240,7 @@ public class Tetris implements TetrisInterface {
     }
 
     public synchronized void moveTetrominoLeft() {
-        if (!pause && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
+        if (!pause && !gameOver && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
             tetromino.setCol(tetromino.getCol() - 1);
             onMoveCallback.call();
             calculateShadow();
@@ -261,7 +261,7 @@ public class Tetris implements TetrisInterface {
     }
 
     public synchronized void rotateTetrominoLeft() {
-        if (pause) return;
+        if (pause || gameOver) return;
 
         byte[][] rotatedMatrix = MathUtil.rotateMatrixCounterclockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
 
@@ -273,7 +273,7 @@ public class Tetris implements TetrisInterface {
     }
 
     private synchronized void moveTetrominoDown() {
-        if (pause) return;
+        if (pause || gameOver) return;
 
         if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
             tetromino.setRow(tetromino.getRow() + 1);
@@ -292,7 +292,7 @@ public class Tetris implements TetrisInterface {
     }
 
     public synchronized void hardDrop() {
-        if (pause) return;
+        if (pause || gameOver) return;
         onHardDropCallback.call();
         future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
         while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
@@ -302,7 +302,7 @@ public class Tetris implements TetrisInterface {
     }
 
     public synchronized void hold() {
-        if (pause) return;
+        if (pause || gameOver) return;
 
         if (!holdUsed) {
             if (heldPiece == null) {
