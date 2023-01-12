@@ -1,24 +1,25 @@
 package com.example.tetrisapp.ui.fragment;
 
-import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
+import androidx.fragment.app.DialogFragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.databinding.FragmentJoinLobbyBinding;
-import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.model.remote.request.TokenPayload;
-import com.example.tetrisapp.ui.activity.MainActivity;
-import com.example.tetrisapp.util.OnTouchListener;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.tetrisapp.model.remote.response.DefaultPayload;
+import com.example.tetrisapp.util.FirebaseTokenUtil;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
@@ -29,17 +30,29 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class JoinLobbyFragment extends Fragment implements Callback<DefaultPayload> {
-    public static final String TAG = "JoinLobbyFragment";
+public class JoinLobbyFragment extends DialogFragment implements Callback<DefaultPayload> {
+    public static final String TAG = "JoinLobbyDialogFragment";
     private FragmentJoinLobbyBinding binding;
 
-    @Inject FirebaseUser firebaseUser;
-    @Inject LobbyService lobbyService;
+    @Inject
+    FirebaseUser firebaseUser;
+    @Inject
+    LobbyService lobbyService;
 
+    private Call<DefaultPayload> apiCall;
+    private String inviteCode;
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentJoinLobbyBinding.inflate(inflater, container, false);
+
+        if (getDialog() != null) {
+            getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE);
+            getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme);
+        }
+
         return binding.getRoot();
     }
 
@@ -49,42 +62,49 @@ public class JoinLobbyFragment extends Fragment implements Callback<DefaultPaylo
         initOnClickListeners();
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private void initOnClickListeners() {
-        binding.btnCreateLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnCreateLobby.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_createLobbyFragment));
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (apiCall != null) apiCall.cancel();
+    }
 
-        binding.btnJoinLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnJoinLobby.setOnClickListener(v -> {
+    private void initOnClickListeners() {
+        binding.btnEnter.setOnClickListener(v -> {
             if (firebaseUser == null) {
-                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
+                NavHostFragment.findNavController(this).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
                 return;
             }
 
-            String code = binding.etInviteCode.getText().toString();
-            firebaseUser.getIdToken(true)
-                    .addOnCompleteListener(task -> lobbyService
-                        .joinLobby(new TokenPayload(task.getResult().getToken()), code)
-                        .enqueue(this)
-                    ).addOnFailureListener(e -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment));
+            inviteCode = binding.etInviteCode.getText().toString();
+            binding.etInviteCode.setText("");
+
+            FirebaseTokenUtil.getFirebaseToken(idToken -> {
+                apiCall = lobbyService.joinLobby(new TokenPayload(idToken), inviteCode);
+                apiCall.enqueue(this);
+            });
         });
     }
 
+    // Retrofit callbacks
     @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
-        if (response.code() == 401) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
+        if (response.code() == 401) { // Not authorized
+            NavHostFragment.findNavController(this).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
         }
 
-        if (response.code() == 200 && response.body() != null && response.body().status.equals("success")) {
+        if (response.code() == 400) {
+            Snackbar.make(binding.getRoot(), "This lobby does not exist.", Snackbar.LENGTH_LONG).show();
+        }
+
+        if (response.isSuccessful() && response.body() != null && response.body().status.equals("success")) {
             JoinLobbyFragmentDirections.ActionJoinLobbyFragmentToLobbyFragment action = JoinLobbyFragmentDirections.actionJoinLobbyFragmentToLobbyFragment();
-            action.setInviteCode(response.body().message);
-            Navigation.findNavController(binding.getRoot()).navigate(action);
+            action.setInviteCode(inviteCode);
+            NavHostFragment.findNavController(this).navigate(action);
         }
     }
 
     @Override
     public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
-
+        Snackbar.make(binding.getRoot(), "Something went wrong. Try again later.", Snackbar.LENGTH_LONG).show();
     }
 }

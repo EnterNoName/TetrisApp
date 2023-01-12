@@ -1,32 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/background_button"
+        android:contentDescription="@string/desc_back"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_arrow_back_24"
+        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tvTitle"
+        app:tint="?colorOnPrimary"/>
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_bold"
+        android:text="@string/lobby_creation"
+        android:textColor="?colorOnPrimary"
+        android:textSize="28sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/fira_sans_bold"
-        android:text="Lobby Settings"
+        android:layout_marginTop="32dp"
+        android:text="@string/lobby_settings"
         android:textColor="?colorOnPrimary"
-        android:textSize="24sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/btnBack"
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
 
-    <EditText
-        android:id="@+id/etCountdown"
-        android:layout_width="0dp"
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:hint="Countdown duration"
-        android:inputType="number"
-        android:minHeight="48dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="@+id/tvSettings"
+        app:layout_constraintTop_toBottomOf="@+id/tvSettings">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/fira_sans"
+            android:text="@string/countdown"
+            android:textColor="?colorOnPrimary"
+            android:textSize="18sp" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/countdownSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:stepSize="1.0"
+            android:value="3.0"
+            android:valueFrom="0.0"
+            android:valueTo="10.0"
+            app:trackColor="?colorSecondary"
+            app:trackColorActive="@color/black" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/tvSettings"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/fira_sans"
+            android:text="@string/player_limit"
+            android:textColor="?colorOnPrimary"
+            android:textSize="18sp" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/playerLimitSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:stepSize="1.0"
+            android:value="2.0"
+            android:valueFrom="2.0"
+            android:valueTo="10.0"
+            app:trackColor="?colorSecondary"
+            app:trackColorActive="@color/black" />
+    </LinearLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchEnablePause"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans"
+        android:text="@string/enable_pause"
         android:textColor="?colorOnPrimary"
-        android:importantForAutofill="no" />
+        android:textSize="18sp"
+        android:paddingEnd="8dp"
+        app:layout_constraintStart_toStartOf="@+id/tvSettings"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnResetSettings"
@@ -36,7 +128,7 @@
         android:background="@drawable/background_button_secondary"
         android:fontFamily="@font/fira_sans_bold"
         android:padding="8dp"
-        android:text="Reset Settings"
+        android:text="@string/reset_settings"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
         android:textSize="20sp" />
@@ -49,33 +141,10 @@
         android:background="@drawable/background_button_secondary"
         android:fontFamily="@font/fira_sans_bold"
         android:padding="8dp"
-        android:text="Create Lobby"
+        android:text="@string/create_lobby"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
         android:textSize="20sp" />
-
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/switchEnablePause"
-        android:layout_width="0dp"
-        android:paddingHorizontal="4dp"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/fira_sans_medium"
-        android:textColor="?colorOnPrimary"
-        android:textSize="20sp"
-        android:text="Enable pause"
-        tools:ignore="MissingConstraints" />
-
-    <androidx.constraintlayout.helper.widget.Flow
-        android:id="@+id/flowSettings"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:orientation="vertical"
-        app:constraint_referenced_ids="etCountdown, switchEnablePause"
-        app:flow_verticalGap="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSettings" />
 
     <androidx.constraintlayout.helper.widget.Flow
         android:id="@+id/flow4"

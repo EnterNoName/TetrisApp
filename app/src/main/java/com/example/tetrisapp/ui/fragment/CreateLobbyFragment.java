@@ -18,7 +18,9 @@ import com.example.tetrisapp.databinding.FragmentCreateLobbyBinding;
 import com.example.tetrisapp.model.remote.request.CreateLobbyPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.FirebaseTokenUtil;
 import com.example.tetrisapp.util.OnTouchListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -34,8 +36,12 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     private static final String TAG = "CreateLobbyFragment";
     private FragmentCreateLobbyBinding binding;
 
-    @Inject FirebaseUser firebaseUser;
-    @Inject LobbyService lobbyService;
+    @Inject
+    FirebaseUser firebaseUser;
+    @Inject
+    LobbyService lobbyService;
+
+    private Call<DefaultPayload> apiCall;
 
     @Nullable
     @Override
@@ -50,8 +56,24 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
         initOnClickListeners();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (apiCall != null) apiCall.cancel();
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
+        binding.btnBack.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnBack.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).popBackStack());
+
+        binding.btnResetSettings.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnResetSettings.setOnClickListener(v -> {
+            binding.countdownSlider.setValue(3.0f);
+            binding.playerLimitSlider.setValue(2.0f);
+            binding.switchEnablePause.setEnabled(false);
+        });
+
         binding.btnCreateLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnCreateLobby.setOnClickListener(v -> {
             if (firebaseUser == null) {
@@ -59,18 +81,19 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
                 return;
             }
 
-            firebaseUser.getIdToken(true)
-                    .addOnCompleteListener(task -> lobbyService
-                            .createLobby(new CreateLobbyPayload(task.getResult().getToken(), 5))
-                            .enqueue(this)
-                    );
+            int countdown = Math.round(binding.countdownSlider.getValue());
+            int playerLimit = Math.round(binding.playerLimitSlider.getValue());
+            boolean enablePause = binding.switchEnablePause.isEnabled();
+
+            FirebaseTokenUtil.getFirebaseToken(idToken -> {
+                apiCall = lobbyService.createLobby(new CreateLobbyPayload(idToken, countdown, playerLimit));
+                apiCall.enqueue(this);
+            });
         });
     }
 
     @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
-        Log.d(TAG, response.code() + " " + (response.body() != null ? response.body().message : ""));
-
         if (response.code() == 401) {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
         }
@@ -83,7 +106,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     }
 
     @Override
-    public void onFailure(@NonNull Call<DefaultPayload> call, Throwable t) {
-        Log.e(TAG, t.getLocalizedMessage());
+    public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
+        Snackbar.make(binding.getRoot(), "Something went wrong. Try again later.", Snackbar.LENGTH_LONG).show();
     }
 }

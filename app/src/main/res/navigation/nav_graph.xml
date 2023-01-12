@@ -26,8 +26,8 @@
             android:id="@+id/action_mainMenuFragment_to_accountFragment"
             app:destination="@id/accountFragment" />
         <action
-            android:id="@+id/action_mainMenuFragment_to_joinLobbyFragment"
-            app:destination="@id/joinLobbyFragment" />
+            android:id="@+id/action_mainMenuFragment_to_multiplayerFragment"
+            app:destination="@id/multiplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/gameFragment"
@@ -122,24 +122,6 @@
         android:name="com.example.tetrisapp.ui.fragment.AccountFragment"
         android:label="AccountFragment" />
     <fragment
-        android:id="@+id/joinLobbyFragment"
-        android:name="com.example.tetrisapp.ui.fragment.JoinLobbyFragment"
-        android:label="JoinLobbyFragment" >
-        <action
-            android:id="@+id/action_joinLobbyFragment_to_lobbyFragment"
-            app:destination="@id/lobbyFragment"
-            app:popUpTo="@id/lobbyFragment"
-            app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/action_joinLobbyFragment_to_accountFragment"
-            app:destination="@id/accountFragment"
-            app:popUpTo="@id/accountFragment"
-            app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/action_joinLobbyFragment_to_createLobbyFragment"
-            app:destination="@id/createLobbyFragment" />
-    </fragment>
-    <fragment
         android:id="@+id/lobbyFragment"
         android:name="com.example.tetrisapp.ui.fragment.LobbyFragment"
         android:label="LobbyFragment" >
@@ -166,12 +148,12 @@
         <action
             android:id="@+id/action_createLobbyFragment_to_lobbyFragment"
             app:destination="@id/lobbyFragment"
-            app:popUpTo="@id/lobbyFragment"
-            app:popUpToInclusive="true" >
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false">
             <argument
                 android:name="inviteCode"
-                app:argType="string"
-                android:defaultValue="000000" />
+                android:defaultValue="000000"
+                app:argType="string" />
         </action>
         <action
             android:id="@+id/action_createLobbyFragment_to_accountFragment"
@@ -179,4 +161,34 @@
             app:popUpTo="@id/accountFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <dialog
+        android:id="@+id/joinLobbyFragment"
+        android:name="com.example.tetrisapp.ui.fragment.JoinLobbyFragment"
+        android:label="JoinLobbyFragment" >
+        <action
+            android:id="@+id/action_joinLobbyFragment_to_accountFragment"
+            app:destination="@id/accountFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_joinLobbyFragment_to_lobbyFragment"
+            app:destination="@id/lobbyFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false" />
+    </dialog>
+    <dialog
+        android:id="@+id/multiplayerFragment"
+        android:name="com.example.tetrisapp.ui.fragment.MultiplayerFragment"
+        android:label="MultiplayerFragment" >
+        <action
+            android:id="@+id/action_multiplayerFragment_to_joinLobbyFragment"
+            app:destination="@id/joinLobbyFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_multiplayerFragment_to_createLobbyFragment"
+            app:destination="@id/createLobbyFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false" />
+    </dialog>
 </navigation>

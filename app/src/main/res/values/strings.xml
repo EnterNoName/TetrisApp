@@ -82,4 +82,10 @@
 
     <string name="lobby_exit_alert_title">Exit the lobby?</string>
     <string name="lobby_exit_alert_message">By pressing "Yes" you will be disconnected from the current lobby.</string>
+    <string name="lobby_creation">Lobby Creation</string>
+    <string name="lobby_settings">Lobby Settings:</string>
+    <string name="countdown">Countdown:</string>
+    <string name="player_limit">Player Limit:</string>
+    <string name="enable_pause">Enable pause:</string>
+    <string name="reset_settings">Reset Settings</string>
 </resources>
