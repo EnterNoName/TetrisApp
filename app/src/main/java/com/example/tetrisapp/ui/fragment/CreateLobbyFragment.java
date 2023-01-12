@@ -71,7 +71,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
         binding.btnResetSettings.setOnClickListener(v -> {
             binding.countdownSlider.setValue(3.0f);
             binding.playerLimitSlider.setValue(2.0f);
-            binding.switchEnablePause.setEnabled(false);
+            binding.switchEnablePause.setChecked(false);
         });
 
         binding.btnCreateLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
@@ -83,7 +83,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
 
             int countdown = Math.round(binding.countdownSlider.getValue());
             int playerLimit = Math.round(binding.playerLimitSlider.getValue());
-            boolean enablePause = binding.switchEnablePause.isEnabled();
+            boolean enablePause = binding.switchEnablePause.isChecked();
 
             FirebaseTokenUtil.getFirebaseToken(idToken -> {
                 apiCall = lobbyService.createLobby(new CreateLobbyPayload(idToken, countdown, playerLimit));
