@@ -19,6 +19,7 @@ import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
 
@@ -32,15 +33,13 @@ public class JoinLobbyFragment extends Fragment implements Callback<DefaultPaylo
     public static final String TAG = "JoinLobbyFragment";
     private FragmentJoinLobbyBinding binding;
 
-    private FirebaseAuth mAuth;
-    @Inject
-    LobbyService lobbyService;
+    @Inject FirebaseUser firebaseUser;
+    @Inject LobbyService lobbyService;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentJoinLobbyBinding.inflate(inflater, container, false);
-        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 
@@ -57,22 +56,22 @@ public class JoinLobbyFragment extends Fragment implements Callback<DefaultPaylo
 
         binding.btnJoinLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnJoinLobby.setOnClickListener(v -> {
-            if (mAuth.getCurrentUser() == null) {
+            if (firebaseUser == null) {
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
                 return;
             }
 
             String code = binding.etInviteCode.getText().toString();
-            mAuth.getCurrentUser()
-                    .getIdToken(true)
+            firebaseUser.getIdToken(true)
                     .addOnCompleteListener(task -> lobbyService
-                            .joinLobby(new TokenPayload(task.getResult().getToken()), code)
-                            .enqueue(this));
+                        .joinLobby(new TokenPayload(task.getResult().getToken()), code)
+                        .enqueue(this)
+                    ).addOnFailureListener(e -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment));
         });
     }
 
     @Override
-    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
+    public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
         if (response.code() == 401) {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
         }
@@ -85,7 +84,7 @@ public class JoinLobbyFragment extends Fragment implements Callback<DefaultPaylo
     }
 
     @Override
-    public void onFailure(Call<DefaultPayload> call, Throwable t) {
+    public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
 
     }
 }

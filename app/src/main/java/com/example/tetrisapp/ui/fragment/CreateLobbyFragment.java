@@ -20,6 +20,7 @@ import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
 
@@ -33,15 +34,13 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     private static final String TAG = "CreateLobbyFragment";
     private FragmentCreateLobbyBinding binding;
 
-    private FirebaseAuth mAuth;
-    @Inject
-    LobbyService lobbyService;
+    @Inject FirebaseUser firebaseUser;
+    @Inject LobbyService lobbyService;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentCreateLobbyBinding.inflate(inflater, container, false);
-        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 
@@ -55,21 +54,21 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     private void initOnClickListeners() {
         binding.btnCreateLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnCreateLobby.setOnClickListener(v -> {
-            if (mAuth.getCurrentUser() == null) {
+            if (firebaseUser == null) {
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
                 return;
             }
 
-            mAuth.getCurrentUser()
-                    .getIdToken(true)
+            firebaseUser.getIdToken(true)
                     .addOnCompleteListener(task -> lobbyService
                             .createLobby(new CreateLobbyPayload(task.getResult().getToken(), 5))
-                            .enqueue(this));
+                            .enqueue(this)
+                    );
         });
     }
 
     @Override
-    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
+    public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
         Log.d(TAG, response.code() + " " + (response.body() != null ? response.body().message : ""));
 
         if (response.code() == 401) {
@@ -84,7 +83,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     }
 
     @Override
-    public void onFailure(Call<DefaultPayload> call, Throwable t) {
+    public void onFailure(@NonNull Call<DefaultPayload> call, Throwable t) {
         Log.e(TAG, t.getLocalizedMessage());
     }
 }

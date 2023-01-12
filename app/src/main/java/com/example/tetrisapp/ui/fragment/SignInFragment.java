@@ -30,6 +30,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import javax.inject.Inject;
+
 public class SignInFragment extends Fragment {
     private static final String TAG = "SignInFragment";
     private FragmentSigninBinding binding;
@@ -37,18 +39,18 @@ public class SignInFragment extends Fragment {
     private SignInClient oneTapClient;
     private BeginSignInRequest signInRequest;
 
-    private FirebaseAuth mAuth;
+    @Inject FirebaseAuth firebaseAuth;
     private final ActivityResultLauncher<IntentSenderRequest> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
         try {
             SignInCredential credential = oneTapClient.getSignInCredentialFromIntent(result.getData());
             String idToken = credential.getGoogleIdToken();
             if (idToken !=  null) {
                 AuthCredential firebaseCredential = GoogleAuthProvider.getCredential(idToken, null);
-                mAuth.signInWithCredential(firebaseCredential)
+                firebaseAuth.signInWithCredential(firebaseCredential)
                         .addOnCompleteListener(requireActivity(), task -> {
                                 if (task.isSuccessful()) {
                                     Log.d(TAG, "signInWithCredential:success");
-                                    FirebaseUser user = mAuth.getCurrentUser();
+                                    FirebaseUser user = firebaseAuth.getCurrentUser();
                                     if (user != null) {
                                         Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_profileFragment);
                                     }
@@ -74,7 +76,6 @@ public class SignInFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAuth = FirebaseAuth.getInstance();
         oneTapClient = Identity.getSignInClient(requireActivity());
         signInRequest = BeginSignInRequest.builder()
                 .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
@@ -109,11 +110,7 @@ public class SignInFragment extends Fragment {
                     try {
                         activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
                     } catch (Throwable e) {
-                        if (e instanceof ApiException) {
-                            Log.d(TAG, "The user doesn't have a signed-in account");
-                        } else {
-                            Log.e(TAG, e.getLocalizedMessage());
-                        }
+                        Log.e(TAG, e.getLocalizedMessage());
                     }
                 })
                 .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage()))
@@ -129,11 +126,11 @@ public class SignInFragment extends Fragment {
     }
 
     private void signIn(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email, password)
+        firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "signInWithEmail:success");
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        FirebaseUser user = firebaseAuth.getCurrentUser();
                         if (user != null) {
                             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_profileFragment);
                         }

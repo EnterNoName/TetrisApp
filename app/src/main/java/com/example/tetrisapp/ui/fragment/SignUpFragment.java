@@ -31,6 +31,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
+import javax.inject.Inject;
+
 public class SignUpFragment extends Fragment {
     private static final String TAG = "SignInFragment";
     private FragmentSignupBinding binding;
@@ -38,18 +40,18 @@ public class SignUpFragment extends Fragment {
     private SignInClient oneTapClient;
     private BeginSignInRequest signInRequest;
 
-    private FirebaseAuth mAuth;
+    @Inject FirebaseAuth firebaseAuth;
     private final ActivityResultLauncher<IntentSenderRequest> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
         try {
             SignInCredential credential = oneTapClient.getSignInCredentialFromIntent(result.getData());
             String idToken = credential.getGoogleIdToken();
             if (idToken !=  null) {
                 AuthCredential firebaseCredential = GoogleAuthProvider.getCredential(idToken, null);
-                mAuth.signInWithCredential(firebaseCredential)
+                firebaseAuth.signInWithCredential(firebaseCredential)
                         .addOnCompleteListener(requireActivity(), task -> {
                                     if (task.isSuccessful()) {
                                         Log.d(TAG, "signUpWithCredential:success");
-                                        FirebaseUser user = mAuth.getCurrentUser();
+                                        FirebaseUser user = firebaseAuth.getCurrentUser();
                                         if (user != null) {
                                             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_profileFragment);
                                         }
@@ -107,14 +109,10 @@ public class SignUpFragment extends Fragment {
                         Log.e(TAG, e.getLocalizedMessage());
                     }
                 })
-                .addOnFailureListener(requireActivity(), e -> {
-                    Log.d(TAG, e.getLocalizedMessage());
-                }));
+                .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage())));
 
         binding.btnSwitchToSignIn.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnSwitchToSignIn.setOnClickListener(v -> {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_signInFragment);
-        });
+        binding.btnSwitchToSignIn.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_signInFragment));
     }
 
     private void resetFields() {
@@ -127,7 +125,6 @@ public class SignUpFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAuth = FirebaseAuth.getInstance();
         oneTapClient = Identity.getSignInClient(requireActivity());
         signInRequest = BeginSignInRequest.builder()
                 .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
@@ -140,11 +137,11 @@ public class SignUpFragment extends Fragment {
     }
 
     private void createAccount(String email, String password, String username) {
-        mAuth.createUserWithEmailAndPassword(email, password)
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "createUserWithEmail:success");
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        FirebaseUser user = firebaseAuth.getCurrentUser();
 
                         if (user != null) {
                             user.updateProfile(
