@@ -73,9 +73,7 @@
             android:stepSize="1.0"
             android:value="3.0"
             android:valueFrom="0.0"
-            android:valueTo="10.0"
-            app:trackColor="?colorSecondary"
-            app:trackColorActive="@color/black" />
+            android:valueTo="10.0" />
     </LinearLayout>
 
     <LinearLayout
@@ -105,9 +103,7 @@
             android:stepSize="1.0"
             android:value="2.0"
             android:valueFrom="2.0"
-            android:valueTo="10.0"
-            app:trackColor="?colorSecondary"
-            app:trackColorActive="@color/black" />
+            android:valueTo="10.0" />
     </LinearLayout>
 
     <com.google.android.material.switchmaterial.SwitchMaterial
