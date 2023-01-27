@@ -189,19 +189,28 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     private void initPusherChannelListeners() {
         LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
 
-        listener = PusherUtil.createEventListener((channelName, user) -> addUserToLobbyUserList(user),
-                (channelName, user) -> removeUserFromLobbyUserList(user),
-                (message, e) -> {
-                    Log.e(TAG, message);
-                    exitLobby();
-                });
+        listener = PusherUtil.createEventListener(
+                (channelName, user) -> {
+                    try {
+                        addUserToLobbyUserList(user);
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                    }
+                },
+                (channelName, user) -> {
+                    try {
+                        removeUserFromLobbyUserList(user);
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                    }
+                },
+                (message, e) -> exitLobby()
+        );
 
         channel = PusherUtil.getPresenceChannel(
                 pusher,
                 "presence-" + args.getInviteCode(),
-                null);
-
-        channel.bindGlobal(listener);
+                listener);
 
         PusherUtil.bindPresenceChannel(channel, "game-started", event -> requireActivity().runOnUiThread(() -> {
             succeded = true;
