@@ -1,9 +1,9 @@
 package com.example.tetrisapp.util;
 
-import android.app.Activity;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 
 import androidx.annotation.NonNull;
@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import java.net.InetAddress;
 
 public class ConnectionUtil {
-    private final Activity activity;
+    ConnectivityManager connectivityManager;
     NetworkRequest networkRequest = new NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
@@ -20,11 +20,18 @@ public class ConnectionUtil {
     Callback onAvailable;
     Callback onLost;
 
-    public ConnectionUtil(Activity activity) {
-        this.activity = activity;
+    public ConnectionUtil(ConnectivityManager connectivityManager) {
+        this.connectivityManager = connectivityManager;
     }
 
-    private boolean isInternetAvailable() {
+    public boolean isNetworkConnected() {
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null) return false;
+
+        return networkInfo.isConnected();
+    }
+
+    public boolean isInternetAvailable() {
         try {
             InetAddress ipAddress = InetAddress.getByName("google.com");
             return !ipAddress.equals("");
@@ -33,14 +40,7 @@ public class ConnectionUtil {
         }
     }
 
-    public void checkInternetConnection(Callback onAvailable) {
-        checkInternetConnection(onAvailable, () -> {});
-    }
-
-    public void checkInternetConnection(Callback onAvailable, Callback onLost) {
-        this.onAvailable = onAvailable;
-        this.onLost = onLost;
-
+    public void checkInternetConnection() {
         ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(@NonNull Network network) {
@@ -59,9 +59,15 @@ public class ConnectionUtil {
             }
         };
 
-        ConnectivityManager connectivityManager =
-                activity.getSystemService(ConnectivityManager.class);
         connectivityManager.requestNetwork(networkRequest, networkCallback);
+    }
+
+    public void setOnAvailable(Callback onAvailable) {
+        this.onAvailable = onAvailable;
+    }
+
+    public void setOnLost(Callback onLost) {
+        this.onLost = onLost;
     }
 
     public interface Callback {
