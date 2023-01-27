@@ -85,6 +85,8 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
             int playerLimit = Math.round(binding.playerLimitSlider.getValue());
             boolean enablePause = binding.switchEnablePause.isChecked();
 
+            startLoading();
+
             FirebaseTokenUtil.getFirebaseToken(idToken -> {
                 apiCall = lobbyService.createLobby(new CreateLobbyPayload(idToken, countdown, playerLimit));
                 apiCall.enqueue(this);
@@ -92,8 +94,28 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
         });
     }
 
-    @Override
+    private void startLoading() {
+        binding.countdownSlider.setEnabled(false);
+        binding.playerLimitSlider.setEnabled(false);
+        binding.switchEnablePause.setEnabled(false);
+        binding.btnResetSettings.setEnabled(false);
+        binding.btnCreateLobby.setEnabled(false);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void finishLoading() {
+        binding.countdownSlider.setEnabled(true);
+        binding.playerLimitSlider.setEnabled(true);
+        binding.switchEnablePause.setEnabled(true);
+        binding.btnResetSettings.setEnabled(true);
+        binding.btnCreateLobby.setEnabled(true);
+        binding.progressBar.setVisibility(View.GONE);
+    }
+
+        @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
+        finishLoading();
+
         if (response.code() == 401) {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
         }
@@ -107,6 +129,8 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
 
     @Override
     public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
+        finishLoading();
+
         Snackbar.make(binding.getRoot(), "Something went wrong. Try again later.", Snackbar.LENGTH_LONG).show();
     }
 }
