@@ -17,6 +17,9 @@
         <item name="colorGameButton">@color/grey_900_transparent</item>
         <item name="colorOnGameButton">@color/white</item>
 
+        <item name="colorButtonDisabled">@color/grey_50_transparent</item>
+        <item name="colorSecondaryButtonDisabled">@color/grey_300_transparent</item>
+
         <item name="android:textColorSecondary">@color/grey_700</item>
         <item name="android:colorBackground">?colorPrimary</item>
         <item name="android:textColorHint">@color/grey_700</item>

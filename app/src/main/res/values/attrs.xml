@@ -2,6 +2,8 @@
     <attr name="backgroundColor" format="color" />
     <attr name="colorGameButton" format="color" />
     <attr name="colorOnGameButton" format="color" />
+    <attr name="colorButtonDisabled" format="color" />
+    <attr name="colorSecondaryButtonDisabled" format="color" />
 
     <declare-styleable name="PieceView">
         <attr name="backgroundColor" />
