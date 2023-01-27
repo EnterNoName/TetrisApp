@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
@@ -47,7 +49,6 @@ import com.example.tetrisapp.util.MimeTypeUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.io.EOFException;
@@ -63,12 +64,17 @@ import retrofit2.Response;
 @AndroidEntryPoint
 public class MainMenuFragment extends Fragment {
     private static final String TAG = "MainMenuFragment";
+
     private FragmentMainMenuBinding binding;
     private ConnectionUtil connectionHelper;
 
     @Inject
     UpdateService updateService;
+    @Inject
+    @Nullable
+    FirebaseUser firebaseUser;
     private Response<UpdatePayload> update = null;
+    private Call<UpdatePayload> updateApiCall;
 
     private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (checkWriteExternalStoragePermissions()) {
@@ -107,31 +113,28 @@ public class MainMenuFragment extends Fragment {
         }
     });
 
-    private FirebaseAuth mAuth;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentMainMenuBinding.inflate(inflater, container, false);
-        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
+        updateUI(firebaseUser);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        connectionHelper = new ConnectionUtil(requireActivity());
+        connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
         initClickListeners();
 
         SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
         boolean autoUpdateEnabled = preferences.getBoolean(getString(R.string.setting_auto_update), true);
+
         if (autoUpdateEnabled) {
             checkUpdate();
         }
@@ -140,18 +143,24 @@ public class MainMenuFragment extends Fragment {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             if (user.getPhotoUrl() != null) {
-                Glide.with(this).load(user.getPhotoUrl()).circleCrop().error(R.drawable.ic_round_account_circle_24).listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        return false;
-                    }
+                Glide.with(this)
+                        .load(user.getPhotoUrl())
+                        .circleCrop()
+                        .error(R.drawable.ic_round_account_circle_24)
+                        .placeholder(R.drawable.ic_round_account_circle_24)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
 
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        binding.ivUser.setImageTintList(null);
-                        return false;
-                    }
-                }).into(binding.ivUser);
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                binding.ivUser.setImageTintList(null);
+                                return false;
+                            }
+                        })
+                        .into(binding.ivUser);
             }
             if (user.getDisplayName() != null) {
                 binding.tvProfileName.setText(user.getDisplayName());
@@ -163,18 +172,26 @@ public class MainMenuFragment extends Fragment {
         if (update != null) {
             showUpdateDialog();
         } else {
-            connectionHelper.checkInternetConnection(this::fetchUpdate);
+            connectionHelper.setOnAvailable(this::fetchUpdate);
+            connectionHelper.setOnLost(() -> updateApiCall.cancel());
+            connectionHelper.checkInternetConnection();
         }
     }
 
     private void fetchUpdate() {
-        updateService.getUpdate().enqueue(new retrofit2.Callback<UpdatePayload>() {
+        updateApiCall = updateService.getUpdate();
+        updateApiCall.enqueue(new retrofit2.Callback<UpdatePayload>() {
             @Override
             public void onResponse(@NonNull Call<UpdatePayload> call, @NonNull Response<UpdatePayload> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (BuildConfig.VERSION_CODE < response.body().versionId) {
                         update = response;
-                        showUpdateDialog();
+
+                        // Show update dialog if nothing else is open
+                        if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
+                                Navigation.findNavController(binding.getRoot()).findDestination(R.id.mainMenuFragment)) {
+                            showUpdateDialog();
+                        }
                     }
                 }
             }
@@ -225,7 +242,20 @@ public class MainMenuFragment extends Fragment {
         binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
 
         binding.btnMultiplayer.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnMultiplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_joinLobbyFragment));
+//        binding.btnMultiplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_joinLobbyFragment));
+        binding.btnMultiplayer.setOnClickListener(v -> {
+            if (firebaseUser == null) {
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
+                return;
+            }
+
+            if (!connectionHelper.isNetworkConnected()) {
+                Snackbar.make(binding.getRoot(), "No internet connection available.", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_multiplayerFragment);
+        });
 
         binding.btnSettings.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSettings.setOnClickListener(v -> new SettingsFragment().show(requireActivity().getSupportFragmentManager(), SettingsFragment.TAG));
