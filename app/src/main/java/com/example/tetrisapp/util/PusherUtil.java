@@ -159,20 +159,6 @@ public class PusherUtil {
         return pusher.getPresenceChannel(channelName);
     }
 
-    public static PresenceChannel getPresenceChannel(
-            Pusher pusher,
-            String channelName,
-            UserActionEvent userSubscribedListener,
-            UserActionEvent userUnsubscribedListener,
-            AuthenticationFailedEvent authenticationFailedEvent
-    ) {
-        if (pusher.getPresenceChannel(channelName) == null) {
-            pusher.subscribePresence(channelName, createEventListener(userSubscribedListener, userUnsubscribedListener, authenticationFailedEvent));
-        }
-
-        return pusher.getPresenceChannel(channelName);
-    }
-
     public interface UserActionEvent {
         void call(final String channelName, final User user);
     }
