@@ -21,8 +21,10 @@ import com.example.tetrisapp.databinding.FragmentGameOverBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.OnTouchListener;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Date;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -34,8 +36,12 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class GameOverFragment extends Fragment {
     private final static String TAG = "GameOverFragment";
     private FragmentGameOverBinding binding;
+
     @Inject
     LeaderboardDao leaderboardDao;
+    @Inject
+    @Nullable
+    FirebaseUser user;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +72,26 @@ public class GameOverFragment extends Fragment {
         binding.level.setText(args.getLevel() + "");
         binding.lines.setText(args.getLines() + "");
 
+        if  (args.getLobbyCode() == null) {
+            handleGameOverSingleplayer();
+        } else {
+            handleGameOverMultiplayer();
+        }
+
+        initClickListeners();
+    }
+
+    private void handleGameOverMultiplayer() {
+        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+
+        binding.tvHighScore.setText(user.getUid().equals(args.getWinnerUid()) ?
+                "GG! You've won!" :
+                String.format(Locale.getDefault(),"GG! You've placed №%d\nThe winner is %s", args.getPlacement(), args.getWinnerUsername()));
+    }
+
+    private void handleGameOverSingleplayer() {
+        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+
         leaderboardDao.getBest()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -88,8 +114,6 @@ public class GameOverFragment extends Fragment {
                         Log.e("GameOverFragment", throwable.getLocalizedMessage());
                     }
                 });
-
-        initClickListeners();
     }
 
     private void insertScoreInDB() {

@@ -73,6 +73,10 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="@null" />
+        <argument
+            android:name="countdown"
+            app:argType="integer"
+            android:defaultValue="-1" />
 
     </fragment>
     <fragment
@@ -82,7 +86,9 @@
         tools:layout="@layout/fragment_pause" >
         <action
             android:id="@+id/action_pauseFragment_to_mainMenuFragment"
-            app:destination="@id/mainMenuFragment" />
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/gameOverFragment"
@@ -112,6 +118,25 @@
             android:name="level"
             app:argType="integer"
             android:defaultValue="0" />
+        <argument
+            android:name="lobbyCode"
+            app:argType="string"
+            android:defaultValue="@null"
+            app:nullable="true" />
+        <argument
+            android:name="winnerUid"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="winnerUsername"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="placement"
+            app:argType="integer"
+            android:defaultValue="-1" />
     </fragment>
     <fragment
         android:id="@+id/scoresFragment"
@@ -130,15 +155,16 @@
             app:argType="string"
             android:defaultValue="" />
         <action
-            android:id="@+id/action_lobbyFragment_to_mainMenuFragment"
-            app:destination="@id/mainMenuFragment"
-            app:popUpTo="@id/mainMenuFragment" />
-        <action
             android:id="@+id/action_lobbyFragment_to_gameFragment"
-            app:destination="@id/gameFragment" >
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true">
             <argument
                 android:name="lobbyCode"
                 android:defaultValue="@null" />
+            <argument
+                android:name="countdown"
+                android:defaultValue="-1" />
         </action>
     </fragment>
     <fragment
