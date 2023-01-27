@@ -3,16 +3,16 @@ package com.example.tetrisapp.di;
 import android.app.Application;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.data.remote.UpdateService;
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GetTokenResult;
 import com.pusher.client.Pusher;
 import com.pusher.client.PusherOptions;
 import com.pusher.client.connection.ConnectionEventListener;
@@ -22,15 +22,9 @@ import com.pusher.client.util.HttpChannelAuthorizer;
 import com.pusher.client.util.UrlEncodedConnectionFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -81,20 +75,20 @@ public class RemoteModule {
         return FirebaseAuth.getInstance(app);
     }
 
+    @Nullable
     @Provides
     static FirebaseUser provideFirebaseUser(FirebaseAuth auth) {
         return auth.getCurrentUser();
     }
 
-
     @Provides
     @Singleton
-    static Pusher providePusher(Application app, FirebaseUser user) {
+    static Pusher providePusher(Application app, @Nullable FirebaseUser user) {
         PusherOptions options = new PusherOptions();
 
         options.setCluster("ap1");
 
-        options.setChannelAuthorizer(new HttpChannelAuthorizer(app.getString(R.string.update_url) + "auth", new UrlEncodedConnectionFactory(){
+        options.setChannelAuthorizer(new HttpChannelAuthorizer(app.getString(R.string.update_url) + "auth", new UrlEncodedConnectionFactory() {
             @Override
             public String getBody() {
                 final StringBuilder urlParameters = new StringBuilder(super.getBody());
