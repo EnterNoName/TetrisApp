@@ -8,10 +8,10 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewStub;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -25,27 +25,29 @@ import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.databinding.FragmentGameBinding;
 import com.example.tetrisapp.databinding.SidebarBinding;
 import com.example.tetrisapp.databinding.SidebarMultiplayerBinding;
-import com.example.tetrisapp.model.game.MockPlayfield;
-import com.example.tetrisapp.model.game.MockTetris;
 import com.example.tetrisapp.model.game.Piece;
-import com.example.tetrisapp.model.game.Playfield;
 import com.example.tetrisapp.model.game.Tetris;
-import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
+import com.example.tetrisapp.model.local.model.PlayerGameData;
 import com.example.tetrisapp.model.local.model.Tetromino;
-import com.example.tetrisapp.model.local.model.UserGameData;
-import com.example.tetrisapp.model.remote.request.InvalidatePlayerDataPayload;
+import com.example.tetrisapp.model.local.model.UserInfo;
+import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.MediaPlayerUtil;
-import com.example.tetrisapp.util.OnTouchListener;
 import com.example.tetrisapp.util.OnGestureListener;
+import com.example.tetrisapp.util.OnTouchListener;
 import com.example.tetrisapp.util.PusherUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
+import com.pusher.client.Pusher;
 import com.pusher.client.channel.PresenceChannel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -78,11 +80,19 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     private Future<?> countdownFuture = null;
 
     private MediaPlayer gameMusic;
-    @Inject MediaPlayerUtil mediaHelper;
-    private FirebaseAuth mAuth;
-    @Inject GameService gameService;
+    @Inject
+    MediaPlayerUtil mediaHelper;
+    @Inject
+    GameService gameService;
+    @Inject
+    @Nullable
+    Pusher pusher;
 
-    private MockTetris mockTetris;
+    private PresenceChannel channel;
+    private boolean spectatorMode = false;
+    private boolean gameEnded = false;
+
+    SharedPreferences preferences;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,14 +106,21 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
 
-        SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
-        countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
+        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
+        if (args.getCountdown() != -1) {
+            countdown = args.getCountdown();
+        } else {
+            countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
+        }
+
         countdownRemaining = countdown;
 
+        float volume = preferences.getInt(getString(R.string.setting_music_volume), 5) / 10f;
         gameMusic = MediaPlayer.create(requireContext(), R.raw.main);
         gameMusic.setOnPreparedListener(MediaPlayer::pause);
-        gameMusic.setVolume(0.5f, 0.5f);
+        gameMusic.setVolume(volume, volume);
         gameMusic.setLooping(true);
     }
 
@@ -112,8 +129,6 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentGameBinding.inflate(inflater, container, false);
         binding.getRoot().setKeepScreenOn(true);
-
-        mAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 
@@ -127,6 +142,8 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         binding.stub.setOnInflateListener((stub, inflated) -> {
             if (args.getLobbyCode() != null) {
                 sidebarMultiplayerBinding = SidebarMultiplayerBinding.bind(inflated);
+                // TODO: Implement all player pause
+                binding.btnPause.setVisibility(View.GONE);
             } else {
                 sidebarBinding = SidebarBinding.bind(inflated);
             }
@@ -145,71 +162,278 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         updateScoreboard();
         updatePieceViews();
 
-        if (sidebarMultiplayerBinding != null) initCompetitorGameView();
+        if (sidebarMultiplayerBinding != null) initMultiplayerGameView();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        countdown();
+        if (!(sidebarMultiplayerBinding != null && !gameEnded)) {
+            countdown();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
         viewModel.getGame().setPause(true);
+
+        // TODO: Implement all player pause
+        if (sidebarMultiplayerBinding != null && !gameEnded) {
+            gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
+        }
     }
 
-    private void initCompetitorGameView() {
-        mockTetris = new MockTetris();
-        mockTetris.setConfiguration(PieceConfigurations.DEFAULT.getConfiguration());
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        if (sidebarMultiplayerBinding != null && !gameEnded) {
+//            gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
+//        }
+//    }
 
-        sidebarMultiplayerBinding.gameViewCompetitor.setGame(mockTetris);
-
+    @SuppressLint("SetTextI18n")
+    private void initMultiplayerGameView() {
         GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
-        PresenceChannel channel = PusherUtil.getPresenceChannel("presence-" + args.getLobbyCode());
-        PusherUtil.bindPresenceChannel(channel, "user-update-data", event -> {
-            Gson gson = new Gson();
-            UserGameData data = gson.fromJson(event.getData(), UserGameData.class);
+        sidebarMultiplayerBinding.gameViewCompetitor.setGame(viewModel.getMockTetris());
 
-            if (data.userId.equals(mAuth.getUid())) return;
+        channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
 
-            MockPlayfield playfield = new MockPlayfield();
-            playfield.setState(data.playfield);
+        PusherUtil.bindPlayerGameData(channel, data -> {
+            try {
+                String exclude = channel.getMe().getId();
 
-            Piece piece = mockTetris.getConfiguration().get(data.tetromino.name);
-            piece.setMatrix(data.tetromino.matrix);
-            piece.setCol(data.tetromino.x);
-            piece.setRow(data.tetromino.y);
+                if (spectatorMode) {
+                    exclude = updateSpectatorView(data);
+                }
 
-            mockTetris.setScore(data.score);
-            mockTetris.setLevel(data.level);
-            mockTetris.setLines(data.lines);
-            mockTetris.setPlayfield(playfield);
-            mockTetris.setTetromino(piece);
+                updateMultiplayerSideView(data, exclude);
+            } catch (Exception e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+        });
 
-            sidebarMultiplayerBinding.gameViewCompetitor.postInvalidate();
+        PusherUtil.bindGameOver(channel, data -> {
+            try {
+                // Getting winner's info
+                UserInfo winnerUserInfo = PusherUtil.getUserInfo(channel, data.userId);
+                if (winnerUserInfo == null) return;
+
+                gameEnded = true;
+                requireActivity().runOnUiThread(() -> {
+                    // Setting game over action parameters
+                    GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
+                    action.setScore(viewModel.getGame().getScore());
+                    action.setLevel(viewModel.getGame().getLevel());
+                    action.setLines(viewModel.getGame().getLines());
+                    action.setLobbyCode(args.getLobbyCode());
+                    action.setWinnerUid(data.userId);
+                    action.setWinnerUsername(winnerUserInfo.getName());
+                    action.setPlacement(getSelfPlacement());
+                    Navigation.findNavController(binding.getRoot()).navigate(action);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+        });
+
+        PusherUtil.bindPlayerLost(channel, data -> {
+            try {
+                if (viewModel.getUserGameDataMap().containsKey(data.userId)) {
+                    Objects.requireNonNull(viewModel.getUserGameDataMap().get(data.userId)).isPlaying = false;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+        });
+
+        PusherUtil.createEventListener(
+                (channelName, user) -> {},
+                (channelName, user) -> {
+                    if (viewModel.getUserGameDataMap().containsKey(user.getId())) {
+                        Objects.requireNonNull(viewModel.getUserGameDataMap().get(user.getId())).isPlaying = false;
+                    }
+                },
+                (message, e) -> {}
+        );
+    }
+
+    @SuppressLint("SetTextI18n")
+    private String updateSpectatorView(PlayerGameData data) {
+        viewModel.getUserGameDataMap().put(data.userId, data);
+
+        // Find opponent with max score
+        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
+        userGameValues.sort(Comparator.comparingInt(o -> o.score));
+        PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
+        if (bestScoringPlayer == null) return "";
+
+        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
+        if (bestScoringPlayerInfo == null) return "";
+
+//        PieceConfiguration configuration = PieceConfigurations.valueOf(maxScoringUserInfo.getConfiguration()).getConfiguration();
+
+        // Init current piece
+        Piece piece = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
+        piece.setMatrix(bestScoringPlayer.tetromino.matrix);
+        piece.setCol(bestScoringPlayer.tetromino.x);
+        piece.setRow(bestScoringPlayer.tetromino.y);
+
+        // Init current piece shadow
+        Piece pieceShadow = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetrominoShadow.name).copy();
+        pieceShadow.setMatrix(bestScoringPlayer.tetrominoShadow.matrix);
+        pieceShadow.setCol(bestScoringPlayer.tetrominoShadow.x);
+        pieceShadow.setRow(bestScoringPlayer.tetrominoShadow.y);
+
+        // Set opponent related game views
+//        viewModel.getMockTetrisSpectate().setConfiguration(configuration);
+        viewModel.getMockTetrisSpectate().setScore(bestScoringPlayer.score);
+        viewModel.getMockTetrisSpectate().setLevel(bestScoringPlayer.level);
+        viewModel.getMockTetrisSpectate().setLines(bestScoringPlayer.lines);
+        viewModel.getMockPlayfieldSpectate().setState(bestScoringPlayer.playfield);
+        viewModel.getMockTetrisSpectate().setShadow(pieceShadow);
+        viewModel.getMockTetrisSpectate().setTetromino(piece);
+
+        binding.gameView.postInvalidate();
+        requireActivity().runOnUiThread(() -> {
+            binding.tvSpectate.setText("Spectating:\n" + bestScoringPlayerInfo.getName());
+
+            sidebarMultiplayerBinding.score.setText(bestScoringPlayer.score + "");
+            sidebarMultiplayerBinding.level.setText(bestScoringPlayer.level + "");
+            sidebarMultiplayerBinding.lines.setText(bestScoringPlayer.lines + "");
+            sidebarMultiplayerBinding.combo.setText(bestScoringPlayer.combo + "");
+
+            if (bestScoringPlayer.tetrominoSequence.length > 1) {
+                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.tetrominoSequence[0]).copy());
+                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.tetrominoSequence[1]).copy());
+            }
+
+            if (bestScoringPlayer.heldTetromino != null) {
+                sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.heldTetromino).copy());
+            }
+        });
+
+        return bestScoringPlayer.userId;
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void updateMultiplayerSideView(PlayerGameData data, String exclude) {
+        // Save received user game data
+        viewModel.getUserGameDataMap().put(data.userId, data);
+
+        // Find opponent with max score
+        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
+        userGameValues.sort(Comparator.comparingInt(o -> o.score));
+
+        PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
+        if (bestScoringPlayer == null) return;
+
+        if (bestScoringPlayer.userId.equals(exclude)) {
+            bestScoringPlayer = userGameValues.size() > 1 ? userGameValues.get(userGameValues.size() - 2) : null;
+        }
+        if (bestScoringPlayer == null) {
+            hideMultiplayerSideView();
+            return;
+        } else {
+            showMultiplayerSideView();
+        }
+
+
+        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
+        if (bestScoringPlayerInfo == null) return;
+
+//        PieceConfiguration configuration = PieceConfigurations.valueOf(bestScoringPlayerInfo.getConfiguration()).getConfiguration();
+
+        // Init current piece
+        Piece piece = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
+        piece.setMatrix(bestScoringPlayer.tetromino.matrix);
+        piece.setCol(bestScoringPlayer.tetromino.x);
+        piece.setRow(bestScoringPlayer.tetromino.y);
+
+        // Init current piece shadow
+        Piece pieceShadow = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetrominoShadow.name).copy();
+        pieceShadow.setMatrix(bestScoringPlayer.tetrominoShadow.matrix);
+        pieceShadow.setCol(bestScoringPlayer.tetrominoShadow.x);
+        pieceShadow.setRow(bestScoringPlayer.tetrominoShadow.y);
+
+        // Set opponent related game views
+//        viewModel.getMockTetris().setConfiguration(configuration);
+        viewModel.getMockTetris().setScore(bestScoringPlayer.score);
+        viewModel.getMockTetris().setLevel(bestScoringPlayer.level);
+        viewModel.getMockTetris().setLines(bestScoringPlayer.lines);
+        viewModel.getMockPlayfield().setState(bestScoringPlayer.playfield);
+        viewModel.getMockTetris().setTetromino(piece);
+        viewModel.getMockTetris().setShadow(pieceShadow);
+
+        sidebarMultiplayerBinding.gameViewCompetitor.postInvalidate();
+
+        PlayerGameData finalBestScoringPlayer = bestScoringPlayer;
+        requireActivity().runOnUiThread(() -> {
+            sidebarMultiplayerBinding.tvScoreCompetitor.setText(bestScoringPlayerInfo.getName() + "'s\nScore:");
+            sidebarMultiplayerBinding.scoreCompetitor.setText(finalBestScoringPlayer.score + "");
+        });
+    }
+
+    private void hideMultiplayerSideView() {
+        requireActivity().runOnUiThread(() -> {
+            sidebarMultiplayerBinding.gameViewCompetitor.setVisibility(View.GONE);
+            sidebarMultiplayerBinding.tvScoreCompetitor.setVisibility(View.GONE);
+            sidebarMultiplayerBinding.scoreCompetitor.setVisibility(View.GONE);
+        });
+    }
+
+    private void showMultiplayerSideView() {
+        requireActivity().runOnUiThread(() -> {
+            sidebarMultiplayerBinding.gameViewCompetitor.setVisibility(View.VISIBLE);
+            sidebarMultiplayerBinding.tvScoreCompetitor.setVisibility(View.VISIBLE);
+            sidebarMultiplayerBinding.scoreCompetitor.setVisibility(View.VISIBLE);
         });
     }
 
     private void sendGameData() {
-        mAuth.getCurrentUser()
-                .getIdToken(true)
-                .addOnCompleteListener(task -> {
-                    gameService.invalidatePlayerData(new InvalidatePlayerDataPayload(
-                            task.getResult().getToken(),
-                            binding.gameView.getGame().getScore(),
-                            binding.gameView.getGame().getLines(),
-                            binding.gameView.getGame().getLevel(),
-                            new Tetromino(
-                                    binding.gameView.getGame().getCurrentPiece().getName(),
-                                    binding.gameView.getGame().getCurrentPiece().getMatrix(),
-                                    binding.gameView.getGame().getCurrentPiece().getCol(),
-                                    binding.gameView.getGame().getCurrentPiece().getRow()
-                            ),
-                            binding.gameView.getGame().getPlayfield().getState()
-                    )).enqueue(this);
-                });
+        Gson gson = new Gson();
+
+        PlayerGameData data = new PlayerGameData(
+                binding.gameView.getGame().getScore(),
+                binding.gameView.getGame().getLines(),
+                binding.gameView.getGame().getLevel(),
+                binding.gameView.getGame().getCombo(),
+                new Tetromino(
+                        binding.gameView.getGame().getCurrentPiece().getName(),
+                        binding.gameView.getGame().getCurrentPiece().getMatrix(),
+                        binding.gameView.getGame().getCurrentPiece().getCol(),
+                        binding.gameView.getGame().getCurrentPiece().getRow()
+                ),
+                new Tetromino(
+                        binding.gameView.getGame().getShadow().getName(),
+                        binding.gameView.getGame().getShadow().getMatrix(),
+                        binding.gameView.getGame().getShadow().getCol(),
+                        binding.gameView.getGame().getShadow().getRow()
+                ),
+                binding.gameView.getGame().getHeldPiece(),
+                binding.gameView.getGame().getTetrominoSequence().toArray(new String[0]),
+                binding.gameView.getGame().getPlayfield().getState()
+        );
+
+        try {
+            channel.trigger("client-user-update-data", gson.toJson(data));
+        } catch (Exception e) {
+            Log.e(TAG, e.getLocalizedMessage());
+        }
+    }
+
+    private int getSelfPlacement() {
+        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
+        userGameValues.sort(Comparator.comparingInt(o -> o.score));
+
+        int placement = userGameValues.size();
+        for (int i = 0; i < userGameValues.size(); i++) {
+            if (viewModel.getGame().getScore() >= userGameValues.get(i).score) {
+                placement = i + 2;
+            }
+        }
+
+        return placement;
     }
 
     @SuppressLint("SetTextI18n")
@@ -239,18 +463,14 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
                 sidebarBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
                 sidebarBinding.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
                 sidebarBinding.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
+                if (viewModel.getGame().getHeldPiece() != null) {
+                    sidebarBinding.pvHold.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getHeldPiece()).copy());
+                }
             } else {
                 sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
                 sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
-            }
-        });
-
-        requireActivity().runOnUiThread(() -> {
-            if (viewModel.getGame().getHeldPiece() != null) {
-                if (sidebarBinding != null) {
-                    sidebarBinding.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
-                } else {
-                    sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getGame().getHeldPiece().copy());
+                if (viewModel.getGame().getHeldPiece() != null) {
+                    sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getHeldPiece()).copy());
                 }
             }
         });
@@ -260,19 +480,31 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         viewModel.getGame().setOnGameValuesUpdate(this::updateScoreboard);
         viewModel.getGame().setOnHold(this::updatePieceViews);
         viewModel.getGame().setOnMove(() -> {
-            if (sidebarMultiplayerBinding != null) {sendGameData();}
+            if (sidebarMultiplayerBinding != null) sendGameData();
             binding.gameView.postInvalidate();
         });
         viewModel.getGame().setOnSolidify(() -> {
-            mediaHelper.playSound(R.raw.solidify);
-            this.updatePieceViews();
+            mediaHelper.playSound(
+                    R.raw.solidify,
+                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+            );
+            updatePieceViews();
         });
         viewModel.getGame().setOnGameOver(() -> {
             gameMusic.stop();
             gameMusic.release();
             gameMusic = null;
 
-            mediaHelper.playSound(R.raw.gameover);
+            mediaHelper.playSound(
+                    R.raw.gameover,
+                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+            );
+
+            if (sidebarMultiplayerBinding != null) {
+                sendGameData();
+                gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
+                return;
+            }
 
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
             action.setScore(viewModel.getGame().getScore());
@@ -290,7 +522,10 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             @Override
             public void onTapDown() {
                 futureMoveLeft = executor.scheduleAtFixedRate(new MoveLeftRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                mediaHelper.playSound(R.raw.click);
+                mediaHelper.playSound(
+                        R.raw.click,
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                );
             }
 
             @Override
@@ -303,7 +538,10 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             @Override
             public void onTapDown() {
                 futureMoveRight = executor.scheduleAtFixedRate(new MoveRightRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                mediaHelper.playSound(R.raw.click);
+                mediaHelper.playSound(
+                        R.raw.click,
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                );
             }
 
             @Override
@@ -314,12 +552,18 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         binding.btnRotateLeft.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoLeft();
-            mediaHelper.playSound(R.raw.click);
+            mediaHelper.playSound(
+                    R.raw.click,
+                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+            );
         });
 
         binding.btnRotateRight.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoRight();
-            mediaHelper.playSound(R.raw.click);
+            mediaHelper.playSound(
+                    R.raw.click,
+                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+            );
         });
 
         binding.btnDown.setOnTouchListener(new OnGestureListener(getContext()) {
@@ -331,7 +575,10 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             @Override
             public void onTapDown() {
                 viewModel.getGame().setSoftDrop(true);
-                mediaHelper.playSound(R.raw.click);
+                mediaHelper.playSound(
+                        R.raw.click,
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                );
             }
 
             @Override
@@ -342,12 +589,18 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         if (sidebarBinding != null) {
             sidebarBinding.cvHold.setOnClickListener(v -> {
-                mediaHelper.playSound(R.raw.click);
+                mediaHelper.playSound(
+                        R.raw.click,
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                );
                 viewModel.getGame().hold();
             });
         } else {
             sidebarMultiplayerBinding.cvHold.setOnClickListener(v -> {
-                mediaHelper.playSound(R.raw.click);
+                mediaHelper.playSound(
+                        R.raw.click,
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                );
                 viewModel.getGame().hold();
             });
         }
@@ -371,9 +624,22 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         countdownFuture = executor.submit(new CountdownRunnable());
     }
 
+    private void switchToSpectatorMode() {
+        binding.btnLeft.setVisibility(View.GONE);
+        binding.btnRight.setVisibility(View.GONE);
+        binding.btnDown.setVisibility(View.GONE);
+        binding.btnRotateLeft.setVisibility(View.GONE);
+        binding.btnRotateRight.setVisibility(View.GONE);
+        binding.btnPause.setVisibility(View.GONE);
+
+        binding.gameView.setGame(viewModel.getMockTetrisSpectate());
+        binding.tvSpectate.setVisibility(View.VISIBLE);
+        spectatorMode = true;
+    }
+
     @Override
     public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
-
+        requireActivity().runOnUiThread(this::switchToSpectatorMode);
     }
 
     @Override
@@ -406,11 +672,17 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
                     public void updateUI() {
                         if (countdownRemaining > 0) {
                             binding.tvCountdown.setText(countdownRemaining + "");
-                            mediaHelper.playSound(R.raw.countdown);
+                            mediaHelper.playSound(
+                                    R.raw.countdown,
+                                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                            );
                         } else {
                             countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
-                            mediaHelper.playSound(R.raw.gamestart);
+                            mediaHelper.playSound(
+                                    R.raw.gamestart,
+                                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+                            );
                         }
                     }
 

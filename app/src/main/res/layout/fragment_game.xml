@@ -134,6 +134,21 @@
         android:includeFontPadding="false"
         android:textSize="60sp" />
 
+    <TextView
+        android:id="@+id/tvSpectate"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/fira_sans_medium"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        tools:text="Spectating:\nUsername"
+        android:textColor="?colorOnPrimary"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
