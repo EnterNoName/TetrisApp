@@ -75,6 +75,10 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
                 return;
             }
 
+            binding.btnEnter.setEnabled(false);
+            binding.etInviteCode.setEnabled(false);
+            binding.progressBar.setVisibility(View.VISIBLE);
+
             inviteCode = binding.etInviteCode.getText().toString();
             binding.etInviteCode.setText("");
 
@@ -88,12 +92,19 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     // Retrofit callbacks
     @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
+        requireActivity().runOnUiThread(() -> {
+            binding.btnEnter.setEnabled(true);
+            binding.etInviteCode.setEnabled(true);
+            binding.progressBar.setVisibility(View.GONE);
+        });
+
         if (response.code() == 401) { // Not authorized
             NavHostFragment.findNavController(this).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
         }
 
         if (response.code() == 400) {
-            Snackbar.make(binding.getRoot(), "This lobby does not exist.", Snackbar.LENGTH_LONG).show();
+            getDialog().dismiss();
+            Snackbar.make(getParentFragment().requireView(), "This lobby does not exist.", Snackbar.LENGTH_LONG).show();
         }
 
         if (response.isSuccessful() && response.body() != null && response.body().status.equals("success")) {
@@ -105,6 +116,13 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
 
     @Override
     public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
+        requireActivity().runOnUiThread(() -> {
+            binding.btnEnter.setEnabled(true);
+            binding.etInviteCode.setEnabled(true);
+            binding.progressBar.setVisibility(View.GONE);
+        });
+
+        getDialog().dismiss();
         Snackbar.make(binding.getRoot(), "Something went wrong. Try again later.", Snackbar.LENGTH_LONG).show();
     }
 }
