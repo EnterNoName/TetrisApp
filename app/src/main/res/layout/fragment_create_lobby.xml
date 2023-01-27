@@ -120,6 +120,7 @@
 
     <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/switchEnablePause"
+        android:visibility="gone"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:fontFamily="@font/fira_sans"

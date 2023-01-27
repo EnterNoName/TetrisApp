@@ -37,6 +37,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     private FragmentCreateLobbyBinding binding;
 
     @Inject
+    @Nullable
     FirebaseUser firebaseUser;
     @Inject
     LobbyService lobbyService;
