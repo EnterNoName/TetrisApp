@@ -433,7 +433,7 @@ public class Tetris implements TetrisInterface {
     public synchronized void setSoftDrop(boolean softDrop) {
         if (softDrop == this.softDrop) return;
 
-        if (!pause) {
+        if (!pause && !gameOver) {
             this.softDrop = softDrop;
 
             delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
