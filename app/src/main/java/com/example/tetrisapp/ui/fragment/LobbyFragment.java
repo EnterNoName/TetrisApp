@@ -67,6 +67,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     Pusher pusher;
 
     private PresenceChannelEventListener listener;
+    private PresenceChannelEventListener listenerGameStart;
     private PresenceChannel channel;
 
     private boolean succeded = false;
@@ -93,7 +94,8 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.lobby_exit_alert_title))
                 .setMessage(getString(R.string.lobby_exit_alert_message))
-                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {})
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> {
+                })
                 .setPositiveButton(getString(R.string.agree), (dialog, which) -> exitLobby())
                 .show();
     }
@@ -110,9 +112,11 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     public void onDestroy() {
         super.onDestroy();
         if (succeded) {
+            channel.unbind("game-started", listenerGameStart);
             channel.unbindGlobal(listener);
             return;
-        };
+        }
+        ;
 
         LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
         pusher.unsubscribe("presence-" + args.getInviteCode());
@@ -154,15 +158,15 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         for (MenuItem item : menuBuilder.getVisibleItems()) {
             int iconMarginPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f, getResources().getDisplayMetrics());
             if (item.getIcon() != null) {
-                item.setIcon(new InsetDrawable(item.getIcon(), iconMarginPx, 0, iconMarginPx,0));
+                item.setIcon(new InsetDrawable(item.getIcon(), iconMarginPx, 0, iconMarginPx, 0));
             }
         }
 
         popup.setOnMenuItemClickListener(item -> {
+            LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
+
             switch (item.getItemId()) {
                 case R.id.copy_code:
-                    LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
-
                     ClipboardManager clipboard = (ClipboardManager) requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clip = ClipData.newPlainText(getString(R.string.invite_code), args.getInviteCode());
                     clipboard.setPrimaryClip(clip);
@@ -175,7 +179,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                     shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_invite_code_subject));
                     shareIntent.putExtra(
                             Intent.EXTRA_TEXT,
-                            ""
+                            String.format("https://tetrisapp.com/invite/%s/", args.getInviteCode())
                     );
                     startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
                     return true;
@@ -207,12 +211,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                 (message, e) -> exitLobby()
         );
 
-        channel = PusherUtil.getPresenceChannel(
-                pusher,
-                "presence-" + args.getInviteCode(),
-                listener);
-
-        PusherUtil.bindPresenceChannel(channel, "game-started", event -> requireActivity().runOnUiThread(() -> {
+        listenerGameStart = PusherUtil.createEventListener(event -> requireActivity().runOnUiThread(() -> {
             succeded = true;
             Gson gson = new Gson();
             GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
@@ -222,6 +221,13 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
             action.setCountdown(data.countdown);
             Navigation.findNavController(binding.getRoot()).navigate(action);
         }));
+
+        channel = PusherUtil.getPresenceChannel(
+                pusher,
+                "presence-" + args.getInviteCode(),
+                listener);
+
+        channel.bind("game-started", listenerGameStart);
     }
 
     private void updateUI() {
@@ -255,20 +261,23 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
 
     // Get user data from json and append to user list and recycler view adapter
     private void addUserToLobbyUserList(User user) {
-       if (binding.list.getAdapter() == null) return;
+        if (binding.list.getAdapter() == null) return;
 
-       Gson gson = new Gson();
-       UserInfo userPresenceData = gson.fromJson(user.getInfo(), UserInfo.class);
-       userPresenceData.setUid(user.getId());
+        Gson gson = new Gson();
+        UserInfo userPresenceData = gson.fromJson(user.getInfo(), UserInfo.class);
+        userPresenceData.setUid(user.getId());
 
-       requireActivity().runOnUiThread(() -> {
-           viewModel.getUserList().add(userPresenceData);
-           binding.list.getAdapter().notifyItemInserted(viewModel.getUserList().size() - 1);
-       });
+        requireActivity().runOnUiThread(() -> {
+            viewModel.getUserList().add(userPresenceData);
+            binding.list.getAdapter().notifyItemInserted(viewModel.getUserList().size() - 1);
+        });
     }
 
     @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, @NonNull Response<DefaultPayload> response) {
+        if (response.code() == 400) {
+            Snackbar.make(binding.getRoot(), "Not enough players to start the game.", Snackbar.LENGTH_LONG).show();
+        }
     }
 
     @Override
