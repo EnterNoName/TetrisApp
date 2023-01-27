@@ -35,6 +35,7 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     private FragmentJoinLobbyBinding binding;
 
     @Inject
+    @Nullable
     FirebaseUser firebaseUser;
     @Inject
     LobbyService lobbyService;
