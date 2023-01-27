@@ -17,11 +17,20 @@ import androidx.room.rxjava3.EmptyResultSetException;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
+import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.databinding.FragmentGameOverBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
+import com.example.tetrisapp.model.local.model.GameStartedData;
+import com.example.tetrisapp.model.remote.request.TokenPayload;
+import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.FirebaseTokenUtil;
 import com.example.tetrisapp.util.OnTouchListener;
+import com.example.tetrisapp.util.PusherUtil;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.gson.Gson;
+import com.pusher.client.Pusher;
+import com.pusher.client.channel.PresenceChannel;
 
 import java.util.Date;
 import java.util.Locale;
@@ -31,17 +40,25 @@ import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @AndroidEntryPoint
-public class GameOverFragment extends Fragment {
+public class GameOverFragment extends Fragment implements Callback<DefaultPayload> {
     private final static String TAG = "GameOverFragment";
     private FragmentGameOverBinding binding;
 
     @Inject
     LeaderboardDao leaderboardDao;
     @Inject
+    GameService gameService;
+    @Inject
     @Nullable
     FirebaseUser user;
+    @Inject
+    @Nullable
+    Pusher pusher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,17 +91,17 @@ public class GameOverFragment extends Fragment {
 
         if  (args.getLobbyCode() == null) {
             handleGameOverSingleplayer();
+            initClickListeners();
         } else {
             handleGameOverMultiplayer();
+            initClickListenersMultiplayer();
         }
-
-        initClickListeners();
     }
 
     private void handleGameOverMultiplayer() {
         GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
 
-        binding.tvHighScore.setText(user.getUid().equals(args.getWinnerUid()) ?
+        binding.tvHighScore.setText(args.getPlacement() == 1 ?
                 "GG! You've won!" :
                 String.format(Locale.getDefault(),"GG! You've placed №%d\nThe winner is %s", args.getPlacement(), args.getWinnerUsername()));
     }
@@ -128,8 +145,10 @@ public class GameOverFragment extends Fragment {
 
             leaderboardDao.insert(entry)
                     .subscribeOn(Schedulers.io())
-                    .subscribe(i -> {
-                    }, throwable -> Log.e(TAG, throwable.getLocalizedMessage()));
+                    .subscribe(
+                            i -> {},
+                            throwable -> Log.e(TAG, throwable.getLocalizedMessage())
+                    );
         }
     }
 
@@ -153,5 +172,56 @@ public class GameOverFragment extends Fragment {
             );
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
         });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void initClickListenersMultiplayer() {
+        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+
+        PresenceChannel channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
+
+        PusherUtil.bindPresenceChannel(channel, "game-started", event -> requireActivity().runOnUiThread(() -> {
+            Gson gson = new Gson();
+            GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
+
+            GameOverFragmentDirections.ActionGameOverFragmentToGameFragment action = GameOverFragmentDirections.actionGameOverFragmentToGameFragment();
+            action.setLobbyCode(args.getLobbyCode());
+            action.setCountdown(data.countdown);
+            Navigation.findNavController(binding.getRoot()).navigate(action);
+        }));
+
+        binding.btnLeave.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnLeave.setOnClickListener(v -> {
+            pusher.unsubscribe("presence-" + args.getLobbyCode());
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameOverFragment_to_mainMenuFragment);
+        });
+
+        binding.btnRetry.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnRetry.setOnClickListener(v -> FirebaseTokenUtil.getFirebaseToken(token -> {
+            gameService.startGame(new TokenPayload(token)).enqueue(this);
+        }));
+
+        binding.btnShare.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnShare.setOnClickListener(v -> {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_subject));
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    String.format(getString(R.string.share_text),
+                            GameOverFragmentArgs.fromBundle(getArguments()).getScore())
+            );
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
+        });
+    }
+
+    @Override
+    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
+
+    }
+
+    @Override
+    public void onFailure(Call<DefaultPayload> call, Throwable t) {
+
     }
 }
