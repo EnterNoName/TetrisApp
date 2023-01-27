@@ -40,7 +40,7 @@ public class SignUpFragment extends Fragment {
     private SignInClient oneTapClient;
     private BeginSignInRequest signInRequest;
 
-    @Inject FirebaseAuth firebaseAuth;
+    FirebaseAuth firebaseAuth;
     private final ActivityResultLauncher<IntentSenderRequest> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
         try {
             SignInCredential credential = oneTapClient.getSignInCredentialFromIntent(result.getData());
@@ -71,6 +71,7 @@ public class SignUpFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentSignupBinding.inflate(inflater, container, false);
+        firebaseAuth = FirebaseAuth.getInstance();
         return binding.getRoot();
     }
 

@@ -49,6 +49,7 @@ import com.example.tetrisapp.util.MimeTypeUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.io.EOFException;
@@ -70,8 +71,6 @@ public class MainMenuFragment extends Fragment {
 
     @Inject
     UpdateService updateService;
-    @Inject
-    @Nullable
     FirebaseUser firebaseUser;
     private Response<UpdatePayload> update = null;
     private Call<UpdatePayload> updateApiCall;
@@ -117,6 +116,8 @@ public class MainMenuFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentMainMenuBinding.inflate(inflater, container, false);
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseUser = firebaseAuth.getCurrentUser();
         return binding.getRoot();
     }
 
