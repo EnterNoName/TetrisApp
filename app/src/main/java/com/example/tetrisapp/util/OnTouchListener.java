@@ -1,5 +1,6 @@
 package com.example.tetrisapp.util;
 
+import android.content.Context;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,7 +34,8 @@ public class OnTouchListener implements View.OnTouchListener {
                 mLastClickTime = SystemClock.elapsedRealtime();
 
                 MediaPlayerUtil mediaHelper = new MediaPlayerUtil(activity.getApplicationContext());
-                mediaHelper.playSound(soundResId);
+                float volume = activity.getPreferences(Context.MODE_PRIVATE).getInt(activity.getString(R.string.setting_sfx_volume), 5) / 10f;
+                mediaHelper.playSound(soundResId, volume);
 
                 v.performClick();
                 break;

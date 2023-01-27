@@ -38,37 +38,9 @@ public class SettingsFragment extends BottomSheetDialogFragment implements Recyc
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private void initializeSettings() {
-//        SettingsRecyclerViewAdapter.Setting controlSchemeSetting = new SettingsRecyclerViewAdapter.Setting(
-//                requireActivity().getDrawable(R.drawable.ic_round_videogame_controller_24),
-//                "Control Scheme",
-//                "Buttons"
-//        );
-//        this.settingList.add(controlSchemeSetting);
-        SettingsRecyclerViewAdapter.Setting countdownSetting = new SettingsRecyclerViewAdapter.Setting(
-                requireActivity().getDrawable(R.drawable.ic_round_timer_24),
-                "Countdown",
-                preferences.getInt(getString(R.string.setting_countdown), 5) == 0 ?
-                        "Disabled" :
-                        preferences.getInt(getString(R.string.setting_countdown), 5) + " Sec",
-                () -> {
-                    switch (preferences.getInt(getString(R.string.setting_countdown), 5)) {
-                        case 5:
-                            editor.putInt(getString(R.string.setting_countdown), 3);
-                            break;
-                        case 3:
-                            editor.putInt(getString(R.string.setting_countdown), 0);
-                            break;
-                        default:
-                            editor.putInt(getString(R.string.setting_countdown), 5);
-                            break;
-                    }
-                    editor.apply();
-                }
-        );
-        this.settingList.add(countdownSetting);
         SettingsRecyclerViewAdapter.Setting autoUpdateSetting = new SettingsRecyclerViewAdapter.Setting(
                 requireActivity().getDrawable(R.drawable.ic_round_cloud_download_24),
-                "Auto-update",
+                getString(R.string.setting_auto_update_title),
                 preferences.getBoolean(getString(R.string.setting_auto_update), true) ? "Enabled" : "Disabled",
                 () -> {
                     editor.putBoolean(
@@ -79,6 +51,69 @@ public class SettingsFragment extends BottomSheetDialogFragment implements Recyc
                 }
         );
         this.settingList.add(autoUpdateSetting);
+
+        SettingsRecyclerViewAdapter.Setting countdownSetting = new SettingsRecyclerViewAdapter.Setting(
+                requireActivity().getDrawable(R.drawable.ic_round_timer_24),
+                getString(R.string.setting_countdown_title),
+                preferences.getInt(getString(R.string.setting_countdown), 5) == 0 ?
+                        "Disabled" :
+                        preferences.getInt(getString(R.string.setting_countdown), 5) + " Sec",
+                () -> {
+                    int countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
+                    editor.putInt(getString(R.string.setting_countdown), countdown > 0 ? countdown - 1 : countdown);
+                    editor.apply();
+                },
+                () -> {
+                    int countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
+                    editor.putInt(getString(R.string.setting_countdown), countdown < 10 ? countdown + 1 : countdown);
+                    editor.apply();
+                }
+        );
+        this.settingList.add(countdownSetting);
+
+        SettingsRecyclerViewAdapter.Setting musicSetting = new SettingsRecyclerViewAdapter.Setting(
+                preferences.getInt(getString(R.string.setting_music_volume), 5) > 0 ?
+                        requireActivity().getDrawable(R.drawable.ic_round_music_note_24) :
+                        requireActivity().getDrawable(R.drawable.ic_round_music_off_24),
+                getString(R.string.setting_music_volume_title),
+                preferences.getInt(getString(R.string.setting_music_volume), 5) == 0 ?
+                        "Off" :
+                        preferences.getInt(getString(R.string.setting_music_volume), 5) + "",
+                () -> {
+                    int volume = preferences.getInt(getString(R.string.setting_music_volume), 5);
+                    editor.putInt(getString(R.string.setting_music_volume), volume > 0 ? volume - 1 : volume);
+                    editor.apply();
+                },
+                () -> {
+                    int volume = preferences.getInt(getString(R.string.setting_music_volume), 5);
+                    editor.putInt(getString(R.string.setting_music_volume), volume < 10 ? volume + 1 : volume);
+                    editor.apply();
+                }
+        );
+        this.settingList.add(musicSetting);
+
+        SettingsRecyclerViewAdapter.Setting sfxSetting = new SettingsRecyclerViewAdapter.Setting(
+                preferences.getInt(getString(R.string.setting_sfx_volume), 5) >= 5 ?
+                        requireActivity().getDrawable(R.drawable.ic_round_volume_up_24) :
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) > 0 ?
+                                requireActivity().getDrawable(R.drawable.ic_round_volume_down_24) :
+                                requireActivity().getDrawable(R.drawable.ic_round_volume_off_24),
+                getString(R.string.setting_sfx_volume_title),
+                preferences.getInt(getString(R.string.setting_sfx_volume), 5) == 0 ?
+                        "Off" :
+                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) + "",
+                () -> {
+                    int volume = preferences.getInt(getString(R.string.setting_sfx_volume), 5);
+                    editor.putInt(getString(R.string.setting_sfx_volume), volume > 0 ? volume - 1 : volume);
+                    editor.apply();
+                },
+                () -> {
+                    int volume = preferences.getInt(getString(R.string.setting_sfx_volume), 5);
+                    editor.putInt(getString(R.string.setting_sfx_volume), volume < 10 ? volume + 1 : volume);
+                    editor.apply();
+                }
+        );
+        this.settingList.add(sfxSetting);
     }
 
     @Nullable
@@ -93,8 +128,6 @@ public class SettingsFragment extends BottomSheetDialogFragment implements Recyc
 
     @Override
     public void onItemClick(int position) {
-        SettingsRecyclerViewAdapter.Setting setting = settingList.get(position);
-        setting.getCallback().call();
         settingList.clear();
         initializeSettings();
         binding.list.getAdapter().notifyItemChanged(position);

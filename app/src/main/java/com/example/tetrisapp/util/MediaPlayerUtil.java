@@ -11,8 +11,13 @@ public class MediaPlayerUtil {
     }
 
     public void playSound(int resId) {
+        playSound(resId, 1f);
+    }
+
+    public void playSound(int resId, float volume) {
         final MediaPlayer mediaPlayer = MediaPlayer.create(context, resId);
         mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        mediaPlayer.setVolume(volume, volume);
         mediaPlayer.start();
     }
 }
