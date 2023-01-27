@@ -53,6 +53,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -168,9 +169,7 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     @Override
     public void onResume() {
         super.onResume();
-        if (!(sidebarMultiplayerBinding != null && !gameEnded)) {
-            countdown();
-        }
+        countdown();
     }
 
     @Override
@@ -201,13 +200,13 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         PusherUtil.bindPlayerGameData(channel, data -> {
             try {
-                String exclude = channel.getMe().getId();
+                String currentPlayerUid = channel.getMe().getId();
 
                 if (spectatorMode) {
-                    exclude = updateSpectatorView(data);
+                    currentPlayerUid = updateSpectatorView(data);
                 }
 
-                updateMultiplayerSideView(data, exclude);
+                updateMultiplayerSideView(data, currentPlayerUid);
             } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
             }
@@ -215,23 +214,7 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         PusherUtil.bindGameOver(channel, data -> {
             try {
-                // Getting winner's info
-                UserInfo winnerUserInfo = PusherUtil.getUserInfo(channel, data.userId);
-                if (winnerUserInfo == null) return;
-
-                gameEnded = true;
-                requireActivity().runOnUiThread(() -> {
-                    // Setting game over action parameters
-                    GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
-                    action.setScore(viewModel.getGame().getScore());
-                    action.setLevel(viewModel.getGame().getLevel());
-                    action.setLines(viewModel.getGame().getLines());
-                    action.setLobbyCode(args.getLobbyCode());
-                    action.setWinnerUid(data.userId);
-                    action.setWinnerUsername(winnerUserInfo.getName());
-                    action.setPlacement(getSelfPlacement());
-                    Navigation.findNavController(binding.getRoot()).navigate(action);
-                });
+                multiplayerGameOver();
             } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
             }
@@ -241,6 +224,9 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             try {
                 if (viewModel.getUserGameDataMap().containsKey(data.userId)) {
                     Objects.requireNonNull(viewModel.getUserGameDataMap().get(data.userId)).isPlaying = false;
+                    if (viewModel.getUserGameDataMap().values().stream().noneMatch(u -> u.isPlaying) && viewModel.getGame().isGameOver()) {
+                        multiplayerGameOver();
+                    }
                 }
             } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
@@ -252,125 +238,98 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
                 (channelName, user) -> {
                     if (viewModel.getUserGameDataMap().containsKey(user.getId())) {
                         Objects.requireNonNull(viewModel.getUserGameDataMap().get(user.getId())).isPlaying = false;
+                        if (viewModel.getUserGameDataMap().values().stream().noneMatch(u -> u.isPlaying) && viewModel.getGame().isGameOver()) {
+                            multiplayerGameOver();
+                        }
                     }
                 },
                 (message, e) -> {}
         );
     }
 
+    private void multiplayerGameOver() {
+        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
+        int placement = viewModel.getPlacement();
+
+        // Getting winner's info
+        UserInfo winnerUserInfo;
+        winnerUserInfo = PusherUtil.getUserInfo(channel, viewModel.getWinnerUid());
+        if (winnerUserInfo == null) return;
+
+        gameEnded = true;
+        requireActivity().runOnUiThread(() -> {
+            // Setting game over action parameters
+            GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
+            action.setScore(viewModel.getGame().getScore());
+            action.setLevel(viewModel.getGame().getLevel());
+            action.setLines(viewModel.getGame().getLines());
+            action.setLobbyCode(args.getLobbyCode());
+            action.setWinnerUid(winnerUserInfo.getUid());
+            action.setWinnerUsername(winnerUserInfo.getName());
+            action.setPlacement(placement);
+            Navigation.findNavController(binding.getRoot()).navigate(action);
+        });
+    }
+
     @SuppressLint("SetTextI18n")
     private String updateSpectatorView(PlayerGameData data) {
         viewModel.getUserGameDataMap().put(data.userId, data);
 
-        // Find opponent with max score
-        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
-        userGameValues.sort(Comparator.comparingInt(o -> o.score));
-        PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
-        if (bestScoringPlayer == null) return "";
+        String spectatedPlayerUid = viewModel.updateSpectatorMockTetris();
+        PlayerGameData spectatedPlayerData = viewModel.getUserGameDataMap().getOrDefault(spectatedPlayerUid, null);
+        if (spectatedPlayerData == null) return null;
 
-        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
-        if (bestScoringPlayerInfo == null) return "";
-
-//        PieceConfiguration configuration = PieceConfigurations.valueOf(maxScoringUserInfo.getConfiguration()).getConfiguration();
-
-        // Init current piece
-        Piece piece = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
-        piece.setMatrix(bestScoringPlayer.tetromino.matrix);
-        piece.setCol(bestScoringPlayer.tetromino.x);
-        piece.setRow(bestScoringPlayer.tetromino.y);
-
-        // Init current piece shadow
-        Piece pieceShadow = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetrominoShadow.name).copy();
-        pieceShadow.setMatrix(bestScoringPlayer.tetrominoShadow.matrix);
-        pieceShadow.setCol(bestScoringPlayer.tetrominoShadow.x);
-        pieceShadow.setRow(bestScoringPlayer.tetrominoShadow.y);
-
-        // Set opponent related game views
-//        viewModel.getMockTetrisSpectate().setConfiguration(configuration);
-        viewModel.getMockTetrisSpectate().setScore(bestScoringPlayer.score);
-        viewModel.getMockTetrisSpectate().setLevel(bestScoringPlayer.level);
-        viewModel.getMockTetrisSpectate().setLines(bestScoringPlayer.lines);
-        viewModel.getMockPlayfieldSpectate().setState(bestScoringPlayer.playfield);
-        viewModel.getMockTetrisSpectate().setShadow(pieceShadow);
-        viewModel.getMockTetrisSpectate().setTetromino(piece);
+        UserInfo spectatedPlayerInfo = PusherUtil.getUserInfo(channel, spectatedPlayerUid);
+        if (spectatedPlayerInfo == null) return null;
 
         binding.gameView.postInvalidate();
         requireActivity().runOnUiThread(() -> {
-            binding.tvSpectate.setText("Spectating:\n" + bestScoringPlayerInfo.getName());
+            binding.tvSpectate.setText("Spectating:\n" + spectatedPlayerInfo.getName());
 
-            sidebarMultiplayerBinding.score.setText(bestScoringPlayer.score + "");
-            sidebarMultiplayerBinding.level.setText(bestScoringPlayer.level + "");
-            sidebarMultiplayerBinding.lines.setText(bestScoringPlayer.lines + "");
-            sidebarMultiplayerBinding.combo.setText(bestScoringPlayer.combo + "");
+            sidebarMultiplayerBinding.score.setText(spectatedPlayerData.score + "");
+            sidebarMultiplayerBinding.level.setText(spectatedPlayerData.level + "");
+            sidebarMultiplayerBinding.lines.setText(spectatedPlayerData.lines + "");
+            sidebarMultiplayerBinding.combo.setText(spectatedPlayerData.combo + "");
 
-            if (bestScoringPlayer.tetrominoSequence.length > 1) {
-                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.tetrominoSequence[0]).copy());
-                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.tetrominoSequence[1]).copy());
+            if (spectatedPlayerData.tetrominoSequence.length >= 2) {
+                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.tetrominoSequence[0]).copy());
+                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.tetrominoSequence[1]).copy());
             }
 
-            if (bestScoringPlayer.heldTetromino != null) {
-                sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getConfiguration().get(bestScoringPlayer.heldTetromino).copy());
+            if (spectatedPlayerData.heldTetromino != null) {
+                sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.heldTetromino).copy());
+            } else {
+                sidebarMultiplayerBinding.pvHold.setPiece(null);
             }
         });
 
-        return bestScoringPlayer.userId;
+        return spectatedPlayerUid;
     }
 
     @SuppressLint("SetTextI18n")
-    private void updateMultiplayerSideView(PlayerGameData data, String exclude) {
+    private void updateMultiplayerSideView(PlayerGameData data, String currentPlayerUid) {
         // Save received user game data
         viewModel.getUserGameDataMap().put(data.userId, data);
 
-        // Find opponent with max score
-        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
-        userGameValues.sort(Comparator.comparingInt(o -> o.score));
+        String bestScoringPlayerUid = viewModel.updateMockTetris(currentPlayerUid);
+        PlayerGameData bestScoringPlayer = viewModel.getUserGameDataMap().getOrDefault(bestScoringPlayerUid, null);
 
-        PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
-        if (bestScoringPlayer == null) return;
-
-        if (bestScoringPlayer.userId.equals(exclude)) {
-            bestScoringPlayer = userGameValues.size() > 1 ? userGameValues.get(userGameValues.size() - 2) : null;
-        }
         if (bestScoringPlayer == null) {
             hideMultiplayerSideView();
             return;
-        } else {
-            showMultiplayerSideView();
         }
+
+        showMultiplayerSideView();
 
 
         UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
         if (bestScoringPlayerInfo == null) return;
 
-//        PieceConfiguration configuration = PieceConfigurations.valueOf(bestScoringPlayerInfo.getConfiguration()).getConfiguration();
-
-        // Init current piece
-        Piece piece = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
-        piece.setMatrix(bestScoringPlayer.tetromino.matrix);
-        piece.setCol(bestScoringPlayer.tetromino.x);
-        piece.setRow(bestScoringPlayer.tetromino.y);
-
-        // Init current piece shadow
-        Piece pieceShadow = viewModel.getMockTetris().getConfiguration().get(bestScoringPlayer.tetrominoShadow.name).copy();
-        pieceShadow.setMatrix(bestScoringPlayer.tetrominoShadow.matrix);
-        pieceShadow.setCol(bestScoringPlayer.tetrominoShadow.x);
-        pieceShadow.setRow(bestScoringPlayer.tetrominoShadow.y);
-
-        // Set opponent related game views
-//        viewModel.getMockTetris().setConfiguration(configuration);
-        viewModel.getMockTetris().setScore(bestScoringPlayer.score);
-        viewModel.getMockTetris().setLevel(bestScoringPlayer.level);
-        viewModel.getMockTetris().setLines(bestScoringPlayer.lines);
-        viewModel.getMockPlayfield().setState(bestScoringPlayer.playfield);
-        viewModel.getMockTetris().setTetromino(piece);
-        viewModel.getMockTetris().setShadow(pieceShadow);
-
         sidebarMultiplayerBinding.gameViewCompetitor.postInvalidate();
 
-        PlayerGameData finalBestScoringPlayer = bestScoringPlayer;
         requireActivity().runOnUiThread(() -> {
             sidebarMultiplayerBinding.tvScoreCompetitor.setText(bestScoringPlayerInfo.getName() + "'s\nScore:");
-            sidebarMultiplayerBinding.scoreCompetitor.setText(finalBestScoringPlayer.score + "");
+            sidebarMultiplayerBinding.scoreCompetitor.setText(bestScoringPlayer.score + "");
         });
     }
 
@@ -420,20 +379,6 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         } catch (Exception e) {
             Log.e(TAG, e.getLocalizedMessage());
         }
-    }
-
-    private int getSelfPlacement() {
-        List<PlayerGameData> userGameValues = new ArrayList<>(viewModel.getUserGameDataMap().values());
-        userGameValues.sort(Comparator.comparingInt(o -> o.score));
-
-        int placement = userGameValues.size();
-        for (int i = 0; i < userGameValues.size(); i++) {
-            if (viewModel.getGame().getScore() >= userGameValues.get(i).score) {
-                placement = i + 2;
-            }
-        }
-
-        return placement;
     }
 
     @SuppressLint("SetTextI18n")
