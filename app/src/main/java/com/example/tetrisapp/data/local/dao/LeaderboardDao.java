@@ -23,6 +23,27 @@ public interface LeaderboardDao {
     @Query("SELECT * FROM leaderboardentry ORDER BY score DESC")
     Single<List<LeaderboardEntry>> getSorted();
 
+    @Query("SELECT COUNT(*) FROM leaderboardentry")
+    Single<Integer> getGamesCount();
+
+    @Query("SELECT AVG(score) FROM leaderboardentry")
+    Single<Integer> getAverageScore();
+
+    @Query("SELECT AVG(level) FROM leaderboardentry")
+    Single<Integer> getAverageLevel();
+
+    @Query("SELECT AVG(lines) FROM leaderboardentry")
+    Single<Integer> getAverageLines();
+
+    @Query("SELECT MAX(score) FROM leaderboardentry")
+    Single<Integer> getBestScore();
+
+    @Query("SELECT MAX(level) FROM leaderboardentry")
+    Single<Integer> getBestLevel();
+
+    @Query("SELECT MAX(lines) FROM leaderboardentry")
+    Single<Integer> getBestLines();
+
     @Insert
     Single<Long> insert(LeaderboardEntry leaderboardEntry);
 

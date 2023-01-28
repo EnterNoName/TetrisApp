@@ -11,53 +11,300 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/background_button"
-        app:tint="?colorOnPrimary"
         android:contentDescription="@string/desc_resume"
         android:padding="8dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_round_arrow_back_24"
-        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/linearLayout">
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?colorOnPrimary" />
 
-    </ImageButton>
+    <ImageView
+        android:id="@+id/ivProfileImage"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:contentDescription="@string/desc_profile"
+        android:src="@drawable/ic_round_account_circle_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnBack"
+        app:tint="?colorOnPrimary" />
+
+    <TextView
+        android:id="@+id/tvUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fira_sans_bold"
+        android:includeFontPadding="false"
+        android:textColor="?colorOnPrimary"
+        android:textSize="28sp"
+        app:layout_constraintBottom_toTopOf="@+id/tvEmailAddress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/ivProfileImage"
+        app:layout_constraintTop_toTopOf="@+id/ivProfileImage"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Nickname#2919" />
+
+    <TextView
+        android:id="@+id/tvEmailAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_medium"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/ivProfileImage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/ivProfileImage"
+        app:layout_constraintTop_toBottomOf="@+id/tvUsername"
+        tools:text="nickname@gmail.com" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/firstDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivProfileImage" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?colorSecondary"
+        app:layout_constraintBottom_toTopOf="@id/barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/firstDivider" />
+
+    <TextView
+        android:id="@+id/tvStatistics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/fira_sans_bold"
+        android:includeFontPadding="false"
+        android:textColor="?colorOnPrimary"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/firstDivider"
+        tools:text="Nickname#2919's Statistics" />
+
+    <TextView
+        android:id="@+id/tvGamesCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/montserrat_medium"
+        android:includeFontPadding="false"
+        android:textAlignment="center"
+        android:textColor="?colorOnPrimary"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvStatistics"
+        tools:text="Games Played:\n34" />
 
     <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="match_parent"
+        android:id="@+id/layoutScore"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toStartOf="@+id/layoutLevel"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/tvGamesCount">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:fontFamily="@font/fira_sans_bold"
-            android:text="@string/personal_scores"
+            android:includeFontPadding="false"
+            android:text="Score"
+            android:textColor="?colorOnPrimary"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tvBestScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
             android:textAlignment="center"
             android:textColor="?colorOnPrimary"
-            android:textSize="24sp" />
+            android:textSize="16sp"
+            tools:text="Best:\n108992" />
 
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            app:tint="?colorOnPrimary"
-            android:src="@drawable/ic_round_leaderboard_24" />
+        <TextView
+            android:id="@+id/tvAverageScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="16sp"
+            tools:text="Average:\n108992" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/layoutLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toStartOf="@+id/layoutLines"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/layoutScore"
+        app:layout_constraintTop_toBottomOf="@+id/tvGamesCount">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fira_sans_bold"
+            android:includeFontPadding="false"
+            android:text="Level"
+            android:textColor="?colorOnPrimary"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tvBestLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="16sp"
+            tools:text="Best:\n12" />
+
+        <TextView
+            android:id="@+id/tvAverageLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="16sp"
+            tools:text="Average:\n8" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutLines"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/layoutLevel"
+        app:layout_constraintTop_toBottomOf="@+id/tvGamesCount">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/fira_sans_bold"
+            android:includeFontPadding="false"
+            android:text="Lines"
+            android:textColor="?colorOnPrimary"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tvBestLines"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="16sp"
+            tools:text="Best:\n19" />
+
+        <TextView
+            android:id="@+id/tvAverageLines"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/montserrat_medium"
+            android:includeFontPadding="false"
+            android:textAlignment="center"
+            android:textColor="?colorOnPrimary"
+            android:textSize="16sp"
+            tools:text="Average:\n10" />
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/secondDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:layout_constraintBottom_toBottomOf="@id/barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:barrierDirection="bottom"
+        app:barrierMargin="16dp"
+        app:constraint_referenced_ids="layoutLevel, layoutLines, layoutScore" />
+
+    <!--    <LinearLayout-->
+    <!--        android:id="@+id/linearLayout"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:gravity="center"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintTop_toTopOf="parent">-->
+
+    <!--        <TextView-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_margin="16dp"-->
+    <!--            android:fontFamily="@font/fira_sans_bold"-->
+    <!--            android:text="@string/personal_scores"-->
+    <!--            android:textAlignment="center"-->
+    <!--            android:textColor="?colorOnPrimary"-->
+    <!--            android:textSize="24sp" />-->
+
+    <!--        <ImageView-->
+    <!--            android:layout_width="32dp"-->
+    <!--            android:layout_height="32dp"-->
+    <!--            app:tint="?colorOnPrimary"-->
+    <!--            android:src="@drawable/ic_round_leaderboard_24" />-->
+    <!--    </LinearLayout>-->
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/userDataGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="tvEmailAddress,tvUsername,ivProfileImage" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:name="com.example.tetrisapp.ui.fragment.ScoresFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layoutManager="LinearLayoutManager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintTop_toBottomOf="@+id/barrier"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:context=".ui.fragment.ScoresFragment"
         tools:listitem="@layout/fragment_scores" />
 

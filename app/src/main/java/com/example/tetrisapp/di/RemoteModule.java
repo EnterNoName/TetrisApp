@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LobbyService;
+import com.example.tetrisapp.data.remote.ScoreboardService;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
@@ -62,6 +63,12 @@ public class RemoteModule {
     @Singleton
     static GameService provideGameService(Retrofit retrofit) {
         return retrofit.create(GameService.class);
+    }
+
+    @Provides
+    @Singleton
+    static ScoreboardService provideScoreboardService(Retrofit retrofit) {
+        return retrofit.create(ScoreboardService.class);
     }
 
     @Provides
