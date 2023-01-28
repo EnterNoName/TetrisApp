@@ -264,48 +264,29 @@
         app:barrierMargin="16dp"
         app:constraint_referenced_ids="layoutLevel, layoutLines, layoutScore" />
 
-    <!--    <LinearLayout-->
-    <!--        android:id="@+id/linearLayout"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:gravity="center"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toTopOf="parent">-->
-
-    <!--        <TextView-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_margin="16dp"-->
-    <!--            android:fontFamily="@font/fira_sans_bold"-->
-    <!--            android:text="@string/personal_scores"-->
-    <!--            android:textAlignment="center"-->
-    <!--            android:textColor="?colorOnPrimary"-->
-    <!--            android:textSize="24sp" />-->
-
-    <!--        <ImageView-->
-    <!--            android:layout_width="32dp"-->
-    <!--            android:layout_height="32dp"-->
-    <!--            app:tint="?colorOnPrimary"-->
-    <!--            android:src="@drawable/ic_round_leaderboard_24" />-->
-    <!--    </LinearLayout>-->
-
     <androidx.constraintlayout.widget.Group
         android:id="@+id/userDataGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="tvEmailAddress,tvUsername,ivProfileImage" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:name="com.example.tetrisapp.ui.fragment.ScoresFragment"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layoutManager="LinearLayoutManager"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/barrier"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:context=".ui.fragment.ScoresFragment"
-        tools:listitem="@layout/fragment_scores" />
+        app:layout_constraintTop_toBottomOf="@+id/barrier">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:name="com.example.tetrisapp.ui.fragment.ScoresFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".ui.fragment.ScoresFragment"
+            tools:listitem="@layout/fragment_scores" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
