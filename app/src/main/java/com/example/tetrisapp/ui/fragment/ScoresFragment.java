@@ -188,13 +188,27 @@ public class ScoresFragment extends Fragment {
             binding.tvStatistics.setText("Your Statistics");
         }
 
-        leaderboardDao.getGamesCount().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(count -> binding.tvGamesCount.setText(String.format(Locale.getDefault(), "Games played:\n%d", count)));
-        leaderboardDao.getBestScore().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(bestScore -> binding.tvBestScore.setText(String.format(Locale.getDefault(), "Best:\n%d", bestScore)));
-        leaderboardDao.getAverageScore().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(avgScore -> binding.tvAverageScore.setText(String.format(Locale.getDefault(), "Average:\n%d", avgScore)));
-        leaderboardDao.getBestLevel().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(bestLevel -> binding.tvBestLevel.setText(String.format(Locale.getDefault(), "Best:\n%d", bestLevel)));
-        leaderboardDao.getAverageLevel().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(avgLevel -> binding.tvAverageLevel.setText(String.format(Locale.getDefault(), "Average:\n%d", avgLevel)));
-        leaderboardDao.getBestLines().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(bestLines -> binding.tvBestLines.setText(String.format(Locale.getDefault(), "Best:\n%d", bestLines)));
-        leaderboardDao.getAverageLines().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(avgLines -> binding.tvAverageLines.setText(String.format(Locale.getDefault(), "Average:\n%d", avgLines)));
+        leaderboardDao.getGamesCount().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(count -> binding.tvGamesCount.setText(String.format(Locale.getDefault(), "Games played:\n%d", count)),
+                        err -> binding.tvGamesCount.setText(String.format(Locale.getDefault(), "Games played:\n%d", 0)));
+        leaderboardDao.getBestScore().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(bestScore -> binding.tvBestScore.setText(String.format(Locale.getDefault(), "Best:\n%d", bestScore)),
+                        err -> binding.tvBestScore.setText(String.format(Locale.getDefault(), "Best:\n%d", 0)));
+        leaderboardDao.getAverageScore().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(avgScore -> binding.tvAverageScore.setText(String.format(Locale.getDefault(), "Average:\n%d", avgScore)),
+                        err -> binding.tvAverageScore.setText(String.format(Locale.getDefault(), "Average:\n%d", 0)));
+        leaderboardDao.getBestLevel().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(bestLevel -> binding.tvBestLevel.setText(String.format(Locale.getDefault(), "Best:\n%d", bestLevel)),
+                        err -> binding.tvBestLevel.setText(String.format(Locale.getDefault(), "Best:\n%d", 0)));
+        leaderboardDao.getAverageLevel().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(avgLevel -> binding.tvAverageLevel.setText(String.format(Locale.getDefault(), "Average:\n%d", avgLevel)),
+                        err -> binding.tvAverageLevel.setText(String.format(Locale.getDefault(), "Average:\n%d", 0)));
+        leaderboardDao.getBestLines().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(bestLines -> binding.tvBestLines.setText(String.format(Locale.getDefault(), "Best:\n%d", bestLines)),
+                        err -> binding.tvBestLines.setText(String.format(Locale.getDefault(), "Best:\n%d", 0)));
+        leaderboardDao.getAverageLines().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(avgLines -> binding.tvAverageLines.setText(String.format(Locale.getDefault(), "Average:\n%d", avgLines)),
+                        err -> binding.tvAverageLines.setText(String.format(Locale.getDefault(), "Average:\n%d", 0)));
     }
 
     public int convertDpToPixel(float dp) {
