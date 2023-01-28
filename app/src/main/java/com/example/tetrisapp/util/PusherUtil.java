@@ -1,5 +1,6 @@
 package com.example.tetrisapp.util;
 
+import com.example.tetrisapp.interfaces.Callback;
 import com.example.tetrisapp.interfaces.FindUserCallback;
 import com.example.tetrisapp.interfaces.GameOverCallback;
 import com.example.tetrisapp.interfaces.PlayerGameDataCallback;
@@ -16,9 +17,6 @@ import com.pusher.client.channel.PusherEvent;
 import com.pusher.client.channel.SubscriptionEventListener;
 import com.pusher.client.channel.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Set;
 
 public class PusherUtil {
@@ -34,6 +32,10 @@ public class PusherUtil {
 
     public static UserInfo getUserInfo(PresenceChannel channel, String userId) {
         Gson gson = new Gson();
+
+        if (channel.getMe().getId().equals(userId)) {
+            return gson.fromJson(channel.getMe().getInfo(), UserInfo.class);
+        }
 
         for (User user : channel.getUsers()) {
             if (user.getId().equals(userId))  {
@@ -55,6 +57,24 @@ public class PusherUtil {
             callback.call(data);
         });
     }
+//
+//    public static void bindPause(
+//            PresenceChannel channel,
+//            Callback callback
+//    ) {
+//        bindPresenceChannel(channel, "game-pause", event -> {
+//            callback.call();
+//        });
+//    }
+//
+//    public static void bindResume(
+//            PresenceChannel channel,
+//            Callback callback
+//    ) {
+//        bindPresenceChannel(channel, "game-resume", event -> {
+//            callback.call();
+//        });
+//    }
 
     public static void bindGameOver(
             PresenceChannel channel,
@@ -88,18 +108,28 @@ public class PusherUtil {
             String eventName,
             SubscriptionEventListener listener
     ) {
-        channel.bind(eventName, new PresenceChannelEventListener() {
+        channel.bind(eventName, createEventListener(listener));
+    }
+
+    public static PresenceChannelEventListener createEventListener(
+            SubscriptionEventListener listener
+    ) {
+        return new PresenceChannelEventListener() {
             @Override
-            public void onUsersInformationReceived(String channelName, Set<User> users) {}
+            public void onUsersInformationReceived(String channelName, Set<User> users) {
+            }
 
             @Override
-            public void userSubscribed(String channelName, User user) {}
+            public void userSubscribed(String channelName, User user) {
+            }
 
             @Override
-            public void userUnsubscribed(String channelName, User user) {}
+            public void userUnsubscribed(String channelName, User user) {
+            }
 
             @Override
-            public void onAuthenticationFailure(String message, Exception e) {}
+            public void onAuthenticationFailure(String message, Exception e) {
+            }
 
             @Override
             public void onSubscriptionSucceeded(String channelName) {}
@@ -108,7 +138,7 @@ public class PusherUtil {
             public void onEvent(PusherEvent event) {
                 listener.onEvent(event);
             }
-        });
+        };
     }
 
     public static PresenceChannelEventListener createEventListener(
