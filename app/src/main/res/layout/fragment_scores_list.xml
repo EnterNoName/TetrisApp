@@ -127,7 +127,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
-            android:text="Score"
+            android:text="@string/score"
             android:textColor="?colorOnPrimary"
             android:textSize="20sp" />
 
@@ -173,7 +173,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
-            android:text="Level"
+            android:text="@string/level"
             android:textColor="?colorOnPrimary"
             android:textSize="20sp" />
 
@@ -219,7 +219,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
-            android:text="Lines"
+            android:text="@string/lines"
             android:textColor="?colorOnPrimary"
             android:textSize="20sp" />
 
