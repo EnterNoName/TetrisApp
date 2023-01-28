@@ -248,6 +248,8 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     }
 
     private void multiplayerGameOver() {
+        if (gameEnded) return;
+
         GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
         int placement = viewModel.getPlacement();
 
