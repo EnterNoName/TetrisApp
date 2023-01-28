@@ -179,7 +179,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                     shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_invite_code_subject));
                     shareIntent.putExtra(
                             Intent.EXTRA_TEXT,
-                            String.format("https://tetrisapp.com/invite/%s/", args.getInviteCode())
+                            String.format(getString(R.string.invite_url), args.getInviteCode())
                     );
                     startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
                     return true;

@@ -3,6 +3,7 @@ package com.example.tetrisapp.ui.fragment;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.util.FirebaseTokenUtil;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
@@ -34,8 +36,6 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     public static final String TAG = "JoinLobbyDialogFragment";
     private FragmentJoinLobbyBinding binding;
 
-    @Inject
-    @Nullable
     FirebaseUser firebaseUser;
     @Inject
     LobbyService lobbyService;
@@ -60,7 +60,14 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         initOnClickListeners();
+
+        JoinLobbyFragmentArgs args = JoinLobbyFragmentArgs.fromBundle(getArguments());
+        if (args.getInviteCode() != null) {
+            binding.etInviteCode.setText(args.getInviteCode());
+            binding.btnEnter.performClick();
+        }
     }
 
     @Override

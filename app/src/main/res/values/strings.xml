@@ -73,6 +73,7 @@
 <!--    <string name="update_url" translatable="false">http://192.168.1.5:3000/api/</string>-->
     <string name="update_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
     <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
+    <string name="invite_url" translatable="false">https://tetrisapp.com/invite/%s</string>
 
     <string name="setting_auto_update_title">Auto-Update</string>
     <string name="setting_countdown_title">Countdown</string>
@@ -97,4 +98,5 @@
     <string name="enable_pause">Enable pause:</string>
     <string name="reset_settings">Reset Settings</string>
     <string name="players">Players:</string>
+
 </resources>

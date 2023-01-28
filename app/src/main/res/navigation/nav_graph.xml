@@ -149,11 +149,11 @@
     <fragment
         android:id="@+id/lobbyFragment"
         android:name="com.example.tetrisapp.ui.fragment.LobbyFragment"
-        android:label="LobbyFragment" >
+        android:label="LobbyFragment">
         <argument
             android:name="inviteCode"
-            app:argType="string"
-            android:defaultValue="" />
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_lobbyFragment_to_gameFragment"
             app:destination="@id/gameFragment"
@@ -190,7 +190,7 @@
     <dialog
         android:id="@+id/joinLobbyFragment"
         android:name="com.example.tetrisapp.ui.fragment.JoinLobbyFragment"
-        android:label="JoinLobbyFragment" >
+        android:label="JoinLobbyFragment">
         <action
             android:id="@+id/action_joinLobbyFragment_to_accountFragment"
             app:destination="@id/accountFragment"
@@ -201,6 +201,15 @@
             app:destination="@id/lobbyFragment"
             app:popUpTo="@id/mainMenuFragment"
             app:popUpToInclusive="false" />
+        <deepLink
+            android:id="@+id/deepLink"
+            app:action="ACTION_VIEW"
+            app:uri="tetrisapp.com/invite/{inviteCode}" />
+        <argument
+            android:name="inviteCode"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </dialog>
     <dialog
         android:id="@+id/multiplayerFragment"
