@@ -9,6 +9,7 @@ import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.interfaces.PieceConfiguration;
 import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 import com.example.tetrisapp.model.local.model.PlayerGameData;
+import com.example.tetrisapp.model.local.model.Tetromino;
 import com.example.tetrisapp.util.FirebaseTokenUtil;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -49,10 +50,10 @@ public class GameViewModel extends ViewModel {
     public String updateMockTetris(String currentPlayerUid) {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
-        userGameValues = userGameValues.stream().filter(user -> user.isPlaying).collect(Collectors.toList());
+        userGameValues = userGameValues.stream().filter(PlayerGameData::isPlaying).collect(Collectors.toList());
 
         PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
-        if (bestScoringPlayer != null && bestScoringPlayer.userId.equals(currentPlayerUid)) {
+        if (bestScoringPlayer != null && bestScoringPlayer.getUserId().equals(currentPlayerUid)) {
             bestScoringPlayer = userGameValues.size() >= 2 ? userGameValues.get(userGameValues.size() - 2) : null;
         }
 
@@ -78,13 +79,13 @@ public class GameViewModel extends ViewModel {
         mockTetris.setShadow(pieceShadow);
         mockPlayfield.setState(bestScoringPlayer.playfield);
 
-        return bestScoringPlayer.userId;
+        return bestScoringPlayer.getUserId();
     }
 
     public String updateSpectatorMockTetris() {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
-        userGameValues = userGameValues.stream().filter(user -> user.isPlaying).collect(Collectors.toList());
+        userGameValues = userGameValues.stream().filter(PlayerGameData::isPlaying).collect(Collectors.toList());
 
         PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
         if (bestScoringPlayer == null) return null;
@@ -109,7 +110,7 @@ public class GameViewModel extends ViewModel {
         mockTetrisSpectate.setTetromino(piece);
         mockPlayfieldSpectate.setState(bestScoringPlayer.playfield);
 
-        return bestScoringPlayer.userId;
+        return bestScoringPlayer.getUserId();
     }
 
     public int getPlacement() {
@@ -131,11 +132,37 @@ public class GameViewModel extends ViewModel {
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
 
         if (userGameValues.get(userGameValues.size() - 1).score > game.getScore()) {
-            return userGameValues.get(userGameValues.size() - 1).userId;
+            return userGameValues.get(userGameValues.size() - 1).getUserId();
         } else {
             return Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         }
     }
+
+    public PlayerGameData getGameData() {
+        return new PlayerGameData(
+                game.getScore(),
+                game.getLines(),
+                game.getLevel(),
+                game.getCombo(),
+                new Tetromino(
+                        game.getCurrentPiece().getName(),
+                        game.getCurrentPiece().getMatrix(),
+                        game.getCurrentPiece().getCol(),
+                        game.getCurrentPiece().getRow()
+                ),
+                new Tetromino(
+                        game.getShadow().getName(),
+                        game.getShadow().getMatrix(),
+                        game.getShadow().getCol(),
+                        game.getShadow().getRow()
+                ),
+                game.getHeldPiece(),
+                game.getTetrominoSequence().toArray(new String[0]),
+                game.getPlayfield().getState()
+        );
+    }
+
+    // Getters
 
     public Map<String, PlayerGameData> getUserGameDataMap() {
         return userGameDataMap;
