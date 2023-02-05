@@ -12,6 +12,7 @@ import android.view.Window;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.tetrisapp.R;
@@ -36,9 +37,8 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     public static final String TAG = "JoinLobbyDialogFragment";
     private FragmentJoinLobbyBinding binding;
 
-    FirebaseUser firebaseUser;
-    @Inject
-    LobbyService lobbyService;
+    private String token = null;
+    @Inject LobbyService lobbyService;
 
     private Call<DefaultPayload> apiCall;
     private String inviteCode;
@@ -60,7 +60,10 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
+        }
+
         initOnClickListeners();
 
         JoinLobbyFragmentArgs args = JoinLobbyFragmentArgs.fromBundle(getArguments());
@@ -71,6 +74,12 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        FirebaseTokenUtil.getFirebaseToken(token -> this.token = token);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         if (apiCall != null) apiCall.cancel();
@@ -78,11 +87,6 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
 
     private void initOnClickListeners() {
         binding.btnEnter.setOnClickListener(v -> {
-            if (firebaseUser == null) {
-                NavHostFragment.findNavController(this).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
-                return;
-            }
-
             binding.btnEnter.setEnabled(false);
             binding.etInviteCode.setEnabled(false);
             binding.progressBar.setVisibility(View.VISIBLE);
@@ -90,16 +94,16 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
             inviteCode = binding.etInviteCode.getText().toString();
             binding.etInviteCode.setText("");
 
-            FirebaseTokenUtil.getFirebaseToken(idToken -> {
-                apiCall = lobbyService.joinLobby(new TokenPayload(idToken), inviteCode);
-                apiCall.enqueue(this);
-            });
+            apiCall = lobbyService.joinLobby(new TokenPayload(token), inviteCode);
+            apiCall.enqueue(this);
         });
     }
 
     // Retrofit callbacks
     @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
+        if (call.isCanceled()) return;
+
         requireActivity().runOnUiThread(() -> {
             binding.btnEnter.setEnabled(true);
             binding.etInviteCode.setEnabled(true);
@@ -124,6 +128,8 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
 
     @Override
     public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
+        if (call.isCanceled()) return;
+
         requireActivity().runOnUiThread(() -> {
             binding.btnEnter.setEnabled(true);
             binding.etInviteCode.setEnabled(true);

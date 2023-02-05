@@ -36,11 +36,8 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     private static final String TAG = "CreateLobbyFragment";
     private FragmentCreateLobbyBinding binding;
 
-    @Inject
-    @Nullable
-    FirebaseUser firebaseUser;
-    @Inject
-    LobbyService lobbyService;
+    private String token = null;
+    @Inject LobbyService lobbyService;
 
     private Call<DefaultPayload> apiCall;
 
@@ -54,7 +51,17 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
+        }
+
         initOnClickListeners();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        FirebaseTokenUtil.getFirebaseToken(token -> this.token = token);
     }
 
     @Override
@@ -77,21 +84,14 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
 
         binding.btnCreateLobby.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnCreateLobby.setOnClickListener(v -> {
-            if (firebaseUser == null) {
-                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
-                return;
-            }
-
             int countdown = Math.round(binding.countdownSlider.getValue());
             int playerLimit = Math.round(binding.playerLimitSlider.getValue());
             boolean enablePause = binding.switchEnablePause.isChecked();
 
             startLoading();
 
-            FirebaseTokenUtil.getFirebaseToken(idToken -> {
-                apiCall = lobbyService.createLobby(new CreateLobbyPayload(idToken, countdown, playerLimit));
-                apiCall.enqueue(this);
-            });
+            apiCall = lobbyService.createLobby(new CreateLobbyPayload(token, countdown, playerLimit));
+            apiCall.enqueue(this);
         });
     }
 
@@ -115,6 +115,8 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
 
         @Override
     public void onResponse(@NonNull Call<DefaultPayload> call, Response<DefaultPayload> response) {
+        if (call.isCanceled()) return;
+
         finishLoading();
 
         if (response.code() == 401) {
@@ -130,6 +132,8 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
 
     @Override
     public void onFailure(@NonNull Call<DefaultPayload> call, @NonNull Throwable t) {
+        if (call.isCanceled()) return;
+
         finishLoading();
 
         Snackbar.make(binding.getRoot(), "Something went wrong. Try again later.", Snackbar.LENGTH_LONG).show();
