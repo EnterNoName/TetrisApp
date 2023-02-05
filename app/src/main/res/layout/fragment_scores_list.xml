@@ -88,7 +88,7 @@
         android:layout_marginTop="16dp"
         android:fontFamily="@font/fira_sans_bold"
         android:includeFontPadding="false"
-        android:textColor="?colorOnPrimary"
+        android:textColor="?colorOnSecondary"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -103,7 +103,7 @@
         android:fontFamily="@font/montserrat_medium"
         android:includeFontPadding="false"
         android:textAlignment="center"
-        android:textColor="?colorOnPrimary"
+        android:textColor="?colorOnSecondary"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -128,7 +128,7 @@
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
             android:text="@string/score"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="20sp" />
 
         <TextView
@@ -139,7 +139,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Best:\n108992" />
 
@@ -151,7 +151,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Average:\n108992" />
     </LinearLayout>
@@ -174,7 +174,7 @@
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
             android:text="@string/level"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="20sp" />
 
         <TextView
@@ -185,7 +185,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Best:\n12" />
 
@@ -197,7 +197,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Average:\n8" />
     </LinearLayout>
@@ -220,7 +220,7 @@
             android:fontFamily="@font/fira_sans_bold"
             android:includeFontPadding="false"
             android:text="@string/lines"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="20sp" />
 
         <TextView
@@ -231,7 +231,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Best:\n19" />
 
@@ -243,7 +243,7 @@
             android:fontFamily="@font/montserrat_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="?colorOnPrimary"
+            android:textColor="?colorOnSecondary"
             android:textSize="16sp"
             tools:text="Average:\n10" />
     </LinearLayout>
