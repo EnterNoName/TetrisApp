@@ -216,7 +216,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
             Gson gson = new Gson();
             GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
 
-            LobbyFragmentDirections.ActionLobbyFragmentToGameFragment action = LobbyFragmentDirections.actionLobbyFragmentToGameFragment();
+            LobbyFragmentDirections.ActionLobbyFragmentToGameMultiplayerFragment action = LobbyFragmentDirections.actionLobbyFragmentToGameMultiplayerFragment();
             action.setLobbyCode(args.getInviteCode());
             action.setCountdown(data.countdown);
             Navigation.findNavController(binding.getRoot()).navigate(action);

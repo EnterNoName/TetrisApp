@@ -63,37 +63,29 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class GameFragment extends Fragment implements Callback<DefaultPayload> {
+public class GameFragment extends Fragment {
     private static final String TAG = "GameFragment";
     private static final int MOVEMENT_INTERVAL = 125;
 
-    private GameViewModel viewModel;
-    private FragmentGameBinding binding;
-    private SidebarBinding sidebarBinding = null;
-    private SidebarMultiplayerBinding sidebarMultiplayerBinding = null;
+    protected GameViewModel viewModel;
+    protected FragmentGameBinding binding;
+    private SidebarBinding sidebarBinding;
 
-    private int countdown;
-    private int countdownRemaining;
+    protected int countdown;
+    protected int countdownRemaining;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> futureMoveRight = null;
     private ScheduledFuture<?> futureMoveLeft = null;
     private Future<?> countdownFuture = null;
 
-    private MediaPlayer gameMusic;
-    @Inject
-    MediaPlayerUtil mediaHelper;
-    @Inject
-    GameService gameService;
-    @Inject
-    @Nullable
-    Pusher pusher;
+    protected MediaPlayer gameMusic;
+    @Inject MediaPlayerUtil mediaHelper;
 
-    private PresenceChannel channel;
-    private boolean spectatorMode = false;
-    private boolean gameEnded = false;
+    protected SharedPreferences preferences;
 
-    SharedPreferences preferences;
+    protected float musicVolume = 0.5f;
+    protected float sfxVolume = 0.5f;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,22 +98,20 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
                 confirmExit();
             }
         };
+
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+
         preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
 
-        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
-        if (args.getCountdown() != -1) {
-            countdown = args.getCountdown();
-        } else {
-            countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
-        }
-
+        countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
         countdownRemaining = countdown;
 
-        float volume = preferences.getInt(getString(R.string.setting_music_volume), 5) / 10f;
+        musicVolume = preferences.getInt(getString(R.string.setting_music_volume), 5) / 10f;
+        sfxVolume = preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f;
+
         gameMusic = MediaPlayer.create(requireContext(), R.raw.main);
         gameMusic.setOnPreparedListener(MediaPlayer::pause);
-        gameMusic.setVolume(volume, volume);
+        gameMusic.setVolume(musicVolume, musicVolume);
         gameMusic.setLooping(true);
     }
 
@@ -139,22 +129,11 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         binding.gameView.setGame(viewModel.getGame());
 
         // Inflate view stub
-        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
         binding.stub.setOnInflateListener((stub, inflated) -> {
-            if (args.getLobbyCode() != null) {
-                sidebarMultiplayerBinding = SidebarMultiplayerBinding.bind(inflated);
-                // TODO: Implement all player pause
-                binding.btnPause.setVisibility(View.GONE);
-            } else {
-                sidebarBinding = SidebarBinding.bind(inflated);
-            }
+            sidebarBinding = SidebarBinding.bind(inflated);
         });
 
-        if (args.getLobbyCode() != null) {
-            binding.stub.setLayoutResource(R.layout.sidebar_multiplayer);
-        } else {
-            binding.stub.setLayoutResource(R.layout.sidebar);
-        }
+        binding.stub.setLayoutResource(R.layout.sidebar);
         binding.stub.inflate();
 
         initOnClickListeners();
@@ -162,8 +141,6 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         updateScoreboard();
         updatePieceViews();
-
-        if (sidebarMultiplayerBinding != null) initMultiplayerGameView();
     }
 
     @Override
@@ -176,303 +153,64 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
     public void onPause() {
         super.onPause();
         viewModel.getGame().setPause(true);
-
-        // TODO: Implement all player pause
-        if (sidebarMultiplayerBinding != null && !gameEnded) {
-            gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
-        }
     }
 
-//    @Override
-//    public void onDestroy() {
-//        super.onDestroy();
-//        if (sidebarMultiplayerBinding != null && !gameEnded) {
-//            gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
-//        }
-//    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
-    @SuppressLint("SetTextI18n")
-    private void initMultiplayerGameView() {
-        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
-        sidebarMultiplayerBinding.gameViewCompetitor.setGame(viewModel.getMockTetris());
+        gameMusic.stop();
+        gameMusic.release();
+        gameMusic = null;
 
-        channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
-
-        PusherUtil.bindPlayerGameData(channel, data -> {
-            try {
-                String currentPlayerUid = channel.getMe().getId();
-
-                if (spectatorMode) {
-                    currentPlayerUid = updateSpectatorView(data);
-                }
-
-                updateMultiplayerSideView(data, currentPlayerUid);
-            } catch (Exception e) {
-                Log.e(TAG, e.getLocalizedMessage());
-            }
-        });
-
-        PusherUtil.bindGameOver(channel, data -> {
-            try {
-                multiplayerGameOver();
-            } catch (Exception e) {
-                Log.e(TAG, e.getLocalizedMessage());
-            }
-        });
-
-        PusherUtil.bindPlayerLost(channel, data -> {
-            try {
-                if (viewModel.getUserGameDataMap().containsKey(data.userId)) {
-                    Objects.requireNonNull(viewModel.getUserGameDataMap().get(data.userId)).isPlaying = false;
-                    if (viewModel.getUserGameDataMap().values().stream().noneMatch(u -> u.isPlaying) && viewModel.getGame().isGameOver()) {
-                        multiplayerGameOver();
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, e.getLocalizedMessage());
-            }
-        });
-
-        PusherUtil.createEventListener(
-                (channelName, user) -> {},
-                (channelName, user) -> {
-                    if (viewModel.getUserGameDataMap().containsKey(user.getId())) {
-                        Objects.requireNonNull(viewModel.getUserGameDataMap().get(user.getId())).isPlaying = false;
-                        if (viewModel.getUserGameDataMap().values().stream().noneMatch(u -> u.isPlaying) && viewModel.getGame().isGameOver()) {
-                            multiplayerGameOver();
-                        }
-                    }
-                },
-                (message, e) -> {}
-        );
-    }
-
-    private void multiplayerGameOver() {
-        if (gameEnded) return;
-
-        GameFragmentArgs args = GameFragmentArgs.fromBundle(getArguments());
-        int placement = viewModel.getPlacement();
-
-        // Getting winner's info
-        UserInfo winnerUserInfo;
-        winnerUserInfo = PusherUtil.getUserInfo(channel, viewModel.getWinnerUid());
-        if (winnerUserInfo == null) return;
-
-        gameEnded = true;
-        requireActivity().runOnUiThread(() -> {
-            // Setting game over action parameters
-            GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
-            action.setScore(viewModel.getGame().getScore());
-            action.setLevel(viewModel.getGame().getLevel());
-            action.setLines(viewModel.getGame().getLines());
-            action.setLobbyCode(args.getLobbyCode());
-            action.setWinnerUid(winnerUserInfo.getUid());
-            action.setWinnerUsername(winnerUserInfo.getName());
-            action.setPlacement(placement);
-            Navigation.findNavController(binding.getRoot()).navigate(action);
-        });
+        viewModel.getGame().stop();
     }
 
     @SuppressLint("SetTextI18n")
-    private String updateSpectatorView(PlayerGameData data) {
-        viewModel.getUserGameDataMap().put(data.userId, data);
-
-        String spectatedPlayerUid = viewModel.updateSpectatorMockTetris();
-        PlayerGameData spectatedPlayerData = viewModel.getUserGameDataMap().getOrDefault(spectatedPlayerUid, null);
-        if (spectatedPlayerData == null) return null;
-
-        UserInfo spectatedPlayerInfo = PusherUtil.getUserInfo(channel, spectatedPlayerUid);
-        if (spectatedPlayerInfo == null) return null;
-
-        binding.gameView.postInvalidate();
+    protected void updateScoreboard() {
         requireActivity().runOnUiThread(() -> {
-            binding.tvSpectate.setText("Spectating:\n" + spectatedPlayerInfo.getName());
-
-            sidebarMultiplayerBinding.score.setText(spectatedPlayerData.score + "");
-            sidebarMultiplayerBinding.level.setText(spectatedPlayerData.level + "");
-            sidebarMultiplayerBinding.lines.setText(spectatedPlayerData.lines + "");
-            sidebarMultiplayerBinding.combo.setText(spectatedPlayerData.combo + "");
-
-            if (spectatedPlayerData.tetrominoSequence.length >= 2) {
-                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.tetrominoSequence[0]).copy());
-                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.tetrominoSequence[1]).copy());
-            }
-
-            if (spectatedPlayerData.heldTetromino != null) {
-                sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getMockTetrisSpectate().getConfiguration().get(spectatedPlayerData.heldTetromino).copy());
-            } else {
-                sidebarMultiplayerBinding.pvHold.setPiece(null);
-            }
-        });
-
-        return spectatedPlayerUid;
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void updateMultiplayerSideView(PlayerGameData data, String currentPlayerUid) {
-        // Save received user game data
-        viewModel.getUserGameDataMap().put(data.userId, data);
-
-        String bestScoringPlayerUid = viewModel.updateMockTetris(currentPlayerUid);
-        PlayerGameData bestScoringPlayer = viewModel.getUserGameDataMap().getOrDefault(bestScoringPlayerUid, null);
-
-        if (bestScoringPlayer == null) {
-            hideMultiplayerSideView();
-            return;
-        }
-
-        showMultiplayerSideView();
-
-
-        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
-        if (bestScoringPlayerInfo == null) return;
-
-        sidebarMultiplayerBinding.gameViewCompetitor.postInvalidate();
-
-        requireActivity().runOnUiThread(() -> {
-            sidebarMultiplayerBinding.tvScoreCompetitor.setText(bestScoringPlayerInfo.getName() + "'s\nScore:");
-            sidebarMultiplayerBinding.scoreCompetitor.setText(bestScoringPlayer.score + "");
-        });
-    }
-
-    private void hideMultiplayerSideView() {
-        requireActivity().runOnUiThread(() -> {
-            sidebarMultiplayerBinding.gameViewCompetitor.setVisibility(View.GONE);
-            sidebarMultiplayerBinding.tvScoreCompetitor.setVisibility(View.GONE);
-            sidebarMultiplayerBinding.scoreCompetitor.setVisibility(View.GONE);
-        });
-    }
-
-    private void showMultiplayerSideView() {
-        requireActivity().runOnUiThread(() -> {
-            sidebarMultiplayerBinding.gameViewCompetitor.setVisibility(View.VISIBLE);
-            sidebarMultiplayerBinding.tvScoreCompetitor.setVisibility(View.VISIBLE);
-            sidebarMultiplayerBinding.scoreCompetitor.setVisibility(View.VISIBLE);
-        });
-    }
-
-    private void sendGameData() {
-        Gson gson = new Gson();
-
-        PlayerGameData data = new PlayerGameData(
-                binding.gameView.getGame().getScore(),
-                binding.gameView.getGame().getLines(),
-                binding.gameView.getGame().getLevel(),
-                binding.gameView.getGame().getCombo(),
-                new Tetromino(
-                        binding.gameView.getGame().getCurrentPiece().getName(),
-                        binding.gameView.getGame().getCurrentPiece().getMatrix(),
-                        binding.gameView.getGame().getCurrentPiece().getCol(),
-                        binding.gameView.getGame().getCurrentPiece().getRow()
-                ),
-                new Tetromino(
-                        binding.gameView.getGame().getShadow().getName(),
-                        binding.gameView.getGame().getShadow().getMatrix(),
-                        binding.gameView.getGame().getShadow().getCol(),
-                        binding.gameView.getGame().getShadow().getRow()
-                ),
-                binding.gameView.getGame().getHeldPiece(),
-                binding.gameView.getGame().getTetrominoSequence().toArray(new String[0]),
-                binding.gameView.getGame().getPlayfield().getState()
-        );
-
-        try {
-            channel.trigger("client-user-update-data", gson.toJson(data));
-        } catch (Exception e) {
-            Log.e(TAG, e.getLocalizedMessage());
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private void updateScoreboard() {
-        requireActivity().runOnUiThread(() -> {
-            if (sidebarBinding != null) {
-                sidebarBinding.score.setText(viewModel.getGame().getScore() + "");
-                sidebarBinding.level.setText(viewModel.getGame().getLevel() + "");
-                sidebarBinding.lines.setText(viewModel.getGame().getLines() + "");
-                sidebarBinding.combo.setText(viewModel.getGame().getCombo() + "");
-            } else {
-                sidebarMultiplayerBinding.score.setText(viewModel.getGame().getScore() + "");
-                sidebarMultiplayerBinding.level.setText(viewModel.getGame().getLevel() + "");
-                sidebarMultiplayerBinding.lines.setText(viewModel.getGame().getLines() + "");
-                sidebarMultiplayerBinding.combo.setText(viewModel.getGame().getCombo() + "");
-            }
+            sidebarBinding.score.setText(viewModel.getGame().getScore() + "");
+            sidebarBinding.level.setText(viewModel.getGame().getLevel() + "");
+            sidebarBinding.lines.setText(viewModel.getGame().getLines() + "");
+            sidebarBinding.combo.setText(viewModel.getGame().getCombo() + "");
         });
 
         float playbackSpeed = 2 - viewModel.getGame().getSpeed() / (float) Tetris.DEFAULT_SPEED;
         gameMusic.setPlaybackParams(new PlaybackParams().setSpeed(playbackSpeed));
     }
 
-    private void updatePieceViews() {
+    protected void updatePieceViews() {
         requireActivity().runOnUiThread(() -> {
-            if (sidebarBinding != null) {
-                sidebarBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
-                sidebarBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
-                sidebarBinding.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
-                sidebarBinding.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
-                if (viewModel.getGame().getHeldPiece() != null) {
-                    sidebarBinding.pvHold.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getHeldPiece()).copy());
-                }
-            } else {
-                sidebarMultiplayerBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
-                sidebarMultiplayerBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
-                if (viewModel.getGame().getHeldPiece() != null) {
-                    sidebarMultiplayerBinding.pvHold.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getHeldPiece()).copy());
-                }
+            sidebarBinding.pvNext1.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(0)).copy());
+            sidebarBinding.pvNext2.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(1)).copy());
+            sidebarBinding.pvNext3.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(2)).copy());
+            sidebarBinding.pvNext4.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getTetrominoSequence().get(3)).copy());
+            if (viewModel.getGame().getHeldPiece() != null) {
+                sidebarBinding.pvHold.setPiece(viewModel.getConfiguration().get(viewModel.getGame().getHeldPiece()).copy());
             }
         });
     }
 
-    private void initGameListeners() {
+    protected void initGameListeners() {
         viewModel.getGame().setOnGameValuesUpdate(this::updateScoreboard);
         viewModel.getGame().setOnHold(this::updatePieceViews);
-        viewModel.getGame().setOnMove(() -> {
-            if (sidebarMultiplayerBinding != null) sendGameData();
-            binding.gameView.postInvalidate();
-        });
+        viewModel.getGame().setOnMove(() -> binding.gameView.postInvalidate());
         viewModel.getGame().setOnSolidify(() -> {
-            mediaHelper.playSound(
-                    R.raw.solidify,
-                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-            );
+            mediaHelper.playSound(R.raw.solidify, sfxVolume);
             updatePieceViews();
         });
-        viewModel.getGame().setOnGameOver(() -> {
-            gameMusic.stop();
-            gameMusic.release();
-            gameMusic = null;
-
-            mediaHelper.playSound(
-                    R.raw.gameover,
-                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-            );
-
-            if (sidebarMultiplayerBinding != null) {
-                sendGameData();
-                gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
-                return;
-            }
-
-            GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
-            action.setScore(viewModel.getGame().getScore());
-            action.setLevel(viewModel.getGame().getLevel());
-            action.setLines(viewModel.getGame().getLines());
-            Navigation.findNavController(binding.getRoot()).navigate(action);
-        });
+        viewModel.getGame().setOnGameOver(this::onGameOver);
         viewModel.getGame().setOnPause(() -> gameMusic.pause());
         viewModel.getGame().setOnResume(() -> gameMusic.start());
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void initOnClickListeners() {
+    protected void initOnClickListeners() {
         binding.btnLeft.setOnTouchListener(new OnGestureListener(getContext()) {
             @Override
             public void onTapDown() {
                 futureMoveLeft = executor.scheduleAtFixedRate(new MoveLeftRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                mediaHelper.playSound(
-                        R.raw.click,
-                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                );
+                mediaHelper.playSound(R.raw.click, sfxVolume);
             }
 
             @Override
@@ -485,10 +223,7 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             @Override
             public void onTapDown() {
                 futureMoveRight = executor.scheduleAtFixedRate(new MoveRightRunnable(), 0, MOVEMENT_INTERVAL, TimeUnit.MILLISECONDS);
-                mediaHelper.playSound(
-                        R.raw.click,
-                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                );
+                mediaHelper.playSound(R.raw.click, sfxVolume);
             }
 
             @Override
@@ -499,18 +234,12 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
 
         binding.btnRotateLeft.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoLeft();
-            mediaHelper.playSound(
-                    R.raw.click,
-                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-            );
+            mediaHelper.playSound(R.raw.click, sfxVolume);
         });
 
         binding.btnRotateRight.setOnClickListener(v -> {
             viewModel.getGame().rotateTetrominoRight();
-            mediaHelper.playSound(
-                    R.raw.click,
-                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-            );
+            mediaHelper.playSound(R.raw.click, sfxVolume);
         });
 
         binding.btnDown.setOnTouchListener(new OnGestureListener(getContext()) {
@@ -522,10 +251,7 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             @Override
             public void onTapDown() {
                 viewModel.getGame().setSoftDrop(true);
-                mediaHelper.playSound(
-                        R.raw.click,
-                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                );
+                mediaHelper.playSound(R.raw.click, sfxVolume);
             }
 
             @Override
@@ -534,26 +260,17 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
             }
         });
 
-        if (sidebarBinding != null) {
-            sidebarBinding.cvHold.setOnClickListener(v -> {
-                mediaHelper.playSound(
-                        R.raw.click,
-                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                );
-                viewModel.getGame().hold();
-            });
-        } else {
-            sidebarMultiplayerBinding.cvHold.setOnClickListener(v -> {
-                mediaHelper.playSound(
-                        R.raw.click,
-                        preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                );
-                viewModel.getGame().hold();
-            });
-        }
-
         binding.btnPause.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
+
+        initSidebarOnClickListeners();
+    }
+
+    protected void initSidebarOnClickListeners() {
+        sidebarBinding.cvHold.setOnClickListener(v -> {
+            viewModel.getGame().hold();
+            mediaHelper.playSound(R.raw.click, sfxVolume);
+        });
     }
 
     private void confirmExit() {
@@ -571,27 +288,18 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         countdownFuture = executor.submit(new CountdownRunnable());
     }
 
-    private void switchToSpectatorMode() {
-        binding.btnLeft.setVisibility(View.GONE);
-        binding.btnRight.setVisibility(View.GONE);
-        binding.btnDown.setVisibility(View.GONE);
-        binding.btnRotateLeft.setVisibility(View.GONE);
-        binding.btnRotateRight.setVisibility(View.GONE);
-        binding.btnPause.setVisibility(View.GONE);
+    protected void onGameOver() {
+        gameMusic.stop();
+        gameMusic.release();
+        gameMusic = null;
 
-        binding.gameView.setGame(viewModel.getMockTetrisSpectate());
-        binding.tvSpectate.setVisibility(View.VISIBLE);
-        spectatorMode = true;
-    }
+        mediaHelper.playSound(R.raw.gameover, sfxVolume);
 
-    @Override
-    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
-        requireActivity().runOnUiThread(this::switchToSpectatorMode);
-    }
-
-    @Override
-    public void onFailure(Call<DefaultPayload> call, Throwable t) {
-
+        GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
+        action.setScore(viewModel.getGame().getScore());
+        action.setLevel(viewModel.getGame().getLevel());
+        action.setLines(viewModel.getGame().getLines());
+        Navigation.findNavController(binding.getRoot()).navigate(action);
     }
 
     // Runnables
@@ -613,23 +321,19 @@ public class GameFragment extends Fragment implements Callback<DefaultPayload> {
         @SuppressLint("SetTextI18n")
         @Override
         public void run() {
+            float volume = preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f;
+
             requireActivity().runOnUiThread(() -> {
                 binding.tvCountdown.setVisibility(View.VISIBLE);
                 animate(binding.tvCountdown, new Animator.AnimatorListener() {
                     public void updateUI() {
                         if (countdownRemaining > 0) {
                             binding.tvCountdown.setText(countdownRemaining + "");
-                            mediaHelper.playSound(
-                                    R.raw.countdown,
-                                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                            );
+                            mediaHelper.playSound(R.raw.countdown, volume);
                         } else {
                             countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
-                            mediaHelper.playSound(
-                                    R.raw.gamestart,
-                                    preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-                            );
+                            mediaHelper.playSound(R.raw.gamestart,volume);
                         }
                     }
 

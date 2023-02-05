@@ -67,16 +67,9 @@
         </action>
         <action
             android:id="@+id/action_gameFragment_to_mainMenuFragment"
-            app:destination="@id/mainMenuFragment" />
-        <argument
-            android:name="lobbyCode"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-        <argument
-            android:name="countdown"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
 
     </fragment>
     <fragment
@@ -137,6 +130,9 @@
             android:name="placement"
             app:argType="integer"
             android:defaultValue="-1" />
+        <action
+            android:id="@+id/action_gameOverFragment_to_gameMultiplayerFragment"
+            app:destination="@id/gameMultiplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/scoresFragment"
@@ -155,17 +151,8 @@
             android:defaultValue=""
             app:argType="string" />
         <action
-            android:id="@+id/action_lobbyFragment_to_gameFragment"
-            app:destination="@id/gameFragment"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="true">
-            <argument
-                android:name="lobbyCode"
-                android:defaultValue="@null" />
-            <argument
-                android:name="countdown"
-                android:defaultValue="-1" />
-        </action>
+            android:id="@+id/action_lobbyFragment_to_gameMultiplayerFragment"
+            app:destination="@id/gameMultiplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/createLobbyFragment"
@@ -226,4 +213,26 @@
             app:popUpTo="@id/mainMenuFragment"
             app:popUpToInclusive="false" />
     </dialog>
+    <fragment
+        android:id="@+id/gameMultiplayerFragment"
+        android:name="com.example.tetrisapp.ui.fragment.GameMultiplayerFragment"
+        android:label="GameMultiplayerFragment" >
+        <argument
+            android:name="lobbyCode"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="countdown"
+            app:argType="integer"
+            android:defaultValue="3" />
+        <action
+            android:id="@+id/action_gameMultiplayerFragment_to_gameOverFragment"
+            app:destination="@id/gameOverFragment" />
+        <action
+            android:id="@+id/action_gameMultiplayerFragment_to_pauseFragment"
+            app:destination="@id/pauseFragment" />
+        <action
+            android:id="@+id/action_gameMultiplayerFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
 </navigation>

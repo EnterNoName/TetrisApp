@@ -184,7 +184,7 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
             Gson gson = new Gson();
             GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
 
-            GameOverFragmentDirections.ActionGameOverFragmentToGameFragment action = GameOverFragmentDirections.actionGameOverFragmentToGameFragment();
+            GameOverFragmentDirections.ActionGameOverFragmentToGameMultiplayerFragment action = GameOverFragmentDirections.actionGameOverFragmentToGameMultiplayerFragment();
             action.setLobbyCode(args.getLobbyCode());
             action.setCountdown(data.countdown);
             Navigation.findNavController(binding.getRoot()).navigate(action);
