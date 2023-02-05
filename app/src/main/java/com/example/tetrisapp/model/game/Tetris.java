@@ -20,7 +20,7 @@ import kotlin.Pair;
 public class Tetris implements TetrisInterface {
     public static final int GENERATE_AHEAD = 4;
     public static final int DEFAULT_SPEED = 750;
-    public static final int MIN_SPEED = 100;
+    public static final int MIN_SPEED = 125;
     public static final int LOCK_DELAY = 500;
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -334,6 +334,10 @@ public class Tetris implements TetrisInterface {
                 moveTetrominoDown();
             }
         }
+    }
+
+    public void stop() {
+        gameOver = true;
     }
 
     // Getters
