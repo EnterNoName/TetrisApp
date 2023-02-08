@@ -15,11 +15,29 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentPauseBinding;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.OnTouchListener;
+import com.example.tetrisapp.util.PusherUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.pusher.client.Pusher;
+import com.pusher.client.channel.PresenceChannel;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class PauseFragment extends Fragment {
     private FragmentPauseBinding binding;
+    private PauseFragmentArgs args;
     private boolean dialogOpen = false;
+
+    @Inject @Nullable Pusher pusher;
+    private PresenceChannel channel;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        args = PauseFragmentArgs.fromBundle(getArguments());
+    }
 
     @Nullable
     @Override
@@ -33,12 +51,32 @@ public class PauseFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         initOnClickListeners();
+
+        if (args.getLobbyCode() != null && pusher != null) {
+            channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
+            PusherUtil.bindResume(channel, this::multiplayerResume);
+        }
     }
+
+    private void multiplayerResume() {
+        PusherUtil.unbindResume(channel);
+        requireActivity().runOnUiThread(() -> {
+            Navigation.findNavController(binding.getRoot()).popBackStack();
+        });
+    }
+
 
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
         binding.btnResume.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnResume.setOnClickListener(v -> Navigation.findNavController(v).popBackStack());
+        binding.btnResume.setOnClickListener(v -> {
+            if (args.getLobbyCode() != null && pusher != null) {
+                multiplayerResume();
+                channel.trigger(PusherUtil.GAME_RESUME, "");
+            } else {
+                Navigation.findNavController(v).popBackStack();
+            }
+        });
 
         binding.btnLeave.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnLeave.setOnClickListener(v -> confirmExit());

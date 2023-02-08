@@ -159,9 +159,11 @@ public class GameFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        gameMusic.stop();
-        gameMusic.release();
-        gameMusic = null;
+        if (gameMusic != null) {
+            gameMusic.stop();
+            gameMusic.release();
+            gameMusic = null;
+        }
 
         viewModel.getGame().stop();
     }
@@ -273,7 +275,7 @@ public class GameFragment extends Fragment {
         });
     }
 
-    private void confirmExit() {
+    protected void confirmExit() {
         viewModel.getGame().setPause(true);
         new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
                 .setTitle(getString(R.string.exit_dialog_title))

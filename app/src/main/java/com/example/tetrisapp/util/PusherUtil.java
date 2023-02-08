@@ -3,9 +3,11 @@ package com.example.tetrisapp.util;
 import com.example.tetrisapp.interfaces.Callback;
 import com.example.tetrisapp.interfaces.FindUserCallback;
 import com.example.tetrisapp.interfaces.GameOverCallback;
+import com.example.tetrisapp.interfaces.GameStartedCallback;
 import com.example.tetrisapp.interfaces.PlayerGameDataCallback;
 import com.example.tetrisapp.interfaces.PlayerLostCallback;
 import com.example.tetrisapp.model.local.model.GameOverData;
+import com.example.tetrisapp.model.local.model.GameStartedData;
 import com.example.tetrisapp.model.local.model.PlayerLostData;
 import com.example.tetrisapp.model.local.model.PlayerGameData;
 import com.example.tetrisapp.model.local.model.UserInfo;
@@ -20,6 +22,20 @@ import com.pusher.client.channel.User;
 import java.util.Set;
 
 public class PusherUtil {
+    public static final String PLAYER_UPDATE_DATA = "client-player-update-data";
+    public static final String PLAYER_DECLARE_LOSS = "client-player-declare-loss";
+    public static final String GAME_PAUSE = "client-game-pause";
+    public static final String GAME_RESUME = "client-game-resume";
+    public static final String GAME_START = "game-started";
+    public static final String GAME_OVER = "game-ended";
+
+    private static SubscriptionEventListener playerGameDataCallback;
+    private static SubscriptionEventListener playerLostCallback;
+    private static SubscriptionEventListener gameStartCallback;
+    private static SubscriptionEventListener gameOverCallback;
+    private static SubscriptionEventListener gamePauseCallback;
+    private static SubscriptionEventListener gameResumeCallback;
+
     public static User findUser(PresenceChannel channel, FindUserCallback callback) {
         for (User user : channel.getUsers()) {
             if (callback.call(user))  {
@@ -46,56 +62,15 @@ public class PusherUtil {
         return null;
     }
 
-    public static void bindPlayerLost(
-            PresenceChannel channel,
-            PlayerLostCallback callback
-    ) {
-        bindPresenceChannel(channel, "user-lost", event -> {
-            Gson gson = new Gson();
-            PlayerLostData data = gson.fromJson(event.getData(), PlayerLostData.class);
-
-            callback.call(data);
-        });
-    }
-//
-//    public static void bindPause(
-//            PresenceChannel channel,
-//            Callback callback
-//    ) {
-//        bindPresenceChannel(channel, "game-pause", event -> {
-//            callback.call();
-//        });
-//    }
-//
-//    public static void bindResume(
-//            PresenceChannel channel,
-//            Callback callback
-//    ) {
-//        bindPresenceChannel(channel, "game-resume", event -> {
-//            callback.call();
-//        });
-//    }
-
-    public static void bindGameOver(
-            PresenceChannel channel,
-            GameOverCallback callback
-    ) {
-        bindPresenceChannel(channel, "game-ended", event -> {
-            Gson gson = new Gson();
-            GameOverData data = gson.fromJson(event.getData(), GameOverData.class);
-
-            callback.call(data);
-        });
-    }
+    // Bind callback functions
 
     public static void bindPlayerGameData(
             PresenceChannel channel,
             PlayerGameDataCallback callback
     ) {
-        bindPresenceChannel(channel, "client-user-update-data", event -> {
+        playerGameDataCallback = bindPresenceChannel(channel, PLAYER_UPDATE_DATA, event -> {
             Gson gson = new Gson();
             PlayerGameData data = gson.fromJson(event.getData(), PlayerGameData.class);
-            data.userId = event.getUserId();
 
             if (event.getUserId().equals(channel.getMe().getId())) return;
 
@@ -103,12 +78,92 @@ public class PusherUtil {
         });
     }
 
-    public static void bindPresenceChannel(
+    public static void bindPlayerLost(
+            PresenceChannel channel,
+            PlayerLostCallback callback
+    ) {
+        playerLostCallback = bindPresenceChannel(channel, PLAYER_DECLARE_LOSS, event -> {
+            Gson gson = new Gson();
+            PlayerGameData data = gson.fromJson(event.getData(), PlayerGameData.class);
+
+            callback.call(data);
+        });
+    }
+
+    public static void bindPause(
+            PresenceChannel channel,
+            Callback callback
+    ) {
+        gamePauseCallback = bindPresenceChannel(channel, GAME_PAUSE, event -> {
+            callback.call();
+        });
+    }
+
+    public static void bindResume(
+            PresenceChannel channel,
+            Callback callback
+    ) {
+        gameResumeCallback = bindPresenceChannel(channel, GAME_RESUME, event -> {
+            callback.call();
+        });
+    }
+
+    public static void bindGameStart(
+            PresenceChannel channel,
+            GameStartedCallback callback
+    ) {
+        gameStartCallback = bindPresenceChannel(channel, GAME_START, event -> {
+            Gson gson = new Gson();
+            GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
+
+            callback.call(data);
+        });
+    }
+
+    public static void bindGameOver(
+            PresenceChannel channel,
+            GameOverCallback callback
+    ) {
+        gameOverCallback = bindPresenceChannel(channel, GAME_OVER, event -> {
+            Gson gson = new Gson();
+            GameOverData data = gson.fromJson(event.getData(), GameOverData.class);
+
+            callback.call(data);
+        });
+    }
+
+    public static void unbindPlayerGameData(PresenceChannel channel) {
+        channel.unbind(PLAYER_UPDATE_DATA, playerGameDataCallback);
+    }
+
+    public static void unbindPlayerLost(PresenceChannel channel) {
+        channel.unbind(PLAYER_DECLARE_LOSS, playerLostCallback);
+    }
+
+    public static void unbindPause(PresenceChannel channel) {
+        channel.unbind(GAME_PAUSE, gamePauseCallback);
+    }
+
+    public static void unbindResume(PresenceChannel channel) {
+        channel.unbind(GAME_RESUME, gameResumeCallback);
+    }
+
+    public static void unbindGameStart(PresenceChannel channel) {
+        channel.unbind(GAME_START, gameStartCallback);
+    }
+
+    public static void unbindGameOver(PresenceChannel channel) {
+        channel.unbind(GAME_OVER, gameOverCallback);
+    }
+
+    public static PresenceChannelEventListener bindPresenceChannel(
             PresenceChannel channel,
             String eventName,
             SubscriptionEventListener listener
     ) {
-        channel.bind(eventName, createEventListener(listener));
+        PresenceChannelEventListener presenceListener = createEventListener(listener);
+        channel.bind(eventName, presenceListener);
+        return presenceListener;
     }
 
     public static PresenceChannelEventListener createEventListener(

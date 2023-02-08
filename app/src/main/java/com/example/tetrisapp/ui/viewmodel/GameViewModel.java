@@ -50,10 +50,10 @@ public class GameViewModel extends ViewModel {
     public String updateMockTetris(String currentPlayerUid) {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
-        userGameValues = userGameValues.stream().filter(PlayerGameData::isPlaying).collect(Collectors.toList());
+        userGameValues = userGameValues.stream().filter(i -> i.isPlaying).collect(Collectors.toList());
 
         PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
-        if (bestScoringPlayer != null && bestScoringPlayer.getUserId().equals(currentPlayerUid)) {
+        if (bestScoringPlayer != null && bestScoringPlayer.userId.equals(currentPlayerUid)) {
             bestScoringPlayer = userGameValues.size() >= 2 ? userGameValues.get(userGameValues.size() - 2) : null;
         }
 
@@ -79,13 +79,13 @@ public class GameViewModel extends ViewModel {
         mockTetris.setShadow(pieceShadow);
         mockPlayfield.setState(bestScoringPlayer.playfield);
 
-        return bestScoringPlayer.getUserId();
+        return bestScoringPlayer.userId;
     }
 
     public String updateSpectatorMockTetris() {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
-        userGameValues = userGameValues.stream().filter(PlayerGameData::isPlaying).collect(Collectors.toList());
+        userGameValues = userGameValues.stream().filter(i -> i.isPlaying).collect(Collectors.toList());
 
         PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
         if (bestScoringPlayer == null) return null;
@@ -110,7 +110,7 @@ public class GameViewModel extends ViewModel {
         mockTetrisSpectate.setTetromino(piece);
         mockPlayfieldSpectate.setState(bestScoringPlayer.playfield);
 
-        return bestScoringPlayer.getUserId();
+        return bestScoringPlayer.userId;
     }
 
     public int getPlacement() {
@@ -132,14 +132,21 @@ public class GameViewModel extends ViewModel {
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
 
         if (userGameValues.get(userGameValues.size() - 1).score > game.getScore()) {
-            return userGameValues.get(userGameValues.size() - 1).getUserId();
+            return userGameValues.get(userGameValues.size() - 1).userId;
         } else {
             return Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         }
     }
 
-    public PlayerGameData getGameData() {
+    public PlayerGameData getGameData(String userId) {
+        Integer placement = null;
+        if (game.isGameOver()) {
+            placement = userGameDataMap.values().stream()
+                    .reduce(0, (x, y) -> x + (y.isPlaying ? 1 : 0), Integer::sum) + 1;
+        }
+
         return new PlayerGameData(
+                userId,
                 game.getScore(),
                 game.getLines(),
                 game.getLevel(),
@@ -158,7 +165,9 @@ public class GameViewModel extends ViewModel {
                 ),
                 game.getHeldPiece(),
                 game.getTetrominoSequence().toArray(new String[0]),
-                game.getPlayfield().getState()
+                game.getPlayfield().getState(),
+                !game.isGameOver(),
+                placement
         );
     }
 

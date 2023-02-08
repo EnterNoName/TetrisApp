@@ -1,7 +1,7 @@
 package com.example.tetrisapp.interfaces;
 
-import com.example.tetrisapp.model.local.model.PlayerLostData;
+import com.example.tetrisapp.model.local.model.PlayerGameData;
 
 public interface PlayerLostCallback {
-    void call(PlayerLostData data);
+    void call(PlayerGameData data);
 }

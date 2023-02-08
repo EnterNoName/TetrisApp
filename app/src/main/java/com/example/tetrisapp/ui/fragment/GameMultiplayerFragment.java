@@ -17,11 +17,11 @@ import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.model.local.model.PlayerGameData;
 import com.example.tetrisapp.model.local.model.UserInfo;
 import com.example.tetrisapp.util.PusherUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 import com.pusher.client.Pusher;
 import com.pusher.client.channel.PresenceChannel;
-
-import java.util.Objects;
+import com.pusher.client.channel.PresenceChannelEventListener;
 
 import javax.inject.Inject;
 
@@ -35,9 +35,10 @@ public class GameMultiplayerFragment extends GameFragment {
 
     @Inject GameService gameService;
     @Inject @Nullable Pusher pusher;
-
     private PresenceChannel channel;
     private boolean spectating = false;
+
+    PresenceChannelEventListener disconnectListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,8 +68,22 @@ public class GameMultiplayerFragment extends GameFragment {
 
         updateScoreboard();
         updatePieceViews();
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
         initMultiplayerGameView();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        PusherUtil.unbindGameOver(channel);
+        PusherUtil.unbindPlayerGameData(channel);
+        PusherUtil.unbindPlayerLost(channel);
+        PusherUtil.unbindPause(channel);
+        channel.unbindGlobal(disconnectListener);
     }
 
     @Override
@@ -97,6 +112,15 @@ public class GameMultiplayerFragment extends GameFragment {
     }
 
     @Override
+    protected void initOnClickListeners() {
+        super.initOnClickListeners();
+        binding.btnPause.setOnClickListener(v -> {
+            multiplayerPause();
+            channel.trigger(PusherUtil.GAME_PAUSE, "");
+        });
+    }
+
+    @Override
     protected void initGameListeners() {
         super.initGameListeners();
 
@@ -105,9 +129,8 @@ public class GameMultiplayerFragment extends GameFragment {
             sendGameData();
         });
         viewModel.getGame().setOnGameOver(() -> {
-            sendGameData();
             switchToSpectatorMode();
-//            gameService.declareLoss(new TokenPayload(viewModel.getIdToken())).enqueue(this);
+            declareLoss();
         });
     }
 
@@ -137,6 +160,8 @@ public class GameMultiplayerFragment extends GameFragment {
             }
         });
 
+        PusherUtil.bindPause(channel, this::multiplayerPause);
+
         PusherUtil.bindGameOver(channel, data -> {
             try {
                 multiplayerGameOver();
@@ -147,33 +172,42 @@ public class GameMultiplayerFragment extends GameFragment {
 
         PusherUtil.bindPlayerLost(channel, data -> {
             try {
-                if (!viewModel.getUserGameDataMap().containsKey(data.userId)) return;
+                viewModel.getUserGameDataMap().put(data.userId, data);
 
-                viewModel.getUserGameDataMap().get(data.userId).setPlaying(false);
-                if (viewModel.getUserGameDataMap().values().stream().anyMatch(PlayerGameData::isPlaying) || !viewModel.getGame().isGameOver()) return;
+                if (viewModel.getUserGameDataMap().values().stream().anyMatch(i -> i.isPlaying) || !viewModel.getGame().isGameOver()) return;
                 multiplayerGameOver();
             } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
             }
         });
 
-        PusherUtil.createEventListener(
+        disconnectListener = PusherUtil.createEventListener(
                 (channelName, user) -> {},
                 (channelName, user) -> {
-                    if (!viewModel.getUserGameDataMap().containsKey(user.getId())) return;
+                    PlayerGameData data = viewModel.getUserGameDataMap().getOrDefault(user.getId(), null);
+                    if (data == null) return;
 
-                    viewModel.getUserGameDataMap().get(user.getId()).setPlaying(false);
-                    if (viewModel.getUserGameDataMap().values().stream().anyMatch(PlayerGameData::isPlaying) || !viewModel.getGame().isGameOver()) return;
+                    int placement = viewModel.getUserGameDataMap().values().stream()
+                            .reduce(0, (x, y) -> x + (y.isPlaying ? 1 : 0), Integer::sum) +
+                            (viewModel.getGame().isGameOver() ? 1 : 0) + 1  ;
+                    viewModel.getUserGameDataMap().put(user.getId(), new PlayerGameData(data, false, placement));
+
+                    if (viewModel.getUserGameDataMap().values().stream().anyMatch(i -> i.isPlaying) || !viewModel.getGame().isGameOver()) return;
                     multiplayerGameOver();
                 },
                 (message, e) -> {}
         );
+
+        channel.bindGlobal(disconnectListener);
     }
 
     private void declareLoss() {
         try {
             Gson gson = new Gson();
-            channel.trigger("client-user-declare-loss", gson.toJson(viewModel.getGameData()));
+            channel.trigger(
+                    PusherUtil.PLAYER_DECLARE_LOSS,
+                    gson.toJson(viewModel.getGameData(channel.getMe().getId()))
+            );
         } catch (Exception e) {
             Log.e(TAG, e.getLocalizedMessage());
         }
@@ -182,10 +216,21 @@ public class GameMultiplayerFragment extends GameFragment {
     private void sendGameData() {
         try {
             Gson gson = new Gson();
-            channel.trigger("client-user-update-data", gson.toJson(viewModel.getGameData()));
+            channel.trigger(
+                    PusherUtil.PLAYER_UPDATE_DATA,
+                    gson.toJson(viewModel.getGameData(channel.getMe().getId()))
+            );
         } catch (Exception e) {
             Log.e(TAG, e.getLocalizedMessage());
         }
+    }
+
+    private void multiplayerPause() {
+        requireActivity().runOnUiThread(() -> {
+            GameMultiplayerFragmentDirections.ActionGameMultiplayerFragmentToPauseFragment action = GameMultiplayerFragmentDirections.actionGameMultiplayerFragmentToPauseFragment();
+            action.setLobbyCode(args.getLobbyCode());
+            Navigation.findNavController(binding.getRoot()).navigate(action);
+        });
     }
 
     private void multiplayerGameOver() {
@@ -210,7 +255,7 @@ public class GameMultiplayerFragment extends GameFragment {
 
     @SuppressLint("SetTextI18n")
     private String updateSpectatorView(PlayerGameData data) {
-        viewModel.getUserGameDataMap().put(data.getUserId(), data);
+        viewModel.getUserGameDataMap().put(data.userId, data);
 
         String spectatedPlayerUid = viewModel.updateSpectatorMockTetris();
         PlayerGameData spectatedPlayerData = viewModel.getUserGameDataMap().getOrDefault(spectatedPlayerUid, null);
@@ -246,7 +291,7 @@ public class GameMultiplayerFragment extends GameFragment {
     @SuppressLint("SetTextI18n")
     private void updateMultiplayerSideView(PlayerGameData data, String currentPlayerUid) {
         // Save received user game data
-        viewModel.getUserGameDataMap().put(data.getUserId(), data);
+        viewModel.getUserGameDataMap().put(data.userId, data);
 
         String bestScoringPlayerUid = viewModel.updateMockTetris(currentPlayerUid);
         PlayerGameData bestScoringPlayer = viewModel.getUserGameDataMap().getOrDefault(bestScoringPlayerUid, null);
@@ -259,7 +304,7 @@ public class GameMultiplayerFragment extends GameFragment {
         showCompetitorSideView();
 
 
-        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.getUserId());
+        UserInfo bestScoringPlayerInfo = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId);
         if (bestScoringPlayerInfo == null) return;
 
         sidebarBinding.gameViewCompetitor.postInvalidate();
@@ -287,15 +332,31 @@ public class GameMultiplayerFragment extends GameFragment {
     }
 
     private void switchToSpectatorMode() {
-        binding.btnLeft.setVisibility(View.GONE);
-        binding.btnRight.setVisibility(View.GONE);
-        binding.btnDown.setVisibility(View.GONE);
-        binding.btnRotateLeft.setVisibility(View.GONE);
-        binding.btnRotateRight.setVisibility(View.GONE);
-        binding.btnPause.setVisibility(View.GONE);
+        requireActivity().runOnUiThread(() -> {
+            binding.btnLeft.setVisibility(View.GONE);
+            binding.btnRight.setVisibility(View.GONE);
+            binding.btnDown.setVisibility(View.GONE);
+            binding.btnRotateLeft.setVisibility(View.GONE);
+            binding.btnRotateRight.setVisibility(View.GONE);
+            binding.btnPause.setVisibility(View.GONE);
 
-        binding.gameView.setGame(viewModel.getMockTetrisSpectate());
-        binding.tvSpectate.setVisibility(View.VISIBLE);
-        spectating = true;
+            sidebarBinding.cvHold.setClickable(false);
+
+            binding.gameView.setGame(viewModel.getMockTetrisSpectate());
+            binding.tvSpectate.setVisibility(View.VISIBLE);
+            spectating = true;
+        });
+    }
+
+    @Override
+    protected void confirmExit() {
+        viewModel.getGame().setPause(true);
+        new MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
+                .setTitle(getString(R.string.exit_dialog_title))
+                .setMessage(getString(R.string.exit_dialog_description))
+                .setOnDismissListener((dialog) -> viewModel.getGame().setPause(false))
+                .setNegativeButton(getString(R.string.disagree), (dialog, which) -> viewModel.getGame().setPause(false))
+                .setPositiveButton(getString(R.string.agree), (dialog, which) -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_gameMultiplayerFragment_to_mainMenuFragment))
+                .show();
     }
 }

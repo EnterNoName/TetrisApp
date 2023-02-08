@@ -10,7 +10,4 @@ import retrofit2.http.POST;
 public interface GameService {
     @POST("game/start")
     Call<DefaultPayload> startGame(@Body TokenPayload body);
-
-    @POST("game/player/lost")
-    Call<DefaultPayload> declareLoss(@Body TokenPayload body);
 }
