@@ -49,8 +49,8 @@ public class DownloadUtil {
     public DownloadUtil(Context context, String URL, String fileName) {
         this.context = context;
         this.URL = URL;
-        this.notificationDescription = "";
-        this.notificationTitle = "";
+        this.notificationDescription = "Downloading the update...";
+        this.notificationTitle = "Tetris";
         this.fileName = fileName;
 
         downloadFileToExternalStorage();
@@ -90,7 +90,7 @@ public class DownloadUtil {
             }
         };
 
-        manager.remove(this.downloadId);
+        context.registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
     public void deleteDownload() {
