@@ -31,7 +31,7 @@
             android:layout_marginVertical="12dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="12dp"
-            android:contentDescription="@string/desc_profile"
+            android:contentDescription="@string/desc_profile_image"
             android:src="@drawable/ic_round_account_circle_24"
             app:tint="?colorOnSecondary"
             app:layout_constraintBottom_toBottomOf="@+id/btnSignIn"

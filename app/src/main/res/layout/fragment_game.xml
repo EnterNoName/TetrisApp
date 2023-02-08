@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:backgroundColor="?colorPrimary"
-        android:layout_marginRight="70dp"
+        android:layout_marginEnd="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -128,10 +128,10 @@
         android:layout_height="match_parent"
         android:clickable="true"
         android:focusable="true"
-        android:gravity="center"
         android:fontFamily="@font/fira_sans_medium"
-        android:textColor="?colorOnPrimary"
+        android:gravity="center"
         android:includeFontPadding="false"
+        android:textColor="?colorOnPrimary"
         android:textSize="60sp" />
 
     <TextView

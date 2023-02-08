@@ -69,7 +69,7 @@
         android:background="@drawable/background_button_secondary"
         android:fontFamily="@font/fira_sans_bold"
         android:padding="8dp"
-        android:text="Start Game"
+        android:text="@string/start_game"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
         android:textSize="20sp" />
@@ -82,7 +82,7 @@
         android:background="@drawable/background_button_secondary"
         android:fontFamily="@font/fira_sans_bold"
         android:padding="8dp"
-        android:text="Exit Lobby"
+        android:text="@string/exit_lobby"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
         android:textSize="20sp" />
@@ -95,7 +95,7 @@
         android:textAlignment="center"
         android:textColor="?colorOnPrimary"
         android:textSize="18sp"
-        android:text="Invite Code:" />
+        android:text="@string/invite_code" />
 
     <LinearLayout
         android:id="@+id/layoutInviteCode"
@@ -124,6 +124,7 @@
             android:background="@null"
             app:tint="?colorOnPrimary"
             android:layout_marginStart="8dp"
+            android:contentDescription="@string/desc_more_actions"
             android:src="@drawable/ic_round_more_vert_24" />
     </LinearLayout>
 

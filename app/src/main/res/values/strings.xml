@@ -13,7 +13,7 @@
 
     <string name="desc_exit">Exit app</string>
     <string name="desc_leaderboard">Show leaderboard</string>
-    <string name="desc_profile">Account circle</string>
+    <string name="desc_profile_image">Account image circle</string>
     <string name="desc_left">Move left</string>
     <string name="desc_right">Move right</string>
     <string name="desc_down">Drop tetromino</string>
@@ -70,7 +70,6 @@
     <string name="switch_to_sign_up">Don\'t have an account?</string>
     <string name="switch_to_sign_in">Already have an account?</string>
 
-<!--    <string name="update_url" translatable="false">http://192.168.1.5:3000/api/</string>-->
     <string name="update_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
     <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
     <string name="invite_url" translatable="false">https://tetrisapp.com/invite/%s</string>
@@ -98,5 +97,10 @@
     <string name="enable_pause">Enable pause:</string>
     <string name="reset_settings">Reset Settings</string>
     <string name="players">Players:</string>
-
+    <string name="leaderboard">Leaderboard</string>
+    <string name="start_game">Start Game</string>
+    <string name="exit_lobby">Exit Lobby</string>
+    <string name="desc_more_actions">Show more actions</string>
+    <string name="desc_countdown_slider">Countdown slider</string>
+    <string name="desc_player_limit_slider">Player limit slider</string>
 </resources>
