@@ -119,6 +119,11 @@ public class SignInFragment extends Fragment {
 
         binding.btnSwitchToSignUp.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSwitchToSignUp.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_signUpFragment));
+
+        binding.btnBack.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnBack.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).popBackStack();
+        });
     }
 
     private void resetFields() {

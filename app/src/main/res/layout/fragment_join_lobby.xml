@@ -17,12 +17,12 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="250dp"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <EditText
                 android:id="@+id/etInviteCode"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:fontFamily="@font/montserrat_medium"
                 android:hint="@string/invite_code"
                 android:importantForAutofill="no"
@@ -39,12 +39,11 @@
             <ImageButton
                 android:id="@+id/btnEnter"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:background="@drawable/background_button_secondary"
                 android:contentDescription="@string/join_lobby"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
+                android:paddingHorizontal="20dp"
                 android:src="@drawable/ic_round_check_24"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

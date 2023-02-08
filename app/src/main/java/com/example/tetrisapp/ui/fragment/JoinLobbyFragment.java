@@ -61,7 +61,7 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_signUpFragment);
         }
 
         initOnClickListeners();
@@ -111,7 +111,7 @@ public class JoinLobbyFragment extends DialogFragment implements Callback<Defaul
         });
 
         if (response.code() == 401) { // Not authorized
-            NavHostFragment.findNavController(this).navigate(R.id.action_joinLobbyFragment_to_accountFragment);
+            NavHostFragment.findNavController(this).navigate(R.id.action_mainMenuFragment_to_signUpFragment);
         }
 
         if (response.code() == 400) {

@@ -49,7 +49,7 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (mUser == null) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signInFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signUpFragment);
             return;
         }
 
@@ -79,7 +79,17 @@ public class ProfileFragment extends Fragment {
         binding.btnSignOut.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSignOut.setOnClickListener(v -> {
             mAuth.signOut();
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signInFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_signUpFragment);
+        });
+
+        binding.btnStatistics.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnStatistics.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_profileFragment_to_scoresFragment);
+        });
+
+        binding.btnBack.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnBack.setOnClickListener(v -> {
+            Navigation.findNavController(binding.getRoot()).popBackStack();
         });
     }
 }

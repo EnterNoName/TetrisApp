@@ -52,7 +52,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_signUpFragment);
         }
 
         initOnClickListeners();
@@ -120,7 +120,7 @@ public class CreateLobbyFragment extends Fragment implements Callback<DefaultPay
         finishLoading();
 
         if (response.code() == 401) {
-            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_accountFragment);
+            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_createLobbyFragment_to_signUpFragment);
         }
 
         if (response.isSuccessful() && response.body() != null && response.body().status.equals("success")) {
