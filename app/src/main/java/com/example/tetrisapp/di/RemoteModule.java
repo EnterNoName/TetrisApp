@@ -7,8 +7,8 @@ import androidx.annotation.Nullable;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.GameService;
+import com.example.tetrisapp.data.remote.LeaderboardService;
 import com.example.tetrisapp.data.remote.LobbyService;
-import com.example.tetrisapp.data.remote.ScoreboardService;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
@@ -67,8 +67,8 @@ public class RemoteModule {
 
     @Provides
     @Singleton
-    static ScoreboardService provideScoreboardService(Retrofit retrofit) {
-        return retrofit.create(ScoreboardService.class);
+    static LeaderboardService provideScoreboardService(Retrofit retrofit) {
+        return retrofit.create(LeaderboardService.class);
     }
 
     @Provides
@@ -101,6 +101,7 @@ public class RemoteModule {
                 final StringBuilder urlParameters = new StringBuilder(super.getBody());
 
                 try {
+                    assert user != null;
                     String idToken = Tasks.await(user.getIdToken(true)).getToken();
                     urlParameters.append("&idToken=").append(URLEncoder.encode(idToken, getCharset()));
                 } catch (ExecutionException | InterruptedException | UnsupportedEncodingException e) {

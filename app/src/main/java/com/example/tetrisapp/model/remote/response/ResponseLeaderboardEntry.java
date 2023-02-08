@@ -2,7 +2,9 @@ package com.example.tetrisapp.model.remote.response;
 
 import com.google.gson.annotations.SerializedName;
 
-public class ScorePayload {
+import java.util.Date;
+
+public class ResponseLeaderboardEntry {
     @SerializedName("uid")
     public String userId;
     @SerializedName("name")
@@ -14,9 +16,9 @@ public class ScorePayload {
     @SerializedName("lines")
     public int lines;
     @SerializedName("date")
-    public long date;
+    public Date date;
 
-    public ScorePayload(String userId, String name, int score, int level, int lines, long date) {
+    public ResponseLeaderboardEntry(String userId, String name, int score, int level, int lines, Date date) {
         this.userId = userId;
         this.name = name;
         this.score = score;

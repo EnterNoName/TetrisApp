@@ -2,7 +2,8 @@ package com.example.tetrisapp.model.remote.request;
 
 import com.google.gson.annotations.SerializedName;
 
-public class SubmitScorePayload extends TokenPayload {
+public class ScorePayload {
+
     @SerializedName("score")
     public int score;
 
@@ -15,8 +16,7 @@ public class SubmitScorePayload extends TokenPayload {
     @SerializedName("date")
     public long date;
 
-    public SubmitScorePayload(String idToken, int score, int lines, int level, long date) {
-        super(idToken);
+    public ScorePayload(int score, int lines, int level, long date) {
         this.score = score;
         this.lines = lines;
         this.level = level;
