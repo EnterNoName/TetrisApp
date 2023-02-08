@@ -252,7 +252,6 @@ public class MainMenuFragment extends Fragment {
         binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
 
         binding.btnMultiplayer.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-//        binding.btnMultiplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_joinLobbyFragment));
         binding.btnMultiplayer.setOnClickListener(v -> {
             if (firebaseUser == null) {
                 Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_signUpFragment);
