@@ -56,26 +56,24 @@ import retrofit2.Response;
 public class LobbyFragment extends Fragment implements Callback<DefaultPayload> {
     public static final String TAG = "LobbyFragment";
     private FragmentLobbyBinding binding;
+    private LobbyFragmentArgs args;
     private LobbyViewModel viewModel;
 
-    @Inject
-    LobbyService lobbyService;
-    @Inject
-    GameService gameService;
-    @Inject
-    @Nullable
-    Pusher pusher;
+
+    @Inject LobbyService lobbyService;
+    @Inject GameService gameService;
+    @Inject @Nullable Pusher pusher;
+
+    private boolean success = false;
 
     private PresenceChannelEventListener listener;
-    private PresenceChannelEventListener listenerGameStart;
     private PresenceChannel channel;
-
-    private boolean succeded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(LobbyViewModel.class);
+        args = LobbyFragmentArgs.fromBundle(getArguments());
 
         // Handle back button press
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
@@ -111,17 +109,12 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (succeded) {
-            channel.unbind("game-started", listenerGameStart);
-            channel.unbindGlobal(listener);
-            return;
+        PusherUtil.unbindGameStart(channel);
+        channel.unbindGlobal(listener);
+
+        if (!success) {
+            pusher.unsubscribe("presence-" + args.getInviteCode());
         }
-        ;
-
-        LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
-        pusher.unsubscribe("presence-" + args.getInviteCode());
-
-        lobbyService.exitLobby(new TokenPayload(viewModel.getIdToken())).enqueue(this);
     }
 
     @Override
@@ -163,8 +156,6 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         }
 
         popup.setOnMenuItemClickListener(item -> {
-            LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
-
             switch (item.getItemId()) {
                 case R.id.copy_code:
                     ClipboardManager clipboard = (ClipboardManager) requireActivity().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -191,8 +182,6 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     }
 
     private void initPusherChannelListeners() {
-        LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
-
         listener = PusherUtil.createEventListener(
                 (channelName, user) -> {
                     try {
@@ -211,27 +200,22 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                 (message, e) -> exitLobby()
         );
 
-        listenerGameStart = PusherUtil.createEventListener(event -> requireActivity().runOnUiThread(() -> {
-            succeded = true;
-            Gson gson = new Gson();
-            GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
-
-            LobbyFragmentDirections.ActionLobbyFragmentToGameMultiplayerFragment action = LobbyFragmentDirections.actionLobbyFragmentToGameMultiplayerFragment();
-            action.setLobbyCode(args.getInviteCode());
-            action.setCountdown(data.countdown);
-            Navigation.findNavController(binding.getRoot()).navigate(action);
-        }));
-
         channel = PusherUtil.getPresenceChannel(
                 pusher,
                 "presence-" + args.getInviteCode(),
                 listener);
 
-        channel.bind("game-started", listenerGameStart);
+        PusherUtil.bindGameStart(channel, data -> requireActivity().runOnUiThread(() -> {
+                success = true;
+
+                LobbyFragmentDirections.ActionLobbyFragmentToGameMultiplayerFragment action = LobbyFragmentDirections.actionLobbyFragmentToGameMultiplayerFragment();
+                action.setLobbyCode(args.getInviteCode());
+                action.setCountdown(data.countdown);
+                Navigation.findNavController(binding.getRoot()).navigate(action);
+        }));
     }
 
     private void updateUI() {
-        LobbyFragmentArgs args = LobbyFragmentArgs.fromBundle(getArguments());
         binding.inviteCode.setText(args.getInviteCode());
         binding.tvLobbyTitle.setText(
                 viewModel.getLobbyOwnerName() != null ?

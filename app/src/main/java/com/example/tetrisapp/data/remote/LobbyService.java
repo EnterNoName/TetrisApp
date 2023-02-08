@@ -15,7 +15,4 @@ public interface LobbyService {
 
     @POST("lobby/join/{code}")
     Call<DefaultPayload> joinLobby(@Body TokenPayload body, @Path("code") String code);
-
-    @POST("lobby/exit")
-    Call<DefaultPayload> exitLobby(@Body TokenPayload body);
 }
