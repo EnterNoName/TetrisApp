@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentScoresBinding;
-import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
-import com.example.tetrisapp.model.remote.response.ScorePayload;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,7 +29,7 @@ public class ScoresRecyclerViewAdapter extends RecyclerView.Adapter<ScoresRecycl
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder(FragmentScoresBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
@@ -91,6 +89,7 @@ public class ScoresRecyclerViewAdapter extends RecyclerView.Adapter<ScoresRecycl
             }
         }
 
+        @NonNull
         @Override
         public String toString() {
             return super.toString() + " '" + mItem.toString() + "'";

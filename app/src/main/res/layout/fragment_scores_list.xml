@@ -27,7 +27,7 @@
         android:layout_height="80dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        android:contentDescription="@string/desc_profile"
+        android:contentDescription="@string/desc_profile_image"
         android:src="@drawable/ic_round_account_circle_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnBack"
