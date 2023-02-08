@@ -354,6 +354,7 @@ public class MainMenuFragment extends Fragment {
     private void deleteIfFileExits(String filePath) {
         MediaScannerConnection.scanFile(requireContext(), new String[]{filePath}, null, (path, uri) -> {
             try {
+                if (uri == null) return;
                 requireContext().getContentResolver().delete(uri, null, null);
             } catch (SecurityException e) {
                 IntentSender intentSender = null;
