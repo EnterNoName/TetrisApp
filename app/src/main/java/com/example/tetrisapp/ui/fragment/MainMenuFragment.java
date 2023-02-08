@@ -39,12 +39,17 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.tetrisapp.BuildConfig;
 import com.example.tetrisapp.R;
+import com.example.tetrisapp.data.local.dao.LeaderboardDao;
+import com.example.tetrisapp.data.remote.LeaderboardService;
 import com.example.tetrisapp.data.remote.UpdateService;
 import com.example.tetrisapp.databinding.FragmentMainMenuBinding;
+import com.example.tetrisapp.model.remote.callback.SimpleCallback;
 import com.example.tetrisapp.model.remote.response.UpdatePayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.util.ConnectionUtil;
 import com.example.tetrisapp.util.DownloadUtil;
+import com.example.tetrisapp.util.FirebaseTokenUtil;
+import com.example.tetrisapp.util.LeaderboardUtil;
 import com.example.tetrisapp.util.MimeTypeUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -67,10 +72,10 @@ public class MainMenuFragment extends Fragment {
     private static final String TAG = "MainMenuFragment";
 
     private FragmentMainMenuBinding binding;
-    private ConnectionUtil connectionHelper;
 
-    @Inject
-    UpdateService updateService;
+    @Inject UpdateService updateService;
+    @Inject LeaderboardService leaderboardService;
+    @Inject LeaderboardDao leaderboardDao;
     FirebaseUser firebaseUser;
     private Response<UpdatePayload> update = null;
     private Call<UpdatePayload> updateApiCall;
@@ -130,7 +135,6 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
         initClickListeners();
 
         SharedPreferences preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
@@ -139,6 +143,20 @@ public class MainMenuFragment extends Fragment {
         if (autoUpdateEnabled) {
             checkUpdate();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        uploadScores();
+    }
+
+    private void uploadScores() {
+        ConnectionUtil connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
+        connectionHelper.setOnAvailable(() -> {
+            FirebaseTokenUtil.getFirebaseToken(token -> new LeaderboardUtil(token, leaderboardDao, leaderboardService).synchronise());
+        });
+        connectionHelper.checkInternetConnection();
     }
 
     private void updateUI(FirebaseUser user) {
@@ -173,6 +191,7 @@ public class MainMenuFragment extends Fragment {
         if (update != null) {
             showUpdateDialog();
         } else {
+            ConnectionUtil connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
             connectionHelper.setOnAvailable(this::fetchUpdate);
             connectionHelper.setOnLost(() -> updateApiCall.cancel());
             connectionHelper.checkInternetConnection();
@@ -181,29 +200,17 @@ public class MainMenuFragment extends Fragment {
 
     private void fetchUpdate() {
         updateApiCall = updateService.getUpdate();
-        updateApiCall.enqueue(new retrofit2.Callback<UpdatePayload>() {
-            @Override
-            public void onResponse(@NonNull Call<UpdatePayload> call, @NonNull Response<UpdatePayload> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    if (BuildConfig.VERSION_CODE < response.body().versionId) {
-                        update = response;
+        updateApiCall.enqueue(new SimpleCallback.Builder<UpdatePayload>().setOnSuccessCallback((call, res) -> {
+            if (BuildConfig.VERSION_CODE < res.body().versionId) {
+                update = res;
 
-                        // Show update dialog if nothing else is open
-                        if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
-                                Navigation.findNavController(binding.getRoot()).findDestination(R.id.mainMenuFragment)) {
-                            showUpdateDialog();
-                        }
-                    }
+                // Show update dialog if nothing else is open
+                if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
+                        Navigation.findNavController(binding.getRoot()).findDestination(R.id.mainMenuFragment)) {
+                    showUpdateDialog();
                 }
             }
-
-            @Override
-            public void onFailure(Call<UpdatePayload> call, Throwable t) {
-                if (!(t instanceof EOFException)) {
-                    t.printStackTrace();
-                }
-            }
-        });
+        }).build());
     }
 
     private void installUpdate() {
@@ -239,6 +246,8 @@ public class MainMenuFragment extends Fragment {
 
     @SuppressLint("ClickableViewAccessibility")
     private void initClickListeners() {
+        ConnectionUtil connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
+
         binding.btnSingleplayer.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()).setSound(R.raw.gamestartbtn));
         binding.btnSingleplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_gameFragment));
 
@@ -246,7 +255,7 @@ public class MainMenuFragment extends Fragment {
 //        binding.btnMultiplayer.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_joinLobbyFragment));
         binding.btnMultiplayer.setOnClickListener(v -> {
             if (firebaseUser == null) {
-                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment);
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_signUpFragment);
                 return;
             }
 
@@ -265,7 +274,13 @@ public class MainMenuFragment extends Fragment {
         binding.btnExit.setOnClickListener(v -> requireActivity().finishAndRemoveTask());
 
         binding.btnLeaderboard.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnLeaderboard.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_scoresFragment));
+        binding.btnLeaderboard.setOnClickListener(v -> {
+            if (firebaseUser == null) {
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_scoresFragment);
+            } else {
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_leaderboardFragment);
+            }
+        });
 
         binding.btnSocials.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSocials.setOnClickListener(v -> {
@@ -274,7 +289,13 @@ public class MainMenuFragment extends Fragment {
         });
 
         binding.btnSignIn.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnSignIn.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_accountFragment));
+        binding.btnSignIn.setOnClickListener(v -> {
+            if (firebaseUser == null) {
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_signUpFragment);
+            } else {
+                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_mainMenuFragment_to_profileFragment);
+            }
+        });
     }
 
     private boolean checkPermissions() {

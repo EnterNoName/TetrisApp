@@ -18,15 +18,21 @@ import androidx.room.rxjava3.EmptyResultSetException;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.data.remote.GameService;
+import com.example.tetrisapp.data.remote.LeaderboardService;
 import com.example.tetrisapp.databinding.FragmentGameOverBinding;
 import com.example.tetrisapp.model.local.entity.LeaderboardEntry;
 import com.example.tetrisapp.model.local.model.GameStartedData;
+import com.example.tetrisapp.model.remote.callback.SimpleCallback;
 import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.DateTimeUtil;
 import com.example.tetrisapp.util.FirebaseTokenUtil;
+import com.example.tetrisapp.util.HashUtil;
+import com.example.tetrisapp.util.LeaderboardUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 import com.example.tetrisapp.util.PusherUtil;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.pusher.client.Pusher;
@@ -45,20 +51,18 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class GameOverFragment extends Fragment implements Callback<DefaultPayload> {
+public class GameOverFragment extends Fragment{
     private final static String TAG = "GameOverFragment";
     private FragmentGameOverBinding binding;
+    private GameOverFragmentArgs args;
 
-    @Inject
-    LeaderboardDao leaderboardDao;
-    @Inject
-    GameService gameService;
-    @Inject
-    @Nullable
-    FirebaseUser user;
-    @Inject
-    @Nullable
-    Pusher pusher;
+    @Inject LeaderboardDao leaderboardDao;
+    @Inject LeaderboardService leaderboardService;
+    @Inject GameService gameService;
+    @Inject @Nullable FirebaseUser user;
+    @Inject @Nullable Pusher pusher;
+
+    PresenceChannel channel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -83,7 +87,7 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+        args = GameOverFragmentArgs.fromBundle(getArguments());
 
         binding.score.setText(args.getScore() + "");
         binding.level.setText(args.getLevel() + "");
@@ -93,13 +97,22 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
             handleGameOverSingleplayer();
             initClickListeners();
         } else {
+            channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
             handleGameOverMultiplayer();
             initClickListenersMultiplayer();
         }
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if  (args.getLobbyCode() != null) {
+            PusherUtil.unbindGameStart(channel);
+        }
+    }
+
     private void handleGameOverMultiplayer() {
-        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+        insertScoreInDB();
 
         binding.tvHighScore.setText(args.getPlacement() == 1 ?
                 "GG! You've won!" :
@@ -107,8 +120,6 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
     }
 
     private void handleGameOverSingleplayer() {
-        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
-
         leaderboardDao.getBest()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -128,28 +139,24 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
 
                         insertScoreInDB();
                     } else {
-                        Log.e("GameOverFragment", throwable.getLocalizedMessage());
+                        Log.e(TAG, throwable.getLocalizedMessage());
                     }
                 });
     }
 
     private void insertScoreInDB() {
-        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
+        if (args.getScore() < 1)  return;
 
-        if (args.getScore() > 0) {
-            LeaderboardEntry entry = new LeaderboardEntry();
-            entry.score = args.getScore();
-            entry.level = args.getLevel();
-            entry.lines = args.getLines();
-            entry.date = new Date();
+        LeaderboardEntry entry = new LeaderboardEntry();
+        entry.score = args.getScore();
+        entry.level = args.getLevel();
+        entry.lines = args.getLines();
+        entry.date = new Date();
 
-            leaderboardDao.insert(entry)
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(
-                            i -> {},
-                            throwable -> Log.e(TAG, throwable.getLocalizedMessage())
-                    );
-        }
+        FirebaseTokenUtil.getFirebaseToken(token -> {
+            LeaderboardUtil leaderboardUtil = new LeaderboardUtil(token, leaderboardDao, leaderboardService);
+            leaderboardUtil.insert(entry);
+        });
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -176,14 +183,7 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
 
     @SuppressLint("ClickableViewAccessibility")
     private void initClickListenersMultiplayer() {
-        GameOverFragmentArgs args = GameOverFragmentArgs.fromBundle(getArguments());
-
-        PresenceChannel channel = pusher.getPresenceChannel("presence-" + args.getLobbyCode());
-
-        PusherUtil.bindPresenceChannel(channel, "game-started", event -> requireActivity().runOnUiThread(() -> {
-            Gson gson = new Gson();
-            GameStartedData data = gson.fromJson(event.getData(), GameStartedData.class);
-
+        PusherUtil.bindGameStart(channel, data -> requireActivity().runOnUiThread(() -> {
             GameOverFragmentDirections.ActionGameOverFragmentToGameMultiplayerFragment action = GameOverFragmentDirections.actionGameOverFragmentToGameMultiplayerFragment();
             action.setLobbyCode(args.getLobbyCode());
             action.setCountdown(data.countdown);
@@ -197,9 +197,8 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
         });
 
         binding.btnRetry.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnRetry.setOnClickListener(v -> FirebaseTokenUtil.getFirebaseToken(token -> {
-            gameService.startGame(new TokenPayload(token)).enqueue(this);
-        }));
+        binding.btnRetry.setOnClickListener(v -> FirebaseTokenUtil.getFirebaseToken(token ->
+                gameService.startGame(new TokenPayload(token)).enqueue(new SimpleCallback<>())));
 
         binding.btnShare.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnShare.setOnClickListener(v -> {
@@ -213,15 +212,5 @@ public class GameOverFragment extends Fragment implements Callback<DefaultPayloa
             );
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_using)));
         });
-    }
-
-    @Override
-    public void onResponse(Call<DefaultPayload> call, Response<DefaultPayload> response) {
-
-    }
-
-    @Override
-    public void onFailure(Call<DefaultPayload> call, Throwable t) {
-
     }
 }

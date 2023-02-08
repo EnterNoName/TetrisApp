@@ -7,12 +7,18 @@ import com.google.firebase.auth.FirebaseUser;
 public class FirebaseTokenUtil {
     public static void getFirebaseToken(TokenListener tokenListener){
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+        if (user == null) {
+            tokenListener.getToken(null);
+            return;
+        }
 
         user.getIdToken(true)
                 .addOnCompleteListener(task -> {
-                    if(task.isSuccessful())
+                    if(task.isSuccessful()) {
                         tokenListener.getToken(task.getResult().getToken());
+                    } else {
+                        tokenListener.getToken(null);
+                    }
                 });
     }
 }

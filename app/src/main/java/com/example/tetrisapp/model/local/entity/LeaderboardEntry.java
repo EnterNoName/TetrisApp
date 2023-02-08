@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
 import com.example.tetrisapp.data.local.converter.DateConverter;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
 
@@ -26,4 +27,10 @@ public class LeaderboardEntry {
 
     @ColumnInfo(name = "date")
     public Date date;
+
+    @ColumnInfo(name = "uploaded")
+    public boolean uploaded = false;
+
+    @ColumnInfo(name = "hash", index = true)
+    public String hash;
 }
