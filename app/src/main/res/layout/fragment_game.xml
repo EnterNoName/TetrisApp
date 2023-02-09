@@ -11,122 +11,124 @@
         android:id="@+id/gameView"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        app:backgroundColor="?colorPrimary"
         android:layout_marginEnd="70dp"
+        app:backgroundColor="?colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ViewStub android:id="@+id/stub"
-        android:inflatedId="@+id/included"
+    <ViewStub
+        android:id="@+id/stub"
         android:layout_width="70dp"
         android:layout_height="match_parent"
-        app:layout_constraintStart_toEndOf="@id/gameView"
+        android:inflatedId="@+id/included"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/gameView"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/btnLeft"
         android:layout_width="@dimen/controls_size"
         android:layout_height="@dimen/controls_size"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
         android:layout_marginEnd="20dp"
-        android:src="@drawable/ic_round_arrow_left_24"
         android:background="@drawable/background_button"
         android:backgroundTint="?colorGameButton"
-        app:tint="?colorOnGameButton"
+        android:contentDescription="@string/desc_left"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_arrow_left_24"
         app:layout_constraintBottom_toBottomOf="@+id/btnDown"
         app:layout_constraintEnd_toStartOf="@+id/btnRight"
         app:layout_constraintTop_toTopOf="@+id/btnRotateRight"
-        android:contentDescription="@string/desc_left" />
+        app:tint="?colorOnGameButton" />
 
     <ImageButton
         android:id="@+id/btnRight"
         android:layout_width="@dimen/controls_size"
         android:layout_height="@dimen/controls_size"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
         android:layout_marginEnd="32dp"
-        android:src="@drawable/ic_round_arrow_right_24"
         android:background="@drawable/background_button"
         android:backgroundTint="?colorGameButton"
-        app:tint="?colorOnGameButton"
+        android:contentDescription="@string/desc_right"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_arrow_right_24"
         app:layout_constraintBottom_toBottomOf="@+id/btnDown"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btnRotateRight"
-        android:contentDescription="@string/desc_right" />
+        app:tint="?colorOnGameButton" />
 
     <ImageButton
         android:id="@+id/btnDown"
         android:layout_width="@dimen/controls_size"
         android:layout_height="@dimen/controls_size"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
         android:layout_marginBottom="32dp"
-        android:src="@drawable/ic_round_arrow_drop_down_24"
         android:background="@drawable/background_button"
         android:backgroundTint="?colorGameButton"
-        app:tint="?colorOnGameButton"
+        android:contentDescription="@string/desc_down"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_arrow_drop_down_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/btnRotateRight"
         app:layout_constraintStart_toStartOf="@+id/btnRotateLeft"
-        android:contentDescription="@string/desc_down" />
+        app:tint="?colorOnGameButton" />
 
     <ImageButton
         android:id="@+id/btnRotateRight"
         android:layout_width="@dimen/controls_size"
         android:layout_height="@dimen/controls_size"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
         android:layout_marginStart="20dp"
         android:layout_marginBottom="12dp"
-        android:src="@drawable/ic_round_rotate_right_24"
         android:background="@drawable/background_button"
         android:backgroundTint="?colorGameButton"
-        app:tint="?colorOnGameButton"
+        android:contentDescription="@string/desc_rotate_right"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_rotate_right_24"
         app:layout_constraintBottom_toTopOf="@+id/btnDown"
         app:layout_constraintStart_toEndOf="@+id/btnRotateLeft"
-        android:contentDescription="@string/desc_rotate_right" />
+        app:tint="?colorOnGameButton" />
 
     <ImageButton
         android:id="@+id/btnRotateLeft"
         android:layout_width="@dimen/controls_size"
         android:layout_height="@dimen/controls_size"
-        android:scaleType="fitCenter"
-        android:padding="16dp"
         android:layout_marginStart="32dp"
         android:layout_marginBottom="12dp"
-        android:src="@drawable/ic_round_rotate_left_24"
         android:background="@drawable/background_button"
         android:backgroundTint="?colorGameButton"
-        app:tint="?colorOnGameButton"
+        android:contentDescription="@string/desc_rotate_left"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_rotate_left_24"
         app:layout_constraintBottom_toTopOf="@+id/btnDown"
         app:layout_constraintStart_toStartOf="parent"
-        android:contentDescription="@string/desc_rotate_left" />
+        app:tint="?colorOnGameButton" />
 
     <ImageButton
         android:id="@+id/btnPause"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:scaleType="fitCenter"
-        android:padding="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/background_button"
-        app:tint="?colorOnPrimary"
+        android:contentDescription="@string/desc_pause"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_round_pause_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:contentDescription="@string/desc_pause" />
+        app:tint="?colorOnPrimary" />
 
     <TextView
         android:id="@+id/tvCountdown"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="true"
+        android:contentDescription="@string/desc_countdown_display"
         android:focusable="true"
         android:fontFamily="@font/fira_sans_medium"
         android:gravity="center"
@@ -136,19 +138,25 @@
 
     <TextView
         android:id="@+id/tvSpectate"
-        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/fira_sans_medium"
         android:gravity="center"
         android:includeFontPadding="false"
-        tools:text="Spectating:\nUsername"
         android:textColor="?colorOnPrimary"
         android:textSize="24sp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Spectating:\nUsername" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/controls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="btnLeft,btnRight,btnDown,btnRotateRight,btnRotateLeft" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

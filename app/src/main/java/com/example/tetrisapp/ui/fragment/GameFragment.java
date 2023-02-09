@@ -9,13 +9,16 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.MotionEventCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -33,6 +36,7 @@ import com.example.tetrisapp.model.local.model.UserInfo;
 import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
 import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.ui.view.GameView;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.MediaPlayerUtil;
 import com.example.tetrisapp.util.OnGestureListener;
@@ -128,19 +132,26 @@ public class GameFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         binding.gameView.setGame(viewModel.getGame());
 
-        // Inflate view stub
+        inflateSidebar();
+
+        if (!preferences.getBoolean(getString(R.string.setting_control_scheme), false)) {
+            initOnClickListeners();
+        } else {
+            initOnTouchListeners();
+        }
+
+        initGameListeners();
+        updateScoreboard();
+        updatePieceViews();
+    }
+
+    protected void inflateSidebar() {
         binding.stub.setOnInflateListener((stub, inflated) -> {
             sidebarBinding = SidebarBinding.bind(inflated);
         });
 
         binding.stub.setLayoutResource(R.layout.sidebar);
         binding.stub.inflate();
-
-        initOnClickListeners();
-        initGameListeners();
-
-        updateScoreboard();
-        updatePieceViews();
     }
 
     @Override
@@ -207,6 +218,104 @@ public class GameFragment extends Fragment {
     }
 
     @SuppressLint("ClickableViewAccessibility")
+    protected void initOnTouchListeners() {
+        binding.gameView.post(() -> binding.gameView.setOnTouchListener(new View.OnTouchListener() {
+            private final int width = binding.gameView.getWidth();
+            private final int blockSize = width / 10;
+            private float x = -1;
+            private int col = -1;
+            private boolean moved = false;
+
+            private static final int SWIPE_DISTANCE_THRESHOLD = 200;
+            private static final int SWIPE_VELOCITY_THRESHOLD = 400;
+            private final GestureDetector gestureDetector = new GestureDetector(requireContext(), new OnGestureListener.GestureListener() {
+                @Override
+                public boolean onSwipe(Direction direction, float distance, float velocity) {
+                    if (Math.abs(distance) >= SWIPE_DISTANCE_THRESHOLD && Math.abs(velocity) >= SWIPE_VELOCITY_THRESHOLD) {
+                        switch (direction) {
+                            case up:
+                                viewModel.getGame().hold();
+                                break;
+                            case down:
+                                viewModel.getGame().setSoftDrop(true);
+                                break;
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public boolean onDoubleTap(@NonNull MotionEvent e) {
+                    viewModel.getGame().hardDrop();
+                    return true;
+                }
+            });
+
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getActionMasked();
+                int index = event.getActionIndex();
+                float x = event.getX(index);
+
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        this.col = viewModel.getGame().getCurrentPiece().getCol();
+                        this.x = x;
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float xDiff = Math.abs(this.x - x);
+
+                        if (xDiff > blockSize / 2f) this.moved = true;
+
+                        if (this.moved) {
+                            int col = viewModel.getGame().getCurrentPiece().getCol();
+                            int colDiff = (int) Math.round((this.x - x) / this.blockSize);
+                            int desiredCol = this.col - colDiff;
+
+                            if (desiredCol == col) return true;
+                            while (desiredCol != col) {
+                                if (desiredCol > col) {
+                                    viewModel.getGame().moveTetrominoRight();
+                                } else {
+                                    viewModel.getGame().moveTetrominoLeft();
+                                }
+
+                                if (col == viewModel.getGame().getCurrentPiece().getCol()) break;
+                                col = viewModel.getGame().getCurrentPiece().getCol();
+                            }
+
+                            return true;
+                        }
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        if (!this.moved) {
+                            if (x > (width / 3f) * 2) {
+                                viewModel.getGame().rotateTetrominoRight();
+                                return true;
+                            } else if (x < width / 3f){
+                                viewModel.getGame().rotateTetrominoLeft();
+                                return true;
+                            }
+                        }
+
+                        this.moved = false;
+                        break;
+                }
+
+                gestureDetector.onTouchEvent(event);
+                return true;
+            }
+        }));
+        initPauseOnClickListener();
+        initSidebarOnClickListeners();
+        binding.controls.setVisibility(View.GONE);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     protected void initOnClickListeners() {
         binding.btnLeft.setOnTouchListener(new OnGestureListener(getContext()) {
             @Override
@@ -262,10 +371,14 @@ public class GameFragment extends Fragment {
             }
         });
 
+        initPauseOnClickListener();
+        initSidebarOnClickListeners();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    protected void initPauseOnClickListener() {
         binding.btnPause.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnPause.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.action_gameFragment_to_pauseFragment));
-
-        initSidebarOnClickListeners();
     }
 
     protected void initSidebarOnClickListeners() {

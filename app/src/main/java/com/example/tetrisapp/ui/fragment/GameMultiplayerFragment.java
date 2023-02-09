@@ -16,6 +16,8 @@ import com.example.tetrisapp.databinding.SidebarMultiplayerBinding;
 import com.example.tetrisapp.model.game.Tetris;
 import com.example.tetrisapp.model.local.model.PlayerGameData;
 import com.example.tetrisapp.model.local.model.UserInfo;
+import com.example.tetrisapp.ui.activity.MainActivity;
+import com.example.tetrisapp.util.OnTouchListener;
 import com.example.tetrisapp.util.PusherUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
@@ -50,24 +52,14 @@ public class GameMultiplayerFragment extends GameFragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-//        super.onViewCreated(view, savedInstanceState);
-        binding.gameView.setGame(viewModel.getGame());
-
-        // Inflate view stub
+    protected void inflateSidebar() {
         binding.stub.setOnInflateListener((stub, inflated) -> {
-                sidebarBinding = SidebarMultiplayerBinding.bind(inflated);
-                sidebarBinding.gameViewCompetitor.setGame(viewModel.getMockTetris());
+            sidebarBinding = SidebarMultiplayerBinding.bind(inflated);
+            sidebarBinding.gameViewCompetitor.setGame(viewModel.getMockTetris());
         });
 
         binding.stub.setLayoutResource(R.layout.sidebar_multiplayer);
         binding.stub.inflate();
-
-        initOnClickListeners();
-        initGameListeners();
-
-        updateScoreboard();
-        updatePieceViews();
     }
 
     @Override
@@ -111,9 +103,10 @@ public class GameMultiplayerFragment extends GameFragment {
         });
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
-    protected void initOnClickListeners() {
-        super.initOnClickListeners();
+    protected void initPauseOnClickListener() {
+        binding.btnPause.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnPause.setOnClickListener(v -> {
             multiplayerPause();
             channel.trigger(PusherUtil.GAME_PAUSE, "");
@@ -150,10 +143,7 @@ public class GameMultiplayerFragment extends GameFragment {
             try {
                 String currentPlayerUid = channel.getMe().getId();
 
-                if (spectating) {
-                    currentPlayerUid = updateSpectatorView(data);
-                }
-
+                if (spectating) currentPlayerUid = updateSpectatorView(data);
                 updateMultiplayerSideView(data, currentPlayerUid);
             } catch (Exception e) {
                 Log.e(TAG, e.getLocalizedMessage());
@@ -173,6 +163,11 @@ public class GameMultiplayerFragment extends GameFragment {
         PusherUtil.bindPlayerLost(channel, data -> {
             try {
                 viewModel.getUserGameDataMap().put(data.userId, data);
+
+                String currentPlayerUid = channel.getMe().getId();
+
+                if (spectating) currentPlayerUid = updateSpectatorView(data);
+                updateMultiplayerSideView(data, currentPlayerUid);
 
                 if (viewModel.getUserGameDataMap().values().stream().anyMatch(i -> i.isPlaying) || !viewModel.getGame().isGameOver()) return;
                 multiplayerGameOver();
@@ -333,11 +328,7 @@ public class GameMultiplayerFragment extends GameFragment {
 
     private void switchToSpectatorMode() {
         requireActivity().runOnUiThread(() -> {
-            binding.btnLeft.setVisibility(View.GONE);
-            binding.btnRight.setVisibility(View.GONE);
-            binding.btnDown.setVisibility(View.GONE);
-            binding.btnRotateLeft.setVisibility(View.GONE);
-            binding.btnRotateRight.setVisibility(View.GONE);
+            binding.controls.setVisibility(View.GONE);
             binding.btnPause.setVisibility(View.GONE);
 
             sidebarBinding.cvHold.setClickable(false);
