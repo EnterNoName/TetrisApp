@@ -17,7 +17,7 @@ public class OnGestureListener implements View.OnTouchListener {
         gestureDetector = new GestureDetector(ctx, new GestureListener() {
             @Override
             public boolean onSwipe(Direction direction, float distance, float velocity) {
-                if (distance >= SWIPE_DISTANCE_THRESHOLD && velocity >= SWIPE_VELOCITY_THRESHOLD) {
+                if (Math.abs(distance) >= SWIPE_DISTANCE_THRESHOLD && Math.abs(velocity) >= SWIPE_VELOCITY_THRESHOLD) {
                     switch (direction) {
                         case up:
                             onSwipeUp();
@@ -82,7 +82,7 @@ public class OnGestureListener implements View.OnTouchListener {
     public void onTapUp() {
     }
 
-    static class GestureListener extends GestureDetector.SimpleOnGestureListener {
+    public static class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
         /**
          * Override this method. The Direction enum will tell you how the user swiped.
