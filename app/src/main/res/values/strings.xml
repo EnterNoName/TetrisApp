@@ -78,7 +78,9 @@
     <string name="setting_countdown_title">Countdown</string>
     <string name="setting_music_volume_title">Music Volume</string>
     <string name="setting_sfx_volume_title">Sounds Volume</string>
+    <string name="setting_control_scheme_title">Control Scheme</string>
 
+    <string name="setting_control_scheme" translatable="false">control_scheme</string>
     <string name="setting_auto_update" translatable="false">auto_update_enabled</string>
     <string name="setting_countdown" translatable="false">countdown_duration</string>
     <string name="setting_music_volume" translatable="false">music_volume</string>
@@ -103,4 +105,6 @@
     <string name="desc_more_actions">Show more actions</string>
     <string name="desc_countdown_slider">Countdown slider</string>
     <string name="desc_player_limit_slider">Player limit slider</string>
+    <string name="desc_countdown_display">Countdown display</string>
+
 </resources>

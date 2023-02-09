@@ -52,6 +52,20 @@ public class SettingsFragment extends BottomSheetDialogFragment implements Recyc
         );
         this.settingList.add(autoUpdateSetting);
 
+        SettingsRecyclerViewAdapter.Setting controlSchemeSetting = new SettingsRecyclerViewAdapter.Setting(
+                requireActivity().getDrawable(R.drawable.ic_round_videogame_controller_24),
+                getString(R.string.setting_control_scheme_title),
+                preferences.getBoolean(getString(R.string.setting_control_scheme), false) ? "Touch" : "Buttons",
+                () -> {
+                    editor.putBoolean(
+                            getString(R.string.setting_control_scheme),
+                            !preferences.getBoolean(getString(R.string.setting_control_scheme), false)
+                    );
+                    editor.apply();
+                }
+        );
+        this.settingList.add(controlSchemeSetting);
+
         SettingsRecyclerViewAdapter.Setting countdownSetting = new SettingsRecyclerViewAdapter.Setting(
                 requireActivity().getDrawable(R.drawable.ic_round_timer_24),
                 getString(R.string.setting_countdown_title),
