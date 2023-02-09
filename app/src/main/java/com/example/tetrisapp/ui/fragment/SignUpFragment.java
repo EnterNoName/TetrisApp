@@ -52,12 +52,14 @@ public class SignUpFragment extends Fragment {
                                     if (task.isSuccessful()) {
                                         Log.d(TAG, "signUpWithCredential:success");
                                         FirebaseUser user = firebaseAuth.getCurrentUser();
-                                        if (user != null) {
+                                        if (user != null && isInSignUpFragment()) {
                                             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_profileFragment);
                                         }
                                     } else {
                                         Log.w(TAG, "signUpWithCredential:failure", task.getException());
                                     }
+
+                                    stopLoading();
                                 }
                         );
                 Log.d(TAG, "Got ID token.");
@@ -81,10 +83,38 @@ public class SignUpFragment extends Fragment {
         initOnClickListeners();
     }
 
+    private void startLoading() {
+        binding.btnSignUp.setEnabled(false);
+        binding.btnSignUpGoogle.setEnabled(false);
+        binding.btnSwitchToSignIn.setEnabled(false);
+        binding.etUsername.setEnabled(false);
+        binding.etEmail.setEnabled(false);
+        binding.etPassword.setEnabled(false);
+        binding.etPasswordConfirm.setEnabled(false);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void stopLoading() {
+        binding.btnSignUp.setEnabled(true);
+        binding.btnSignUpGoogle.setEnabled(true);
+        binding.btnSwitchToSignIn.setEnabled(true);
+        binding.etUsername.setEnabled(true);
+        binding.etEmail.setEnabled(true);
+        binding.etPassword.setEnabled(true);
+        binding.etPasswordConfirm.setEnabled(true);
+        binding.progressBar.setVisibility(View.GONE);
+    }
+
+    private boolean isInSignUpFragment() {
+        return Navigation.findNavController(binding.getRoot()).getCurrentDestination() == Navigation.findNavController(binding.getRoot()).findDestination(R.id.signUpFragment);
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
         binding.btnSignUp.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSignUp.setOnClickListener(v -> {
+            startLoading();
+
             String email = binding.etEmail.getText().toString();
             String password = binding.etPassword.getText().toString();
             String passwordConfirm = binding.etPasswordConfirm.getText().toString();
@@ -101,16 +131,20 @@ public class SignUpFragment extends Fragment {
             }
         });
 
-        binding.btnSignInGoogle.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
-                .addOnCompleteListener(requireActivity(), result -> {
-                    try {
-                        activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
-                    } catch (Throwable e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                    }
-                })
-                .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage())));
+        binding.btnSignUpGoogle.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
+        binding.btnSignUpGoogle.setOnClickListener(v -> {
+            startLoading();
+
+            oneTapClient.beginSignIn(signInRequest)
+                    .addOnCompleteListener(requireActivity(), result -> {
+                        try {
+                            activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                        } catch (Throwable e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    })
+                    .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage()));
+        });
 
         binding.btnSwitchToSignIn.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSwitchToSignIn.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_signInFragment));
@@ -155,13 +189,17 @@ public class SignUpFragment extends Fragment {
                                             .setDisplayName(username)
                                             .build()
                             );
-                            Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_profileFragment);
+                            if (isInSignUpFragment()) {
+                                Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signUpFragment_to_profileFragment);
+                            }
                         }
                     } else {
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
                         Toast.makeText(requireContext(), "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
                     }
+
+                    stopLoading();
                 });
     }
 }
