@@ -121,6 +121,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initOnClickListeners();
+        startLoading();
         initPusherChannelListeners();
         updateUI();
     }
@@ -139,6 +140,16 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
 
         binding.btnBack.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnBack.setOnClickListener(v -> exitLobby());
+    }
+
+    private void startLoading() {
+        binding.btnStartGame.setEnabled(false);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void stopLoading() {
+        binding.btnStartGame.setEnabled(true);
+        binding.progressBar.setVisibility(View.GONE);
     }
 
     @SuppressLint({"NonConstantResourceId", "RestrictedApi"})
@@ -197,7 +208,8 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                         Log.e(TAG, e.getLocalizedMessage());
                     }
                 },
-                (message, e) -> exitLobby()
+                (message, e) -> exitLobby(),
+                this::stopLoading
         );
 
         channel = PusherUtil.getPresenceChannel(
