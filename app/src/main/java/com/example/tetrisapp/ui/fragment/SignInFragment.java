@@ -30,8 +30,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-import javax.inject.Inject;
-
 public class SignInFragment extends Fragment {
     private static final String TAG = "SignInFragment";
     private FragmentSigninBinding binding;
@@ -51,12 +49,14 @@ public class SignInFragment extends Fragment {
                                 if (task.isSuccessful()) {
                                     Log.d(TAG, "signInWithCredential:success");
                                     FirebaseUser user = firebaseAuth.getCurrentUser();
-                                    if (user != null) {
+                                    if (user != null && isInSignInFragment()) {
                                         Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_profileFragment);
                                     }
                                 } else {
                                     Log.w(TAG, "signInWithCredential:failure", task.getException());
                                 }
+
+                                stopLoading();
                             }
                         );
                 Log.d(TAG, "Got ID token.");
@@ -94,10 +94,30 @@ public class SignInFragment extends Fragment {
         initOnClickListeners();
     }
 
+    private void startLoading() {
+        binding.btnSignIn.setEnabled(false);
+        binding.btnSignInGoogle.setEnabled(false);
+        binding.btnSwitchToSignUp.setEnabled(false);
+        binding.etPassword.setEnabled(false);
+        binding.etEmail.setEnabled(false);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void stopLoading() {
+        binding.btnSignIn.setEnabled(true);
+        binding.btnSignInGoogle.setEnabled(true);
+        binding.btnSwitchToSignUp.setEnabled(true);
+        binding.etPassword.setEnabled(true);
+        binding.etEmail.setEnabled(true);
+        binding.progressBar.setVisibility(View.GONE);
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void initOnClickListeners() {
         binding.btnSignIn.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSignIn.setOnClickListener(v -> {
+            startLoading();
+
             String email = binding.etEmail.getText().toString();
             String password = binding.etPassword.getText().toString();
 
@@ -106,16 +126,19 @@ public class SignInFragment extends Fragment {
         });
 
         binding.btnSignInGoogle.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnSignInGoogle.setOnClickListener(v -> oneTapClient.beginSignIn(signInRequest)
-                .addOnCompleteListener(requireActivity(), result -> {
-                    try {
-                        activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
-                    } catch (Throwable e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                    }
-                })
-                .addOnFailureListener(requireActivity(), e -> Log.d(TAG, e.getLocalizedMessage()))
-        );
+        binding.btnSignInGoogle.setOnClickListener(v -> {
+            startLoading();
+
+            oneTapClient.beginSignIn(signInRequest)
+                    .addOnCompleteListener(requireActivity(), result -> {
+                        try {
+                            activityResultLauncher.launch(new IntentSenderRequest.Builder(result.getResult().getPendingIntent().getIntentSender()).build());
+                        } catch (Throwable e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    })
+                    .addOnFailureListener(requireActivity(), e -> Log.e(TAG, e.getLocalizedMessage()));
+        });
 
         binding.btnSwitchToSignUp.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
         binding.btnSwitchToSignUp.setOnClickListener(v -> Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_signUpFragment));
@@ -131,13 +154,17 @@ public class SignInFragment extends Fragment {
         binding.etPassword.setText("");
     }
 
+    private boolean isInSignInFragment() {
+        return Navigation.findNavController(binding.getRoot()).getCurrentDestination() == Navigation.findNavController(binding.getRoot()).findDestination(R.id.signInFragment);
+    }
+
     private void signIn(String email, String password) {
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "signInWithEmail:success");
                         FirebaseUser user = firebaseAuth.getCurrentUser();
-                        if (user != null) {
+                        if (user != null && isInSignInFragment()) {
                             Navigation.findNavController(binding.getRoot()).navigate(R.id.action_signInFragment_to_profileFragment);
                         }
                     } else {
@@ -145,6 +172,8 @@ public class SignInFragment extends Fragment {
                         Toast.makeText(requireContext(), "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
                     }
+
+                    stopLoading();
                 });
     }
 }
