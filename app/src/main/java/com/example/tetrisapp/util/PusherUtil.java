@@ -201,6 +201,15 @@ public class PusherUtil {
             UserActionEvent userUnsubscribedListener,
             AuthenticationFailedEvent authenticationFailedEvent
     ) {
+        return createEventListener(userSubscribedListener, userUnsubscribedListener, authenticationFailedEvent, null);
+    }
+
+    public static PresenceChannelEventListener createEventListener(
+            UserActionEvent userSubscribedListener,
+            UserActionEvent userUnsubscribedListener,
+            AuthenticationFailedEvent authenticationFailedEvent,
+            Callback subscriptionSucceeded
+    ) {
         return new PresenceChannelEventListener() {
             @Override
             public void onUsersInformationReceived(String channelName, Set<User> users) {
@@ -225,7 +234,10 @@ public class PusherUtil {
             }
 
             @Override
-            public void onSubscriptionSucceeded(String channelName) {}
+            public void onSubscriptionSucceeded(String channelName) {
+                if (subscriptionSucceeded == null) return;
+                subscriptionSucceeded.call();
+            }
 
             @Override
             public void onEvent(PusherEvent event) {}
