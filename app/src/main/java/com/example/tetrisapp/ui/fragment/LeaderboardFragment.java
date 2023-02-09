@@ -10,18 +10,23 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.data.local.dao.LeaderboardDao;
 import com.example.tetrisapp.data.remote.LeaderboardService;
 import com.example.tetrisapp.databinding.FragmentLeaderboardBinding;
+import com.example.tetrisapp.model.remote.callback.SimpleCallback;
 import com.example.tetrisapp.model.remote.request.GetScorePayload;
 import com.example.tetrisapp.model.remote.response.ResponseLeaderboardGet;
 import com.example.tetrisapp.ui.activity.MainActivity;
 import com.example.tetrisapp.ui.adapters.ScoresRecyclerViewAdapter;
+import com.example.tetrisapp.ui.viewmodel.GameViewModel;
+import com.example.tetrisapp.ui.viewmodel.LeaderboardViewModel;
 import com.example.tetrisapp.util.FirebaseTokenUtil;
 import com.example.tetrisapp.util.OnTouchListener;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -35,9 +40,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @AndroidEntryPoint
-public class LeaderboardFragment extends Fragment implements Callback<ResponseLeaderboardGet> {
+public class LeaderboardFragment extends Fragment {
     private static final String TAG = "LeaderboardFragment";
     private FragmentLeaderboardBinding binding;
+    private LeaderboardViewModel viewModel;
 
     private static final int LIMIT = 25;
 
@@ -48,7 +54,11 @@ public class LeaderboardFragment extends Fragment implements Callback<ResponseLe
     @Inject LeaderboardService leaderboardService;
     private Call<ResponseLeaderboardGet> apiCall;
 
-    private String token = null;
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(this).get(LeaderboardViewModel.class);
+    }
 
     @Nullable
     @Override
@@ -60,6 +70,11 @@ public class LeaderboardFragment extends Fragment implements Callback<ResponseLe
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        startLoading();
+        FirebaseTokenUtil.getFirebaseToken(token -> {
+            viewModel.setToken(token);
+            getScores();
+        });
         initOnClickListeners();
     }
 
@@ -69,13 +84,17 @@ public class LeaderboardFragment extends Fragment implements Callback<ResponseLe
         if (apiCall != null) apiCall.cancel();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        FirebaseTokenUtil.getFirebaseToken(token -> {
-            this.token = token;
-            getScores();
-        });
+    private void startLoading() {
+        binding.btnNextPage.setEnabled(false);
+        binding.btnPrevPage.setEnabled(false);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void stopLoading() {
+        binding.tvPage.setText(String.format(Locale.getDefault(), "Page: %s of %s", this.page, this.pageCount));
+        binding.btnNextPage.setEnabled(this.page < this.pageCount);
+        binding.btnPrevPage.setEnabled(this.page > 1);
+        binding.progressBar.setVisibility(View.GONE);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -98,41 +117,29 @@ public class LeaderboardFragment extends Fragment implements Callback<ResponseLe
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void getScores() {
-        if (token == null) return;
-        apiCall = leaderboardService.getScores(new GetScorePayload(token, page, LIMIT));
-        apiCall.enqueue(this);
-    }
-
-    @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
-    @Override
-    public void onResponse(Call<ResponseLeaderboardGet> call, @NonNull Response<ResponseLeaderboardGet> response) {
-        if (call.isCanceled()) return;
-        if(response.body() == null) return;
-
-        this.page = response.body().currentPage;
-        this.pageCount = response.body().pageCount;
-        List<ScoresRecyclerViewAdapter.Score> items = response.body(). data.stream().map(data -> new ScoresRecyclerViewAdapter.Score(
-                data.score,
-                data.level,
-                data.lines,
-                data.date,
-                data.name,
-                data.userId
-        )).collect(Collectors.toList());
-        requireActivity().runOnUiThread(() -> {
-            binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), items));
-            Objects.requireNonNull(binding.list.getAdapter()).notifyDataSetChanged();
-            binding.tvPage.setText(String.format(Locale.getDefault(), "Page: %s of %s", this.page, this.pageCount));
-
-            binding.btnPrevPage.setEnabled(this.page > 1);
-            binding.btnNextPage.setEnabled(this.page < this.pageCount);
-        });
-    }
-
-    @Override
-    public void onFailure(Call<ResponseLeaderboardGet> call, @NonNull Throwable t) {
-        if (call.isCanceled()) return;
-        Log.e(TAG, t.getLocalizedMessage());
+        if (viewModel.getToken() == null) return;
+        startLoading();
+        apiCall = leaderboardService.getScores(new GetScorePayload(viewModel.getToken(), page, LIMIT));
+        apiCall.enqueue(new SimpleCallback.Builder<ResponseLeaderboardGet>()
+                .setOnSuccessCallback((call, res) -> {
+                    page = res.body().currentPage;
+                    pageCount = res.body().pageCount;
+                    viewModel.getScores().clear();
+                    viewModel.getScores().addAll(res.body().data.stream().map(data -> new ScoresRecyclerViewAdapter.Score(
+                            data.score,
+                            data.level,
+                            data.lines,
+                            data.date,
+                            data.name,
+                            data.userId
+                    )).sorted((o1, o2) -> o2.score - o1.score).collect(Collectors.toList()));
+                    requireActivity().runOnUiThread(() -> {
+                        binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), viewModel.getScores()));
+                        Objects.requireNonNull(binding.list.getAdapter()).notifyDataSetChanged();
+                        stopLoading();
+                    });
+        }).setOnFailureCallback(((call, t) -> stopLoading())).build());
     }
 }
