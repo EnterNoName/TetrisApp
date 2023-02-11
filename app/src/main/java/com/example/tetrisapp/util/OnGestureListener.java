@@ -17,7 +17,7 @@ public class OnGestureListener implements View.OnTouchListener {
         gestureDetector = new GestureDetector(ctx, new GestureListener() {
             @Override
             public boolean onSwipe(Direction direction, float distance, float velocity) {
-                if (Math.abs(distance) >= SWIPE_DISTANCE_THRESHOLD && Math.abs(velocity) >= SWIPE_VELOCITY_THRESHOLD) {
+                if (distance >= SWIPE_DISTANCE_THRESHOLD && velocity >= SWIPE_VELOCITY_THRESHOLD) {
                     switch (direction) {
                         case up:
                             onSwipeUp();
@@ -122,7 +122,7 @@ public class OnGestureListener implements View.OnTouchListener {
             Direction direction = getDirection(x1, y1, x2, y2);
             float distance = getDistance(direction, x1, y1, x2, y2);
             float velocity = direction == Direction.up || direction == Direction.down ? velocityY : velocityX;
-            return onSwipe(direction, distance, velocity);
+            return onSwipe(direction, Math.abs(distance), Math.abs(velocity));
         }
 
         /**
