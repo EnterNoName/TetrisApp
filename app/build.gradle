@@ -25,7 +25,7 @@ android {
         applicationId "com.example.tetrisapp"
         minSdk 24
         targetSdk 33
-        versionCode 10
+        versionCode 11
         versionName "2.0.0"
 
         vectorDrawables.useSupportLibrary = true
@@ -46,6 +46,7 @@ android {
             signingConfig signingConfigs.release
         }
         debug {
+            minifyEnabled false
             signingConfig signingConfigs.release
         }
     }
@@ -113,7 +114,7 @@ dependencies {
     annotationProcessor 'com.google.dagger:hilt-compiler:2.44.2'
 
     // Pusher for websockets
-    implementation 'com.pusher:pusher-java-client:2.4.2'
+    implementation 'com.pusher:pusher-java-client:2.4.4'
 
     // Work Manager
     implementation "androidx.work:work-runtime:2.7.1"
