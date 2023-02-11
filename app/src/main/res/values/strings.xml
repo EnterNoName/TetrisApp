@@ -85,6 +85,8 @@
     <string name="setting_countdown" translatable="false">countdown_duration</string>
     <string name="setting_music_volume" translatable="false">music_volume</string>
     <string name="setting_sfx_volume" translatable="false">sfx_volume</string>
+    <string name="setting_configuration" translatable="false">piece_configuration</string>
+    <string name="setting_configuration_index" translatable="false">piece_configuration_index</string>
 
     <string name="invite_code">Invite Code</string>
     <string name="join_lobby">Join Lobby</string>
