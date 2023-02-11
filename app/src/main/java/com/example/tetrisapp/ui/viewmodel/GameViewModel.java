@@ -1,5 +1,7 @@
 package com.example.tetrisapp.ui.viewmodel;
 
+import android.util.Log;
+
 import androidx.lifecycle.ViewModel;
 
 import com.example.tetrisapp.model.game.MockPlayfield;
@@ -11,7 +13,9 @@ import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 import com.example.tetrisapp.model.local.model.PlayerGameData;
 import com.example.tetrisapp.model.local.model.Tetromino;
 import com.example.tetrisapp.util.FirebaseTokenUtil;
+import com.example.tetrisapp.util.PusherUtil;
 import com.google.firebase.auth.FirebaseAuth;
+import com.pusher.client.channel.PresenceChannel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,15 +27,15 @@ import java.util.stream.Collectors;
 
 public class GameViewModel extends ViewModel {
     private String idToken = null;
+    private PresenceChannel channel;
 
-    private final PieceConfiguration configuration = PieceConfigurations.DEFAULT.getConfiguration();
-    private final Tetris game = new Tetris(configuration, configuration.getStarterPieces(), configuration.getInitialHistory());
+    private PieceConfiguration configuration;
+    private Tetris game;
 
     private final Map<String, PlayerGameData> userGameDataMap = new HashMap<>();
 
     private final MockTetris mockTetris;
     private final MockPlayfield mockPlayfield = new MockPlayfield();
-
     private final MockTetris mockTetrisSpectate;
     private final MockPlayfield mockPlayfieldSpectate = new MockPlayfield();
 
@@ -47,7 +51,7 @@ public class GameViewModel extends ViewModel {
         mockTetrisSpectate.setPlayfield(mockPlayfieldSpectate);
     }
 
-    public String updateMockTetris(String currentPlayerUid) {
+    public String updateMockTetris(PresenceChannel channel, String currentPlayerUid) {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
         userGameValues = userGameValues.stream().filter(i -> i.isPlaying).collect(Collectors.toList());
@@ -58,6 +62,15 @@ public class GameViewModel extends ViewModel {
         }
 
         if (bestScoringPlayer == null) return null;
+
+        PieceConfiguration configuration = PieceConfigurations.DEFAULT.getConfiguration();
+        try {
+            String configurationName = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId).getConfiguration();
+            configuration = PieceConfigurations.valueOf(configurationName).getConfiguration();
+        } catch (Exception e) {
+            Log.e("GameViewModel", e.getLocalizedMessage());
+        }
+        mockTetris.setConfiguration(configuration);
 
         // Init current piece
         Piece piece = mockTetris.getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
@@ -82,13 +95,23 @@ public class GameViewModel extends ViewModel {
         return bestScoringPlayer.userId;
     }
 
-    public String updateSpectatorMockTetris() {
+    public String updateSpectatorMockTetris(PresenceChannel channel) {
         List<PlayerGameData> userGameValues = new ArrayList<>(userGameDataMap.values());
         userGameValues.sort(Comparator.comparingInt(o -> o.score));
         userGameValues = userGameValues.stream().filter(i -> i.isPlaying).collect(Collectors.toList());
 
         PlayerGameData bestScoringPlayer = !userGameValues.isEmpty() ? userGameValues.get(userGameValues.size() - 1) : null;
         if (bestScoringPlayer == null) return null;
+
+        PieceConfiguration configuration = PieceConfigurations.DEFAULT.getConfiguration();
+        try {
+            String configurationName = PusherUtil.getUserInfo(channel, bestScoringPlayer.userId).getConfiguration();
+            configuration = PieceConfigurations.valueOf(configurationName).getConfiguration();
+        } catch (Exception e) {
+            Log.e("GameViewModel", e.getLocalizedMessage());
+        }
+        mockTetrisSpectate.setConfiguration(configuration);
+
 
         // Init current piece
         Piece piece = mockTetrisSpectate.getConfiguration().get(bestScoringPlayer.tetromino.name).copy();
@@ -203,5 +226,13 @@ public class GameViewModel extends ViewModel {
 
     public MockPlayfield getMockPlayfieldSpectate() {
         return mockPlayfieldSpectate;
+    }
+
+    public void setConfiguration(PieceConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    public void setGame(Tetris game) {
+        this.game = game;
     }
 }

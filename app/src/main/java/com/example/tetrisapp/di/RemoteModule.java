@@ -1,6 +1,8 @@
 package com.example.tetrisapp.di;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -10,6 +12,8 @@ import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LeaderboardService;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.data.remote.UpdateService;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
+import com.example.tetrisapp.ui.activity.MainActivity;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -102,8 +106,10 @@ public class RemoteModule {
 
                 try {
                     assert user != null;
+                    String configuration = app.getSharedPreferences("ui.activity.MainActivity", Context.MODE_PRIVATE).getString(app.getString(R.string.setting_configuration), "DEFAULT");
                     String idToken = Tasks.await(user.getIdToken(true)).getToken();
                     urlParameters.append("&idToken=").append(URLEncoder.encode(idToken, getCharset()));
+                    urlParameters.append("&configuration=").append(URLEncoder.encode(configuration, getCharset()));
                 } catch (ExecutionException | InterruptedException | UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }

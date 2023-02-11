@@ -18,53 +18,31 @@ import android.view.ViewGroup;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.MotionEventCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.tetrisapp.R;
-import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.databinding.FragmentGameBinding;
 import com.example.tetrisapp.databinding.SidebarBinding;
-import com.example.tetrisapp.databinding.SidebarMultiplayerBinding;
-import com.example.tetrisapp.model.game.Piece;
 import com.example.tetrisapp.model.game.Tetris;
-import com.example.tetrisapp.model.local.model.PlayerGameData;
-import com.example.tetrisapp.model.local.model.Tetromino;
-import com.example.tetrisapp.model.local.model.UserInfo;
-import com.example.tetrisapp.model.remote.request.TokenPayload;
-import com.example.tetrisapp.model.remote.response.DefaultPayload;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 import com.example.tetrisapp.ui.activity.MainActivity;
-import com.example.tetrisapp.ui.view.GameView;
 import com.example.tetrisapp.ui.viewmodel.GameViewModel;
 import com.example.tetrisapp.util.MediaPlayerUtil;
 import com.example.tetrisapp.util.OnGestureListener;
 import com.example.tetrisapp.util.OnTouchListener;
-import com.example.tetrisapp.util.PusherUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.gson.Gson;
-import com.pusher.client.Pusher;
-import com.pusher.client.channel.PresenceChannel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 @AndroidEntryPoint
 public class GameFragment extends Fragment {
@@ -84,28 +62,38 @@ public class GameFragment extends Fragment {
     private Future<?> countdownFuture = null;
 
     protected MediaPlayer gameMusic;
-    @Inject MediaPlayerUtil mediaHelper;
+    @Inject
+    MediaPlayerUtil mediaHelper;
 
     protected SharedPreferences preferences;
 
     protected float musicVolume = 0.5f;
     protected float sfxVolume = 0.5f;
 
+    private final OnBackPressedCallback backPressCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            confirmExit();
+        }
+    };
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(GameViewModel.class);
-
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                confirmExit();
-            }
-        };
-
-        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
-
         preferences = requireActivity().getPreferences(Context.MODE_PRIVATE);
+
+        viewModel.setConfiguration(PieceConfigurations
+                .valueOf(preferences.getString(getString(R.string.setting_configuration), "DEFAULT"))
+                .getConfiguration()
+        );
+        viewModel.setGame(new Tetris(
+                viewModel.getConfiguration(),
+                viewModel.getConfiguration().getStarterPieces(),
+                viewModel.getConfiguration().getInitialHistory()
+        ));
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, backPressCallback);
 
         countdown = preferences.getInt(getString(R.string.setting_countdown), 5);
         countdownRemaining = countdown;
@@ -231,7 +219,7 @@ public class GameFragment extends Fragment {
             private final GestureDetector gestureDetector = new GestureDetector(requireContext(), new OnGestureListener.GestureListener() {
                 @Override
                 public boolean onSwipe(Direction direction, float distance, float velocity) {
-                    if (Math.abs(distance) >= SWIPE_DISTANCE_THRESHOLD && Math.abs(velocity) >= SWIPE_VELOCITY_THRESHOLD) {
+                    if (distance >= SWIPE_DISTANCE_THRESHOLD && velocity >= SWIPE_VELOCITY_THRESHOLD) {
                         switch (direction) {
                             case up:
                                 viewModel.getGame().hold();
@@ -272,7 +260,7 @@ public class GameFragment extends Fragment {
 
                         if (this.moved) {
                             int col = viewModel.getGame().getCurrentPiece().getCol();
-                            int colDiff = (int) Math.round((this.x - x) / this.blockSize);
+                            int colDiff = Math.round((this.x - x) / this.blockSize);
                             int desiredCol = this.col - colDiff;
 
                             if (desiredCol == col) return true;
@@ -296,7 +284,7 @@ public class GameFragment extends Fragment {
                             if (x > (width / 3f) * 2) {
                                 viewModel.getGame().rotateTetrominoRight();
                                 return true;
-                            } else if (x < width / 3f){
+                            } else if (x < width / 3f) {
                                 viewModel.getGame().rotateTetrominoLeft();
                                 return true;
                             }
@@ -404,6 +392,8 @@ public class GameFragment extends Fragment {
     }
 
     protected void onGameOver() {
+        viewModel.getGame().stop();
+
         gameMusic.stop();
         gameMusic.release();
         gameMusic = null;
@@ -448,7 +438,7 @@ public class GameFragment extends Fragment {
                         } else {
                             countdownRemaining = countdown;
                             binding.tvCountdown.setText("GO!");
-                            mediaHelper.playSound(R.raw.gamestart,volume);
+                            mediaHelper.playSound(R.raw.gamestart, volume);
                         }
                     }
 

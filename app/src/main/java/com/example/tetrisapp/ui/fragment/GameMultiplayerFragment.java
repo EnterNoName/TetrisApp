@@ -252,7 +252,7 @@ public class GameMultiplayerFragment extends GameFragment {
     private String updateSpectatorView(PlayerGameData data) {
         viewModel.getUserGameDataMap().put(data.userId, data);
 
-        String spectatedPlayerUid = viewModel.updateSpectatorMockTetris();
+        String spectatedPlayerUid = viewModel.updateSpectatorMockTetris(channel);
         PlayerGameData spectatedPlayerData = viewModel.getUserGameDataMap().getOrDefault(spectatedPlayerUid, null);
         if (spectatedPlayerData == null) return null;
 
@@ -288,7 +288,7 @@ public class GameMultiplayerFragment extends GameFragment {
         // Save received user game data
         viewModel.getUserGameDataMap().put(data.userId, data);
 
-        String bestScoringPlayerUid = viewModel.updateMockTetris(currentPlayerUid);
+        String bestScoringPlayerUid = viewModel.updateMockTetris(channel, currentPlayerUid);
         PlayerGameData bestScoringPlayer = viewModel.getUserGameDataMap().getOrDefault(bestScoringPlayerUid, null);
 
         if (bestScoringPlayer == null) {
