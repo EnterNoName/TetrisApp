@@ -83,30 +83,14 @@
             app:popExitAnim="@android:anim/fade_out" />
 
         <action
-            android:id="@+id/action_gameFragment_to_gameOverFragment"
-            app:destination="@id/gameOverFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out"
-            app:popUpTo="@id/mainMenuFragment">
-            <argument
-                android:name="score"
-                android:defaultValue="0"
-                app:argType="integer" />
-            <argument
-                android:name="lines"
-                android:defaultValue="0"
-                app:argType="integer" />
-            <argument
-                android:name="level"
-                android:defaultValue="0"
-                app:argType="integer" />
-        </action>
-        <action
             android:id="@+id/action_gameFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_gameFragment_to_gameOverFragment"
+            app:destination="@id/gameOverFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="false" />
 
     </fragment>
     <fragment
