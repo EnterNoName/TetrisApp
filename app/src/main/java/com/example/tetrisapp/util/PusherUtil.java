@@ -1,5 +1,7 @@
 package com.example.tetrisapp.util;
 
+import android.util.Log;
+
 import com.example.tetrisapp.interfaces.Callback;
 import com.example.tetrisapp.interfaces.FindUserCallback;
 import com.example.tetrisapp.interfaces.GameOverCallback;
@@ -19,6 +21,8 @@ import com.pusher.client.channel.PusherEvent;
 import com.pusher.client.channel.SubscriptionEventListener;
 import com.pusher.client.channel.User;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 public class PusherUtil {
@@ -213,6 +217,7 @@ public class PusherUtil {
         return new PresenceChannelEventListener() {
             @Override
             public void onUsersInformationReceived(String channelName, Set<User> users) {
+                Log.d("Test", Arrays.toString(users.toArray()));
                 for (User user : users) {
                     userSubscribed(channelName, user);
                 }
@@ -220,16 +225,19 @@ public class PusherUtil {
 
             @Override
             public void userSubscribed(String channelName, User user) {
+                if (userSubscribedListener == null) return;
                 userSubscribedListener.call(channelName, user);
             }
 
             @Override
             public void userUnsubscribed(String channelName, User user) {
+                if (userUnsubscribedListener == null) return;
                 userUnsubscribedListener.call(channelName, user);
             }
 
             @Override
             public void onAuthenticationFailure(String message, Exception e) {
+                if (authenticationFailedEvent == null) return;
                 authenticationFailedEvent.call(message, e);
             }
 

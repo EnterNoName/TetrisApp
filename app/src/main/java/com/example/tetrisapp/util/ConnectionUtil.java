@@ -46,8 +46,10 @@ public class ConnectionUtil {
             public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
                 if (isInternetAvailable()) {
+                    if (onAvailable == null) return;
                     onAvailable.call();
                 } else {
+                    if (onLost == null) return;
                     onLost.call();
                 }
             }
@@ -55,6 +57,7 @@ public class ConnectionUtil {
             @Override
             public void onLost(@NonNull Network network) {
                 super.onLost(network);
+                if (onLost == null) return;
                 onLost.call();
             }
         };
