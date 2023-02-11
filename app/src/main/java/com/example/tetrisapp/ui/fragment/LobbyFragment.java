@@ -27,7 +27,6 @@ import com.example.tetrisapp.R;
 import com.example.tetrisapp.data.remote.GameService;
 import com.example.tetrisapp.data.remote.LobbyService;
 import com.example.tetrisapp.databinding.FragmentLobbyBinding;
-import com.example.tetrisapp.model.local.model.GameStartedData;
 import com.example.tetrisapp.model.local.model.UserInfo;
 import com.example.tetrisapp.model.remote.request.TokenPayload;
 import com.example.tetrisapp.model.remote.response.DefaultPayload;
@@ -102,7 +101,6 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentLobbyBinding.inflate(inflater, container, false);
-        binding.list.setAdapter(new UsersRecyclerViewAdapter(viewModel.getUserList()));
         return binding.getRoot();
     }
 
@@ -120,8 +118,10 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initOnClickListeners();
+        binding.list.setAdapter(new UsersRecyclerViewAdapter(viewModel.getUserList()));
+
         startLoading();
+        initOnClickListeners();
         initPusherChannelListeners();
         updateUI();
     }
@@ -132,7 +132,11 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         binding.btnExitLobby.setOnClickListener(v -> exitLobby());
 
         binding.btnStartGame.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
-        binding.btnStartGame.setOnClickListener(v -> gameService.startGame(new TokenPayload(viewModel.getIdToken())).enqueue(this));
+        binding.btnStartGame.setOnClickListener(v -> {
+            if (viewModel.getUserList().size() >= 2) {
+                gameService.startGame(new TokenPayload(viewModel.getIdToken())).enqueue(this);
+            }
+        });
 
         // Copies invite code to clip board
         binding.btnActionMenu.setOnTouchListener(new OnTouchListener((MainActivity) requireActivity()));
@@ -143,13 +147,17 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     }
 
     private void startLoading() {
-        binding.btnStartGame.setEnabled(false);
-        binding.progressBar.setVisibility(View.VISIBLE);
+        requireActivity().runOnUiThread(() -> {
+            binding.btnStartGame.setEnabled(false);
+            binding.progressBar.setVisibility(View.VISIBLE);
+        });
     }
 
     private void stopLoading() {
-        binding.btnStartGame.setEnabled(true);
-        binding.progressBar.setVisibility(View.GONE);
+        requireActivity().runOnUiThread(() -> {
+            binding.btnStartGame.setEnabled(true);
+            binding.progressBar.setVisibility(View.GONE);
+        });
     }
 
     @SuppressLint({"NonConstantResourceId", "RestrictedApi"})
@@ -212,6 +220,7 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
                 this::stopLoading
         );
 
+        assert pusher != null;
         channel = PusherUtil.getPresenceChannel(
                 pusher,
                 "presence-" + args.getInviteCode(),
@@ -237,13 +246,14 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
     }
 
     private void exitLobby() {
-        Navigation.findNavController(binding.getRoot()).popBackStack();
+        if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
+                Navigation.findNavController(binding.getRoot()).findDestination(R.id.lobbyFragment)) {
+            Navigation.findNavController(binding.getRoot()).popBackStack();
+        }
     }
 
-    // Remove user from user list and recycler view adapter
+    // Remove user from user list
     private void removeUserFromLobbyUserList(User user) {
-        if (binding.list.getAdapter() == null) return;
-
         requireActivity().runOnUiThread(() -> {
             for (int i = 0; i < viewModel.getUserList().size(); i++) {
                 UserInfo userInfo = viewModel.getUserList().get(i);
@@ -255,10 +265,8 @@ public class LobbyFragment extends Fragment implements Callback<DefaultPayload> 
         });
     }
 
-    // Get user data from json and append to user list and recycler view adapter
+    // Get user data from json and append to user list
     private void addUserToLobbyUserList(User user) {
-        if (binding.list.getAdapter() == null) return;
-
         Gson gson = new Gson();
         UserInfo userPresenceData = gson.fromJson(user.getInfo(), UserInfo.class);
         userPresenceData.setUid(user.getId());
