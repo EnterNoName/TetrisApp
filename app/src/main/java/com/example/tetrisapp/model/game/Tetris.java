@@ -23,7 +23,7 @@ public class Tetris implements TetrisInterface {
     public static final int MIN_SPEED = 125;
     public static final int LOCK_DELAY = 500;
 
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
     private Callback onGameValuesUpdateCallback = () -> {};
     private Callback onMoveCallback = () -> {};
     private Callback onPauseCallback = () -> {};
@@ -232,44 +232,55 @@ public class Tetris implements TetrisInterface {
     // Controls
 
     public synchronized void moveTetrominoRight() {
-        if (!pause && !gameOver && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
-            tetromino.setCol(tetromino.getCol() + 1);
-            onMoveCallback.call();
-            calculateShadow();
-        }
+        if (pause || gameOver) return;
+
+        executor.submit(() -> {
+            if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() + 1)) {
+                tetromino.setCol(tetromino.getCol() + 1);
+                onMoveCallback.call();
+                calculateShadow();
+            }
+        });
     }
 
     public synchronized void moveTetrominoLeft() {
-        if (!pause && !gameOver && playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
-            tetromino.setCol(tetromino.getCol() - 1);
-            onMoveCallback.call();
-            calculateShadow();
-        }
+        if (pause || gameOver) return;
+
+        executor.submit(() -> {
+            if (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow(), tetromino.getCol() - 1)) {
+                tetromino.setCol(tetromino.getCol() - 1);
+                onMoveCallback.call();
+                calculateShadow();
+            }
+        });
     }
 
     public synchronized void rotateTetrominoRight() {
         if (pause) return;
 
-        byte[][] rotatedMatrix = MathUtil.rotateMatrixClockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
+        executor.submit(() -> {
+            byte[][] rotatedMatrix = MathUtil.rotateMatrixClockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
 
-        if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
-            tetromino.setMatrix(rotatedMatrix);
-            onMoveCallback.call();
-            calculateShadow();
-        }
-
+            if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
+                tetromino.setMatrix(rotatedMatrix);
+                onMoveCallback.call();
+                calculateShadow();
+            }
+        });
     }
 
     public synchronized void rotateTetrominoLeft() {
         if (pause || gameOver) return;
 
-        byte[][] rotatedMatrix = MathUtil.rotateMatrixCounterclockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
+        executor.submit(() -> {
+            byte[][] rotatedMatrix = MathUtil.rotateMatrixCounterclockwise(ArrayUtil.deepCopy(tetromino.getMatrix()));
 
-        if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
-            tetromino.setMatrix(rotatedMatrix);
-            onMoveCallback.call();
-            calculateShadow();
-        }
+            if (playfield.isValidMove(rotatedMatrix, tetromino.getRow(), tetromino.getCol())) {
+                tetromino.setMatrix(rotatedMatrix);
+                onMoveCallback.call();
+                calculateShadow();
+            }
+        });
     }
 
     private synchronized void moveTetrominoDown() {
@@ -293,34 +304,39 @@ public class Tetris implements TetrisInterface {
 
     public synchronized void hardDrop() {
         if (pause || gameOver) return;
-        onHardDropCallback.call();
-        future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
-        while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
-            tetromino.setRow(tetromino.getRow() + 1);
-        }
-        placeTetromino();
+
+        executor.submit(() -> {
+            future.cancel(true); // Prevents out of bounds from hardDrop timed with movePieceDown
+            while (playfield.isValidMove(tetromino.getMatrix(), tetromino.getRow() + 1, tetromino.getCol())) {
+                tetromino.setRow(tetromino.getRow() + 1);
+            }
+            placeTetromino();
+            onHardDropCallback.call();
+        });
     }
 
     public synchronized void hold() {
         if (pause || gameOver) return;
 
-        if (!holdUsed) {
-            if (heldPiece == null) {
-                heldPiece = tetromino.getName();
-                tetromino = getNextTetromino();
-            } else {
-                Piece temp = configuration.get(heldPiece).copy();
-                heldPiece = tetromino.getName();
-                tetromino = temp;
-                int col = (int) (playfield.getState()[0].length / 2 - Math.ceil(tetromino.getMatrix().length / 2f));
-                tetromino.setCol(col);
+        executor.submit(() -> {
+            if (!holdUsed) {
+                if (heldPiece == null) {
+                    heldPiece = tetromino.getName();
+                    tetromino = getNextTetromino();
+                } else {
+                    Piece temp = configuration.get(heldPiece).copy();
+                    heldPiece = tetromino.getName();
+                    tetromino = temp;
+                    int col = (int) (playfield.getState()[0].length / 2 - Math.ceil(tetromino.getMatrix().length / 2f));
+                    tetromino.setCol(col);
+                }
+
+                calculateShadow();
+                onHoldCallback.call();
+
+                holdUsed = true;
             }
-
-            calculateShadow();
-            onHoldCallback.call();
-
-            holdUsed = true;
-        }
+        });
     }
 
     // Game engine
@@ -415,9 +431,9 @@ public class Tetris implements TetrisInterface {
     // Setters
 
     public synchronized void setPause(boolean pause) {
-        if (pause == this.pause) return;
+        if (pause == this.pause || gameOver) return;
 
-        if (!gameOver) {
+        executor.submit(() -> {
             if (pause) {
                 if (future == null) return;
 
@@ -431,13 +447,13 @@ public class Tetris implements TetrisInterface {
                 onResumeCallback.call();
             }
             this.pause = pause;
-        }
+        });
     }
 
     public synchronized void setSoftDrop(boolean softDrop) {
-        if (softDrop == this.softDrop) return;
+        if (softDrop == this.softDrop || pause || gameOver) return;
 
-        if (!pause && !gameOver) {
+        executor.submit(() -> {
             this.softDrop = softDrop;
 
             delayLeft = (int) future.getDelay(TimeUnit.MILLISECONDS);
@@ -446,7 +462,7 @@ public class Tetris implements TetrisInterface {
             } else {
                 updateSpeed(delayLeft, 1f);
             }
-        }
+        });
     }
 
     // Callback
