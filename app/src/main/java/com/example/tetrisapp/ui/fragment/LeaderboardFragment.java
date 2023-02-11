@@ -71,6 +71,7 @@ public class LeaderboardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         startLoading();
+        binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), viewModel.getScores()));
         FirebaseTokenUtil.getFirebaseToken(token -> {
             viewModel.setToken(token);
             getScores();
@@ -136,7 +137,6 @@ public class LeaderboardFragment extends Fragment {
                             data.userId
                     )).sorted((o1, o2) -> o2.score - o1.score).collect(Collectors.toList()));
                     requireActivity().runOnUiThread(() -> {
-                        binding.list.setAdapter(new ScoresRecyclerViewAdapter(requireContext(), viewModel.getScores()));
                         Objects.requireNonNull(binding.list.getAdapter()).notifyDataSetChanged();
                         stopLoading();
                     });
