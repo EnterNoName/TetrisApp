@@ -4,7 +4,9 @@ import com.example.tetrisapp.interfaces.PieceConfiguration;
 
 public enum PieceConfigurations {
     DEFAULT(new PieceConfigurationDefault()),
-    GLASS(new PieceConfigurationGlass());
+    GLASS(new PieceConfigurationGlass()),
+    BRICK(new PieceConfigurationBrick()),
+    PORTAL_CUBE(new PieceConfigurationPortalCube());
 
     private final PieceConfiguration configuration;
 
