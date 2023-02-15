@@ -177,6 +177,7 @@ public class GameFragment extends Fragment {
         });
 
         float playbackSpeed = 2 - viewModel.getGame().getSpeed() / (float) Tetris.DEFAULT_SPEED;
+        if (gameMusic == null) return;
         gameMusic.setPlaybackParams(new PlaybackParams().setSpeed(playbackSpeed));
     }
 
@@ -392,19 +393,19 @@ public class GameFragment extends Fragment {
     }
 
     protected void onGameOver() {
-        viewModel.getGame().stop();
-
         gameMusic.stop();
         gameMusic.release();
         gameMusic = null;
 
         mediaHelper.playSound(R.raw.gameover, sfxVolume);
 
-        GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
-        action.setScore(viewModel.getGame().getScore());
-        action.setLevel(viewModel.getGame().getLevel());
-        action.setLines(viewModel.getGame().getLines());
-        Navigation.findNavController(binding.getRoot()).navigate(action);
+        requireActivity().runOnUiThread(() -> {
+            GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
+            action.setScore(viewModel.getGame().getScore());
+            action.setLines(viewModel.getGame().getLines());
+            action.setLines(viewModel.getGame().getLevel());
+            Navigation.findNavController(binding.getRoot()).navigate(action);
+        });
     }
 
     // Runnables

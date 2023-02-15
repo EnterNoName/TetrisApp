@@ -229,21 +229,17 @@ public class GameMultiplayerFragment extends GameFragment {
     }
 
     private void multiplayerGameOver() {
-        // Getting winner's info
-        UserInfo winnerUserInfo;
-        winnerUserInfo = PusherUtil.getUserInfo(channel, viewModel.getWinnerUid());
-        if (winnerUserInfo == null) return;
-
         requireActivity().runOnUiThread(() -> {
             // Setting game over action parameters
-            GameMultiplayerFragmentDirections.ActionGameMultiplayerFragmentToGameOverFragment action = GameMultiplayerFragmentDirections.actionGameMultiplayerFragmentToGameOverFragment();
+            GameMultiplayerFragmentDirections.ActionGameMultiplayerFragmentToGameOverMultiplayerFragment action = GameMultiplayerFragmentDirections
+                    .actionGameMultiplayerFragmentToGameOverMultiplayerFragment(
+                            args.getLobbyCode(),
+                            viewModel.getWinnerUid(),
+                            viewModel.getPlacement()
+                            );
             action.setScore(viewModel.getGame().getScore());
             action.setLevel(viewModel.getGame().getLevel());
             action.setLines(viewModel.getGame().getLines());
-            action.setLobbyCode(args.getLobbyCode());
-            action.setWinnerUid(winnerUserInfo.getUid());
-            action.setWinnerUsername(winnerUserInfo.getName());
-            action.setPlacement(viewModel.getPlacement());
             Navigation.findNavController(binding.getRoot()).navigate(action);
         });
     }

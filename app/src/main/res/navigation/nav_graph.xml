@@ -89,8 +89,7 @@
         <action
             android:id="@+id/action_gameFragment_to_gameOverFragment"
             app:destination="@id/gameOverFragment"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="false" />
+            app:popUpTo="@id/mainMenuFragment" />
 
     </fragment>
     <fragment
@@ -107,57 +106,6 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="@null" />
-    </fragment>
-    <fragment
-        android:id="@+id/gameOverFragment"
-        android:name="com.example.tetrisapp.ui.fragment.GameOverFragment"
-        android:label="game_over_fragment"
-        tools:layout="@layout/fragment_game_over" >
-        <action
-            android:id="@+id/action_gameOverFragment_to_mainMenuFragment"
-            app:destination="@id/mainMenuFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="false" />
-        <action
-            android:id="@+id/action_gameOverFragment_to_gameFragment"
-            app:destination="@id/gameFragment"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="false" />
-        <argument
-            android:name="score"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="lines"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="level"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="lobbyCode"
-            app:argType="string"
-            android:defaultValue="@null"
-            app:nullable="true" />
-        <argument
-            android:name="winnerUid"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-        <argument
-            android:name="winnerUsername"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-        <argument
-            android:name="placement"
-            app:argType="integer"
-            android:defaultValue="-1" />
-        <action
-            android:id="@+id/action_gameOverFragment_to_gameMultiplayerFragment"
-            app:destination="@id/gameMultiplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/scoresFragment"
@@ -249,11 +197,6 @@
             app:argType="integer"
             android:defaultValue="3" />
         <action
-            android:id="@+id/action_gameMultiplayerFragment_to_gameOverFragment"
-            app:destination="@id/gameOverFragment"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="false" />
-        <action
             android:id="@+id/action_gameMultiplayerFragment_to_pauseFragment"
             app:destination="@id/pauseFragment" />
         <argument
@@ -265,9 +208,71 @@
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment"
             app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_gameMultiplayerFragment_to_gameOverMultiplayerFragment"
+            app:destination="@id/gameOverMultiplayerFragment" />
     </fragment>
     <fragment
         android:id="@+id/leaderboardFragment"
         android:name="com.example.tetrisapp.ui.fragment.LeaderboardFragment"
         android:label="LeaderboardFragment" />
+    <fragment
+        android:id="@+id/gameOverFragment"
+        android:name="com.example.tetrisapp.ui.fragment.GameOverFragment"
+        android:label="GameOverFragment" >
+        <action
+            android:id="@+id/action_gameOverFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <argument
+            android:name="score"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="lines"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="level"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <action
+            android:id="@+id/action_gameOverFragment_to_gameFragment"
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/gameOverMultiplayerFragment"
+        android:name="com.example.tetrisapp.ui.fragment.GameOverMultiplayerFragment"
+        android:label="GameOverMultiplayerFragment" >
+        <action
+            android:id="@+id/action_gameOverMultiplayerFragment_to_gameMultiplayerFragment"
+            app:destination="@id/gameMultiplayerFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_gameOverMultiplayerFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <argument
+            android:name="score"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="lines"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="level"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="lobbyCode"
+            app:argType="string" />
+        <argument
+            android:name="winnerUid"
+            app:argType="string" />
+        <argument
+            android:name="placement"
+            app:argType="integer" />
+    </fragment>
 </navigation>
