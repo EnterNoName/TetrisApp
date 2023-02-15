@@ -4,7 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 
 public class MediaPlayerUtil {
-    private Context context;
+    private final Context context;
 
     public MediaPlayerUtil(Context context) {
         this.context = context;

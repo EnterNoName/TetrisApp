@@ -2,18 +2,21 @@ package com.example.tetrisapp.util;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class ArrayUtil {
     @SafeVarargs
-    public static <T> T[] concat(T[] array1, T[] array2, T[]... args) {
-        T[] result = Stream.concat(Arrays.stream(array1), Arrays.stream(array2))
-                .toArray(size -> (T[]) Array.newInstance(Objects.requireNonNull(array1.getClass().getComponentType()), size));
+    public static <T> T[] concat(T[]... arrays) {
+        int totalLen = 0;
+        for (T[] arr: arrays) {
+            totalLen += arr.length;
+        }
+        T[] result = (T[]) Array.newInstance(arrays.getClass().getComponentType().getComponentType(), totalLen);
 
-        for (T[] array : args) {
-            result = Stream.concat(Arrays.stream(result), Arrays.stream(array))
-                    .toArray(size -> (T[]) Array.newInstance(array1.getClass().getComponentType(), size));
+        int copied = 0;
+        for (T[] arr: arrays) {
+            System.arraycopy(arr, 0, result, copied, arr.length);
+            copied += arr.length;
         }
 
         return result;
