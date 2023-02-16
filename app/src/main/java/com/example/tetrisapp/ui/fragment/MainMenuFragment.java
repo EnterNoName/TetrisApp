@@ -29,7 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
@@ -57,7 +56,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.io.EOFException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -76,9 +74,10 @@ public class MainMenuFragment extends Fragment {
     @Inject UpdateService updateService;
     @Inject LeaderboardService leaderboardService;
     @Inject LeaderboardDao leaderboardDao;
-    FirebaseUser firebaseUser;
+    private FirebaseUser firebaseUser;
     private Response<UpdatePayload> update = null;
     private Call<UpdatePayload> updateApiCall;
+    private Uri downloadUri;
 
     private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (checkWriteExternalStoragePermissions()) {
@@ -188,7 +187,9 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void checkUpdate() {
-        if (update != null) {
+        if (downloadUri != null) {
+            startInstallation();
+        } else if (update != null) {
             showUpdateDialog();
         } else {
             ConnectionUtil connectionHelper = new ConnectionUtil(requireActivity().getSystemService(ConnectivityManager.class));
@@ -221,12 +222,20 @@ public class MainMenuFragment extends Fragment {
         deleteIfFileExits(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + getString(R.string.app_name) + ".apk");
         DownloadUtil downloadUtil = new DownloadUtil(requireContext(), URL, getString(R.string.app_name) + ".apk");
         downloadUtil.setOnCompleteListener((uri) -> {
-            Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-            install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            install.setDataAndType(uri, MimeTypeUtil.getMimeType(uri.toString()));
-            requireContext().startActivity(install);
+            downloadUri = uri;
+            if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
+                    Navigation.findNavController(binding.getRoot()).findDestination(R.id.mainMenuFragment)) {
+                startInstallation();
+            }
         });
+    }
+
+    private void startInstallation() {
+        Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+        install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        install.setDataAndType(downloadUri, MimeTypeUtil.getMimeType(downloadUri.toString()));
+        requireContext().startActivity(install);
     }
 
     private void showUpdateDialog() {
