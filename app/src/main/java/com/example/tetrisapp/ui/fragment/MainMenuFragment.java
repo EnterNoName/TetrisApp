@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -78,6 +79,7 @@ public class MainMenuFragment extends Fragment {
     private Response<UpdatePayload> update = null;
     private Call<UpdatePayload> updateApiCall;
     private Uri downloadUri;
+    private DownloadUtil downloadUtil;
 
     private final ActivityResultLauncher<Intent> activitySettingsResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         if (checkWriteExternalStoragePermissions()) {
@@ -189,6 +191,7 @@ public class MainMenuFragment extends Fragment {
     private void checkUpdate() {
         if (downloadUri != null) {
             startInstallation();
+        } else if (downloadUtil != null && downloadUtil.getDownloadId() != -1) {
         } else if (update != null) {
             showUpdateDialog();
         } else {
@@ -218,15 +221,19 @@ public class MainMenuFragment extends Fragment {
         if (update.body() == null) return;
 
         String URL = update.body().url;
-
         deleteIfFileExits(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + getString(R.string.app_name) + ".apk");
-        DownloadUtil downloadUtil = new DownloadUtil(requireContext(), URL, getString(R.string.app_name) + ".apk");
+        downloadUtil = new DownloadUtil(requireContext(), URL, getString(R.string.app_name) + ".apk");
         downloadUtil.setOnCompleteListener((uri) -> {
             downloadUri = uri;
-            if (Navigation.findNavController(binding.getRoot()).getCurrentDestination() ==
-                    Navigation.findNavController(binding.getRoot()).findDestination(R.id.mainMenuFragment)) {
-                startInstallation();
-            }
+            requireActivity().runOnUiThread(() -> {
+                NavHostFragment hostFragment = (NavHostFragment) requireActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_container_view);
+                assert hostFragment != null;
+
+                if (hostFragment.getNavController().getCurrentDestination() ==
+                        hostFragment.getNavController().findDestination(R.id.mainMenuFragment)) {
+                    startInstallation();
+                }
+            });
         });
     }
 
