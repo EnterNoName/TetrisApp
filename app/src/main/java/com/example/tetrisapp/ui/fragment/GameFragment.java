@@ -403,7 +403,7 @@ public class GameFragment extends Fragment {
             GameFragmentDirections.ActionGameFragmentToGameOverFragment action = GameFragmentDirections.actionGameFragmentToGameOverFragment();
             action.setScore(viewModel.getGame().getScore());
             action.setLines(viewModel.getGame().getLines());
-            action.setLines(viewModel.getGame().getLevel());
+            action.setLevel(viewModel.getGame().getLevel());
             Navigation.findNavController(binding.getRoot()).navigate(action);
         });
     }
