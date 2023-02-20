@@ -44,7 +44,7 @@ public class DownloadUtil {
     private final String notificationTitle;
     private final String dirPath = Environment.DIRECTORY_DOWNLOADS;
 
-    private long downloadId;
+    private long downloadId = -1;
 
     public DownloadUtil(Context context, String URL, String fileName) {
         this.context = context;
