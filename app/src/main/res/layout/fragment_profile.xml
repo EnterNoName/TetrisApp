@@ -12,13 +12,40 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/background_button"
-        app:tint="?colorOnPrimary"
         android:contentDescription="@string/desc_back"
         android:padding="8dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_round_arrow_back_24"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?colorOnPrimary" />
+
+    <ImageView
+        android:id="@+id/ivCoins"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/background_button"
+        android:contentDescription=""
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_round_money_24"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        app:tint="?colorOnPrimary" />
+
+    <TextView
+        android:id="@+id/tvCoins"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_medium"
+        android:includeFontPadding="false"
+        android:textColor="?colorOnPrimary"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
+        app:layout_constraintEnd_toStartOf="@+id/ivCoins"
+        app:layout_constraintTop_toTopOf="@+id/btnBack"
+        tools:text="2919" />
 
     <ImageView
         android:id="@+id/ivProfileImage"
@@ -27,10 +54,10 @@
         android:layout_marginTop="64dp"
         android:contentDescription="@string/desc_profile_image"
         android:src="@drawable/ic_round_account_circle_24"
-        app:tint="?colorOnPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?colorOnPrimary" />
 
     <TextView
         android:id="@+id/tvUsername"
@@ -59,20 +86,112 @@
         app:layout_constraintTop_toBottomOf="@+id/tvUsername"
         tools:text="nickname@gmail.com" />
 
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/firstDivider"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvEmailAddress" />
+
+    <TextView
+        android:id="@+id/tvGamesCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_medium"
+        android:includeFontPadding="false"
+        android:textAlignment="center"
+        android:textColor="?colorOnSecondary"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tvPlaytime"
+        app:layout_constraintTop_toBottomOf="@+id/firstDivider"
+        tools:text="Games Played:\n34" />
+
+    <TextView
+        android:id="@+id/tvPlaytime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_medium"
+        android:includeFontPadding="false"
+        android:textAlignment="center"
+        android:textColor="?colorOnSecondary"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toStartOf="@+id/tvGamesCount"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/firstDivider"
+        tools:text="Play time:\n4.6 hours" />
+
+    <TextView
+        android:id="@+id/tvPlacement"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_medium"
+        android:includeFontPadding="false"
+        android:textAlignment="center"
+        android:textColor="?colorOnSecondary"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/tvGamesCount"
+        app:layout_constraintStart_toStartOf="@+id/tvPlaytime"
+        app:layout_constraintTop_toBottomOf="@+id/tvGamesCount"
+        tools:text="Leaderboard rank:\n#1" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnStore"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="@string/store"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnSignOut"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnFriendsList"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/background_button_secondary"
+        android:fontFamily="@font/fira_sans_bold"
+        android:padding="8dp"
+        android:text="@string/friends"
+        android:textAllCaps="false"
+        android:textColor="?colorOnSecondary"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnStatistics"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnStatistics"
         style="@style/Widget.AppCompat.Button.Borderless"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/background_button_secondary"
         android:fontFamily="@font/fira_sans_bold"
         android:padding="8dp"
-        android:text="Statistics"
+        android:text="@string/statistics"
         android:textAllCaps="false"
         android:textColor="?colorOnSecondary"
         android:textSize="20sp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnSignOut"
+        app:layout_constraintBottom_toTopOf="@+id/btnStore"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

@@ -11,6 +11,11 @@ buildscript {
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
     }
 
+    ext.kotlin_version = '1.8.10'
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20-RC"
+    }
+
 }
 
 plugins {

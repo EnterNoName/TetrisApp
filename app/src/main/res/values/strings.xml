@@ -70,7 +70,7 @@
     <string name="switch_to_sign_up">Don\'t have an account?</string>
     <string name="switch_to_sign_in">Already have an account?</string>
 
-    <string name="update_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
+    <string name="api_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
     <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
     <string name="invite_url" translatable="false">https://tetrisapp.com/invite/%s</string>
 
@@ -108,5 +108,13 @@
     <string name="desc_countdown_slider">Countdown slider</string>
     <string name="desc_player_limit_slider">Player limit slider</string>
     <string name="desc_countdown_display">Countdown display</string>
+    <string name="statistics">Statistics</string>
+    <string name="friends">Friends</string>
+    <string name="store">Store</string>
+    <string name="desc_timer_slider">Game timer slider</string>
+    <string name="timer">Timer:</string>
+    <string name="game_mode">Game Mode:</string>
+    <string name="battle_royale">Battle Royale</string>
+    <string name="join_random_lobby">Join random lobby</string>
 
 </resources>

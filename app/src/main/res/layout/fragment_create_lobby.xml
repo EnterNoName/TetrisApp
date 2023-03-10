@@ -7,11 +7,11 @@
 
     <ProgressBar
         android:id="@+id/progressBar"
-        android:visibility="gone"
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminateTint="?colorOnPrimary"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,17 +30,17 @@
         app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tvTitle"
-        app:tint="?colorOnPrimary"/>
+        app:tint="?colorOnPrimary" />
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/fira_sans_bold"
         android:text="@string/lobby_creation"
         android:textColor="?colorOnPrimary"
         android:textSize="28sp"
-        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -82,8 +82,8 @@
             android:id="@+id/countdownSlider"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/desc_countdown_slider"
             android:layout_weight="3"
+            android:contentDescription="@string/desc_countdown_slider"
             android:stepSize="1.0"
             android:value="3.0"
             android:valueFrom="0.0"
@@ -113,12 +113,43 @@
             android:id="@+id/playerLimitSlider"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/desc_player_limit_slider"
             android:layout_weight="3"
+            android:contentDescription="@string/desc_player_limit_slider"
             android:stepSize="1.0"
             android:value="2.0"
             android:valueFrom="2.0"
             android:valueTo="10.0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:fontFamily="@font/fira_sans"
+            android:text="@string/timer"
+            android:textColor="?colorOnPrimary"
+            android:textSize="18sp" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/timerSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:contentDescription="@string/desc_timer_slider"
+            android:stepSize="1.0"
+            android:value="5.0"
+            android:valueFrom="3.0"
+            android:valueTo="15.0" />
     </LinearLayout>
 
     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -132,8 +163,46 @@
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
         tools:ignore="RtlSymmetry" />
+
+    <TextView
+        android:id="@+id/tvGameMode"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingVertical="12dp"
+        android:fontFamily="@font/fira_sans"
+        android:text="@string/game_mode"
+        android:textColor="?colorOnPrimary"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/switchEnablePause"
+        app:layout_constraintTop_toBottomOf="@+id/switchEnablePause" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipsGameMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@+id/switchEnablePause"
+        app:layout_constraintTop_toBottomOf="@+id/switchEnablePause"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipHighScore"
+            style="@style/Widget.App.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Timer" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipBattleRoyale"
+            style="@style/Widget.App.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="@string/battle_royale" />
+
+    </com.google.android.material.chip.ChipGroup>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnResetSettings"

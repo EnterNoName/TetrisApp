@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import com.example.tetrisapp.R;
 import com.example.tetrisapp.databinding.FragmentSettingsListBinding;
 import com.example.tetrisapp.interfaces.RecyclerViewInterface;
+import com.example.tetrisapp.model.game.configuration.PieceConfigurations;
 import com.example.tetrisapp.ui.adapters.SettingsRecyclerViewAdapter;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -23,7 +24,7 @@ import java.util.List;
 public class SettingsFragment extends BottomSheetDialogFragment implements RecyclerViewInterface {
     public static final String TAG = "SettingsFragment";
     private FragmentSettingsListBinding binding;
-    private List<SettingsRecyclerViewAdapter.Setting> settingList = new ArrayList<>();
+    private final List<SettingsRecyclerViewAdapter.Setting> settingList = new ArrayList<>();
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
 
@@ -38,6 +39,33 @@ public class SettingsFragment extends BottomSheetDialogFragment implements Recyc
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private void initializeSettings() {
+        SettingsRecyclerViewAdapter.Setting pieceConfigurationSetting = new SettingsRecyclerViewAdapter.Setting(
+                requireActivity().getDrawable(R.drawable.ic_launcher_foreground),
+                "Piece Configuration",
+                PieceConfigurations.values()[preferences.getInt(getString(R.string.setting_configuration_index), 0)].name(),
+                () -> {
+                    int configurationInd = preferences.getInt(getString(R.string.setting_configuration_index), 0);
+                    int newConfigurationInd = configurationInd - 1;
+                    if (newConfigurationInd < 0)  {
+                        newConfigurationInd = PieceConfigurations.values().length - 1;
+                    }
+                    editor.putInt(getString(R.string.setting_configuration_index), newConfigurationInd);
+                    editor.putString(getString(R.string.setting_configuration), PieceConfigurations.values()[newConfigurationInd].name());
+                    editor.apply();
+                },
+                () -> {
+                    int configurationInd = preferences.getInt(getString(R.string.setting_configuration_index), 0);
+                    int newConfigurationInd = configurationInd + 1;
+                    if (newConfigurationInd >= PieceConfigurations.values().length)  {
+                        newConfigurationInd = 0;
+                    }
+                    editor.putInt(getString(R.string.setting_configuration_index), newConfigurationInd);
+                    editor.putString(getString(R.string.setting_configuration), PieceConfigurations.values()[newConfigurationInd].name());
+                    editor.apply();
+                }
+        );
+        this.settingList.add(pieceConfigurationSetting);
+
         SettingsRecyclerViewAdapter.Setting autoUpdateSetting = new SettingsRecyclerViewAdapter.Setting(
                 requireActivity().getDrawable(R.drawable.ic_round_cloud_download_24),
                 getString(R.string.setting_auto_update_title),

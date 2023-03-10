@@ -11,7 +11,8 @@
         android:label="SignInFragment">
         <action
             android:id="@+id/action_signInFragment_to_signUpFragment"
-            app:destination="@id/signUpFragment" />
+            app:destination="@id/signUpFragment"
+            app:popUpTo="@id/mainMenuFragment" />
         <action
             android:id="@+id/action_signInFragment_to_profileFragment"
             app:destination="@id/profileFragment"
@@ -24,7 +25,8 @@
         android:label="SignUpFragment">
         <action
             android:id="@+id/action_signUpFragment_to_signInFragment"
-            app:destination="@id/signInFragment" />
+            app:destination="@id/signInFragment"
+            app:popUpTo="@id/mainMenuFragment" />
         <action
             android:id="@+id/action_signUpFragment_to_profileFragment"
             app:destination="@id/profileFragment"
@@ -115,15 +117,14 @@
         android:id="@+id/lobbyFragment"
         android:name="com.example.tetrisapp.ui.fragment.LobbyFragment"
         android:label="LobbyFragment">
-        <argument
-            android:name="inviteCode"
-            android:defaultValue=""
-            app:argType="string" />
         <action
             android:id="@+id/action_lobbyFragment_to_gameMultiplayerFragment"
             app:destination="@id/gameMultiplayerFragment"
             app:popUpTo="@id/mainMenuFragment"
             app:popUpToInclusive="false" />
+        <argument
+            android:name="inviteCode"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/createLobbyFragment"
@@ -142,8 +143,7 @@
         <action
             android:id="@+id/action_createLobbyFragment_to_signUpFragment"
             app:destination="@id/signUpFragment"
-            app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="false" />
+            app:popUpTo="@id/mainMenuFragment" />
     </fragment>
     <dialog
         android:id="@+id/joinLobbyFragment"
@@ -189,20 +189,11 @@
         android:name="com.example.tetrisapp.ui.fragment.GameMultiplayerFragment"
         android:label="GameMultiplayerFragment" >
         <argument
-            android:name="lobbyCode"
-            app:argType="string"
-            android:defaultValue="" />
-        <argument
-            android:name="countdown"
-            app:argType="integer"
-            android:defaultValue="3" />
+            android:name="inviteCode"
+            app:argType="string" />
         <action
             android:id="@+id/action_gameMultiplayerFragment_to_pauseFragment"
             app:destination="@id/pauseFragment" />
-        <argument
-            android:name="enablePause"
-            app:argType="boolean"
-            android:defaultValue="true" />
         <action
             android:id="@+id/action_gameMultiplayerFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment"
@@ -211,6 +202,9 @@
         <action
             android:id="@+id/action_gameMultiplayerFragment_to_gameOverMultiplayerFragment"
             app:destination="@id/gameOverMultiplayerFragment" />
+        <argument
+            android:name="gameData"
+            app:argType="com.example.tetrisapp.model.local.model.GameStartedData" />
     </fragment>
     <fragment
         android:id="@+id/leaderboardFragment"
@@ -224,22 +218,13 @@
             android:id="@+id/action_gameOverFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment" />
-        <argument
-            android:name="score"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="lines"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="level"
-            app:argType="integer"
-            android:defaultValue="0" />
         <action
             android:id="@+id/action_gameOverFragment_to_gameFragment"
             app:destination="@id/gameFragment"
             app:popUpTo="@id/mainMenuFragment" />
+        <argument
+            android:name="data"
+            app:argType="com.example.tetrisapp.model.game.singleplayer.GameOverSingleplayerParcel" />
     </fragment>
     <fragment
         android:id="@+id/gameOverMultiplayerFragment"
@@ -254,25 +239,7 @@
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment" />
         <argument
-            android:name="score"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="lines"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="level"
-            app:argType="integer"
-            android:defaultValue="0" />
-        <argument
-            android:name="lobbyCode"
-            app:argType="string" />
-        <argument
-            android:name="winnerUid"
-            app:argType="string" />
-        <argument
-            android:name="placement"
-            app:argType="integer" />
+            android:name="data"
+            app:argType="com.example.tetrisapp.model.game.multiplayer.GameOverMultiplayerParcel" />
     </fragment>
 </navigation>
