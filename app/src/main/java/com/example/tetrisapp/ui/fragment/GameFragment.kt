@@ -26,15 +26,11 @@ import com.example.tetrisapp.util.OnGestureListener
 import com.example.tetrisapp.util.OnGestureListener.GestureListener
 import com.example.tetrisapp.util.OnTouchListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
-import kotlin.random.Random
+import kotlin.math.round
 
 @AndroidEntryPoint
 open class GameFragment : Fragment() {
@@ -144,9 +140,16 @@ open class GameFragment : Fragment() {
             sidebarBinding.lines.text = viewModel.game.lines.toString()
             sidebarBinding.combo.text = viewModel.game.combo.toString()
         }
-        val playbackSpeed = 2 - viewModel.game.speed / Tetris.DEFAULT_SPEED.toFloat()
-        if (gameMusic == null) return
-        gameMusic!!.playbackParams = PlaybackParams().setSpeed(playbackSpeed)
+        try {
+            val normalizedSpeed = (Tetris.DEFAULT_SPEED - viewModel.game.speed).toFloat() / (Tetris.DEFAULT_SPEED - Tetris.MIN_SPEED).toFloat()
+            val roundedSpeed = round(normalizedSpeed * 10) / 10
+
+            val params = PlaybackParams()
+            params.speed = (2f - (1f - roundedSpeed))
+            gameMusic?.playbackParams = params
+        } catch (e: Exception) {
+            Log.e(TAG, e.localizedMessage ?: "")
+        }
     }
 
     protected open fun updatePieceViews() {
