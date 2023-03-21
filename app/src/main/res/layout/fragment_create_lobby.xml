@@ -184,6 +184,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="@+id/switchEnablePause"
         app:layout_constraintTop_toBottomOf="@+id/switchEnablePause"
+        app:selectionRequired="true"
         app:singleSelection="true">
 
         <com.google.android.material.chip.Chip
