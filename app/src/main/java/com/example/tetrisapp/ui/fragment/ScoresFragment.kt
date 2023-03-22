@@ -116,12 +116,11 @@ class ScoresFragment : Fragment() {
         updateUi(firebaseUser)
     }
 
-    @SuppressLint("SetTextI18n")
     private fun updateUi(user: FirebaseUser?) {
         if (user != null) {
             binding.tvUsername.text = user.displayName
             binding.tvEmailAddress.text = user.email
-            binding.tvStatistics.text = "${user.displayName}'s Statistics"
+            binding.tvStatistics.text = getString(R.string.users_statistics).format(user.displayName)
             binding.ivProfileImage.scaleType = ImageView.ScaleType.FIT_CENTER
             user.photoUrl?.let { photoUri ->
                 binding.ivProfileImage.load(photoUri) {
@@ -137,50 +136,50 @@ class ScoresFragment : Fragment() {
             }
         } else {
             binding.userDataGroup.visibility = View.GONE
-            binding.tvStatistics.text = "Your Statistics"
+            binding.tvStatistics.text = getString(R.string.your_statistics)
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
             leaderboardDao.getGamesCount().let { count ->
                 withContext(Dispatchers.Main) {
-                    binding.tvGamesCount.text = "Games played:\n${count ?: 0}"
+                    binding.tvGamesCount.text = getString(R.string.games_played).format(count ?: 0)
                 }
             }
 
 
             leaderboardDao.getBestScore().let { bestScore ->
                 withContext(Dispatchers.Main) {
-                    binding.tvBestScore.text = "Best:\n${bestScore ?: 0}"
+                    binding.tvBestScore.text = getString(R.string.max_value).format(bestScore ?: 0)
                 }
             }
 
             leaderboardDao.getAverageScore().let { avgScore ->
                 withContext(Dispatchers.Main) {
-                    binding.tvAverageScore.text = "Average:\n${avgScore ?: 0}"
+                    binding.tvAverageScore.text = getString(R.string.average_value).format(avgScore ?: 0)
                 }
             }
 
             leaderboardDao.getBestLevel().let { bestLevel ->
                 withContext(Dispatchers.Main) {
-                    binding.tvBestLevel.text = "Best:\n${bestLevel ?: 0}"
+                    binding.tvBestLevel.text = getString(R.string.max_value).format(bestLevel ?: 0)
                 }
             }
 
             leaderboardDao.getAverageLevel().let { avgLevel ->
                 withContext(Dispatchers.Main) {
-                    binding.tvAverageLevel.text = "Average:\n${avgLevel ?: 0}"
+                    binding.tvAverageLevel.text = getString(R.string.average_value).format(avgLevel ?: 0)
                 }
             }
 
             leaderboardDao.getBestLines().let { bestLines ->
                 withContext(Dispatchers.Main) {
-                    binding.tvBestLines.text = "Best:\n${bestLines ?: 0}"
+                    binding.tvBestLines.text = getString(R.string.max_value).format(bestLines ?: 0)
                 }
             }
 
             leaderboardDao.getAverageLines().let { avgLines ->
                 withContext(Dispatchers.Main) {
-                    binding.tvAverageLines.text = "Average:\n${avgLines ?: 0}"
+                    binding.tvAverageLines.text = getString(R.string.average_value).format(avgLines ?: 0)
                 }
             }
         }

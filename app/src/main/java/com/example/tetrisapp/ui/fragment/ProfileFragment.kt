@@ -1,6 +1,5 @@
 package com.example.tetrisapp.ui.fragment
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -31,9 +30,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.Math.round
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -92,13 +89,13 @@ class ProfileFragment : Fragment() {
         lifecycleScope.launch(Dispatchers.IO) {
             leaderboardDao.getTimeInGame().let {
                 withContext(Dispatchers.Main) {
-                    binding.tvPlaytime.text = "Play time:\n${(((it ?: 0) / 3600f) * 10.0).roundToInt() / 10.0} hours"
+                    binding.tvPlaytime.text = getString(R.string.time_in_game).format((it ?: 0) / 3600f)
                 }
             }
 
             leaderboardDao.getGamesCount()?.let {
                 withContext(Dispatchers.Main) {
-                    binding.tvGamesCount.text = "Games played:\n${it}"
+                    binding.tvGamesCount.text = getString(R.string.games_played).format(it)
                 }
             }
         }
@@ -148,8 +145,7 @@ class ProfileFragment : Fragment() {
             }
         }
     }
-
-    @SuppressLint("SetTextI18n")
+    
     private fun sendGetPlacementRequest() {
         val coroutineExceptionHandler = CoroutineExceptionHandler{_, t ->
             Log.e(TAG, t.localizedMessage ?: "")
@@ -172,7 +168,7 @@ class ProfileFragment : Fragment() {
 
                     if (response.status.isSuccess() && body.success) {
                         withContext(Dispatchers.Main) {
-                            binding.tvPlacement.text = "Leaderboard placement:\n№${body.data.toString()}"
+                            binding.tvPlacement.text = getString(R.string.leaderboard_placement).format(body.data)
                         }
                     } else {
                         throw(Exception(body.message))

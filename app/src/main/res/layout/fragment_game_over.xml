@@ -13,7 +13,7 @@
         android:includeFontPadding="false"
         android:text="@string/game_over"
         android:textColor="?colorOnPrimary"
-        android:textSize="64sp"
+        android:textSize="58sp"
         android:layout_marginTop="136dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -28,7 +28,7 @@
         tools:text="Current high score:\n8089"
         android:textAlignment="center"
         android:textColor="?colorOnPrimary"
-        android:textSize="32sp"
+        android:textSize="26sp"
         android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,7 +51,7 @@
             android:layout_weight="1"
             android:text="@string/score"
             android:textColor="?colorOnPrimary"
-            android:textSize="32sp" />
+            android:textSize="22sp" />
 
         <TextView
             android:id="@+id/score"
@@ -64,7 +64,7 @@
             android:padding="12dp"
             android:textAlignment="center"
             android:textColor="?colorOnPrimary"
-            android:textSize="28sp"
+            android:textSize="22sp"
             tools:text="00000000" />
     </LinearLayout>
 
@@ -85,7 +85,7 @@
             android:layout_weight="1"
             android:text="@string/lines"
             android:textColor="?colorOnPrimary"
-            android:textSize="32sp" />
+            android:textSize="22sp" />
 
         <TextView
             android:id="@+id/lines"
@@ -98,7 +98,7 @@
             android:padding="12dp"
             android:textAlignment="center"
             android:textColor="?colorOnPrimary"
-            android:textSize="28sp"
+            android:textSize="22sp"
             tools:text="00000000" />
     </LinearLayout>
 
@@ -119,7 +119,7 @@
             android:layout_weight="1"
             android:text="@string/level"
             android:textColor="?colorOnPrimary"
-            android:textSize="32sp" />
+            android:textSize="22sp" />
 
         <TextView
             android:id="@+id/level"
@@ -132,7 +132,7 @@
             android:padding="12dp"
             android:textAlignment="center"
             android:textColor="?colorOnPrimary"
-            android:textSize="28sp"
+            android:textSize="22sp"
             tools:text="00000000" />
     </LinearLayout>
 

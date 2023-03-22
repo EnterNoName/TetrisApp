@@ -1,6 +1,5 @@
 package com.example.tetrisapp.ui.fragment
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,13 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
 import androidx.navigation.Navigation.findNavController
 import com.example.tetrisapp.R
 import com.example.tetrisapp.databinding.FragmentLeaderboardBinding
 import com.example.tetrisapp.model.remote.response.DefaultPayload
 import com.example.tetrisapp.model.remote.response.LeaderboardData
-import com.example.tetrisapp.model.remote.response.PublicRecord
 import com.example.tetrisapp.ui.adapters.ScoresRecyclerViewAdapter
 import com.example.tetrisapp.ui.viewmodel.LeaderboardViewModel
 import com.example.tetrisapp.util.FirebaseTokenUtil
@@ -28,7 +25,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import kotlinx.coroutines.*
-import java.util.*
 
 class LeaderboardFragment : Fragment() {
     private lateinit var binding: FragmentLeaderboardBinding
@@ -74,10 +70,9 @@ class LeaderboardFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun finishLoading() {
         lifecycleScope.launch(Dispatchers.Main) {
-            binding.tvPage.text = "Page: ${viewModel.page} of ${viewModel.pageCount}"
+            binding.tvPage.text = getString(R.string.page_of).format(viewModel.page, viewModel.pageCount)
             binding.btnNextPage.isEnabled = viewModel.page < viewModel.pageCount
             binding.btnPrevPage.isEnabled = viewModel.page > 1
             binding.progressBar.visibility = View.GONE

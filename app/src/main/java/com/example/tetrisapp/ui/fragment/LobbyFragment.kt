@@ -240,9 +240,9 @@ class LobbyFragment : Fragment() {
         binding.inviteCode.text = args.inviteCode
         binding.tvLobbyTitle.text =
             if (viewModel.lobbyOwnerName != null)
-                viewModel.lobbyOwnerName + "'s Lobby"
+                getString(R.string.users_lobby).format(viewModel.lobbyOwnerName)
             else
-                "Lobby"
+                getString(R.string.your_lobby)
     }
 
     private fun exitLobby() {

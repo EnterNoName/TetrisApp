@@ -35,7 +35,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlin.math.floor
 import kotlin.random.Random
 
 @AndroidEntryPoint
@@ -55,12 +54,9 @@ class GameMultiplayerFragment : GameFragment() {
         viewModel.countdownRemaining = viewModel.countdown
     }
 
-    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.btnPause.visibility = if (args.gameData.enablePause) View.VISIBLE else View.GONE
-
-
     }
 
     override fun startTimer() {
@@ -73,7 +69,7 @@ class GameMultiplayerFragment : GameFragment() {
                         viewModel.multiplayerTimer -= 1
                         val minutes = viewModel.multiplayerTimer / 60
                         val seconds = viewModel.multiplayerTimer % 60
-                        binding.tvTimer.text = "Time left:\n${minutes}:${seconds}"
+                        binding.tvTimer.text = getString(R.string.time_left).format(minutes, seconds)
                     }
                 },
                 0L,
@@ -303,7 +299,6 @@ class GameMultiplayerFragment : GameFragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun updateSpectatorView(data: PlayerGameData): String? {
         viewModel.userGameDataMap[data.userId] = data
         val spectatedPlayerUid = viewModel.updateSpectatorMockTetris(channel)
@@ -314,10 +309,7 @@ class GameMultiplayerFragment : GameFragment() {
         ) ?: return null
         binding.gameView.postInvalidate()
         requireActivity().runOnUiThread {
-            binding.tvSpectate.text = """
-                Spectating:
-                ${spectatedPlayerInfo.name}
-                """.trimIndent()
+            binding.tvSpectate.text = getString(R.string.spectating).format(spectatedPlayerInfo.name)
             sidebarBinding.score.text = spectatedPlayerData.score.toString()
             sidebarBinding.level.text = spectatedPlayerData.level.toString()
             sidebarBinding.lines.text = spectatedPlayerData.lines.toString()
@@ -336,7 +328,6 @@ class GameMultiplayerFragment : GameFragment() {
         return spectatedPlayerUid
     }
 
-    @SuppressLint("SetTextI18n")
     private fun updateMultiplayerSideView(data: PlayerGameData, currentPlayerUid: String?) {
         // Save received user game data
         viewModel.userGameDataMap[data.userId] = data
@@ -352,11 +343,8 @@ class GameMultiplayerFragment : GameFragment() {
         ) ?: return
         sidebarBinding.gameViewCompetitor.postInvalidate()
         requireActivity().runOnUiThread {
-            sidebarBinding.tvScoreCompetitor.text = """
-                ${bestScoringPlayerInfo.name}'s
-                Score:
-                """.trimIndent()
-            sidebarBinding.scoreCompetitor.text = bestScoringPlayer.score.toString() + ""
+            sidebarBinding.tvScoreCompetitor.text = getString(R.string.opponent_score).format(bestScoringPlayerInfo.name)
+            sidebarBinding.scoreCompetitor.text = bestScoringPlayer.score.toString()
         }
     }
 

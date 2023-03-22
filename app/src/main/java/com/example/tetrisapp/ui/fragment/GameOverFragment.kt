@@ -66,9 +66,9 @@ open class GameOverFragment : Fragment() {
                 val currentHighScore = it?.score ?: 0
                 binding.tvHighScore.text =
                     if (currentHighScore >= args.data.score)
-                        "Current high score:\n${currentHighScore}"
+                        getString(R.string.current_high_score).format(currentHighScore)
                     else
-                        "New high score:\n${args.data.score}"
+                        getString(R.string.new_high_score).format(args.data.score)
 
                 if (args.data.score > 0) {
                     insertScoreInDB(args.data.score, args.data.level, args.data.lines, args.data.timer)

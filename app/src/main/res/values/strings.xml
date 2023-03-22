@@ -1,61 +1,85 @@
 <resources>
+
+    <!--  Main menu strings  -->
+
     <string name="app_name">Tetris</string>
     <string name="welcome">Welcome to</string>
     <string name="singleplayer">Singleplayer</string>
     <string name="multiplayer">Multiplayer</string>
     <string name="settings">Settings</string>
+    <string name="sign_in_underlined"><u>Sign in</u></string>
+    <string name="internet_unavailable">No internet connection available.</string>
+    <string name="update_feature_unavailable">Auto-update feature will be disabled.</string>
+    <string name="update_feature_retry">Enable</string>
+
+    <!--  Main menu content descriptions  -->
+
+    <string name="desc_profile_image">Account image circle</string>
+    <string name="desc_socials">Open developers GitHub</string>
+    <string name="desc_leaderboard">Show leaderboard</string>
+    <string name="desc_exit">Exit app</string>
+
+    <!--  Game strings  -->
+
     <string name="next">Next:</string>
     <string name="hold">Hold:</string>
     <string name="score">Score:</string>
     <string name="lines">Lines:</string>
     <string name="level">Level:</string>
     <string name="combo">Combo:</string>
-
-    <string name="desc_exit">Exit app</string>
-    <string name="desc_leaderboard">Show leaderboard</string>
-    <string name="desc_profile_image">Account image circle</string>
-    <string name="desc_left">Move left</string>
-    <string name="desc_right">Move right</string>
-    <string name="desc_down">Drop tetromino</string>
-    <string name="desc_rotate_right">Rotate right</string>
-    <string name="desc_rotate_left">Rotate left</string>
-    <string name="desc_pause">Pause</string>
-    <string name="desc_resume">Resume</string>
-    <string name="desc_back">Go to previous screen</string>
-    <string name="desc_menu">Exit to menu</string>
-    <string name="desc_share">Share score</string>
-    <string name="desc_retry">Play again</string>
-    <string name="desc_leave">To the main menu</string>
-    <string name="desc_update_feature">Update feature depiction</string>
-    <string name="desc_download_notification">Downloading…</string>
-
-    <string name="pause_text">Paused</string>
-
-    <string name="current_high_score">Current high score:\n%d</string>
-    <string name="new_high_score">New high score:\n%d</string>
-
-    <string name="update_feature_title">Want to stay up to date?</string>
-    <string name="update_feature_description">The auto update feature allows you to update the app with just a click of a button.</string>
-    <string name="update_feature_supporting">Want to try it out?</string>
-    <string name="update_feature_accept">Yes</string>
-    <string name="update_feature_decline">No, thanks</string>
-    <string name="update_feature_unavailable">Auto-update feature will be disabled.</string>
-    <string name="update_feature_retry">Enable</string>
-
+    <string name="time_left">Time left: %s:%s</string>
+    <string name="spectating">Spectating:\n%s</string>
+    <string name="opponent_score">%s\'s Score:</string>
     <string name="exit_dialog_title">Exit the game?</string>
     <string name="exit_dialog_description">All current progress will be lost!</string>
 
-    <string name="accept">Accept</string>
-    <string name="agree">Yes</string>
-    <string name="disagree">No</string>
-    <string name="cancel">Cancel</string>
+    <!--  Game content descriptions  -->
 
-    <string name="share_invite_code_subject">MichaelRayven\'s Tetris lobby invitation</string>
+    <string name="desc_countdown_display">Countdown display</string>
+    <string name="desc_move_left">Move left</string>
+    <string name="desc_move_right">Move right</string>
+    <string name="desc_move_down">Drop tetromino down</string>
+    <string name="desc_rotate_right">Rotate right</string>
+    <string name="desc_rotate_left">Rotate left</string>
+    <string name="desc_pause">Pause</string>
+
+    <!--  Game over strings  -->
+
+    <string name="game_over">Game over!</string>
+    <string name="game_over_player_won">GG! You\'ve won!</string>
+    <string name="game_over_player_lost">GG! You\'ve placed №%d\nThe winner is %s</string>
+    <string name="current_high_score">Current high score:\n%d</string>
+    <string name="new_high_score">New high score:\n%d</string>
     <string name="share_subject">Check out my latest score on MichaelRayven\'s Tetris</string>
     <string name="share_text">I\'ve got a new score of %d on MichaelRayven\'s Tetris\n Can you do better than me?\n\nDownload the app at https://github.com/MichaelRayven/TetrisApp/releases/latest</string>
     <string name="share_using">Share using</string>
-    <string name="game_over">Game over!</string>
-    <string name="personal_scores">Personal Scores</string>
+
+    <!--  Game over content descriptions  -->
+
+    <string name="desc_share">Share score</string>
+    <string name="desc_retry">Play again</string>
+    <string name="desc_leave">To the main menu</string>
+
+    <!--  Pause strings  -->
+
+    <string name="paused">Paused</string>
+    <string name="desc_resume">Resume</string>
+    <string name="desc_back">Go to previous screen</string>
+
+    <!--  Join lobby strings  -->
+
+    <string name="join_random_lobby">Join random lobby</string>
+    <string name="invite_code">Invite Code</string>
+    <string name="join_lobby">Join Lobby</string>
+
+    <!--  Leaderboard strings  -->
+
+    <string name="leaderboard">Leaderboard</string>
+    <string name="page_of">Page: %d of %d</string>
+    <string name="desc_prev_page">Previous page</string>
+    <string name="desc_next_page">Next page</string>
+
+    <!--  Sign up/in strings  -->
 
     <string name="password">Password</string>
     <string name="confirm_password">Confirm Password</string>
@@ -66,13 +90,18 @@
     <string name="sign_up">Sign-up</string>
     <string name="sign_in_google">Sign-in with Google</string>
     <string name="sign_up_google">Sign-up with Google</string>
-    <string name="sign_in_underlined"><u>Sign in</u></string>
     <string name="switch_to_sign_up">Don\'t have an account?</string>
     <string name="switch_to_sign_in">Already have an account?</string>
 
-    <string name="api_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
-    <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
-    <string name="invite_url" translatable="false">https://tetrisapp.com/invite/%s</string>
+    <!--  Statistics strings  -->
+
+    <string name="users_statistics">%s\'s Statistics</string>
+    <string name="your_statistics">Your Statistics</string>
+    <string name="games_played">Games played:\n%d</string>
+    <string name="average_value">Average:\n%d</string>
+    <string name="max_value">Best:\n%d</string>
+
+    <!--  Settings strings  -->
 
     <string name="setting_auto_update_title">Auto-Update</string>
     <string name="setting_countdown_title">Countdown</string>
@@ -88,33 +117,64 @@
     <string name="setting_configuration" translatable="false">piece_configuration</string>
     <string name="setting_configuration_index" translatable="false">piece_configuration_index</string>
 
-    <string name="invite_code">Invite Code</string>
-    <string name="join_lobby">Join Lobby</string>
-    <string name="create_lobby">Create Lobby</string>
+    <!--  Create lobby strings  -->
 
-    <string name="lobby_exit_alert_title">Exit the lobby?</string>
-    <string name="lobby_exit_alert_message">By pressing "Yes" you will be disconnected from the current lobby.</string>
+    <string name="create_lobby">Create Lobby</string>
     <string name="lobby_creation">Lobby Creation</string>
     <string name="lobby_settings">Lobby Settings:</string>
+    <string name="reset_lobby_settings">Reset Settings</string>
     <string name="countdown">Countdown:</string>
     <string name="player_limit">Player Limit:</string>
     <string name="enable_pause">Enable pause:</string>
-    <string name="reset_settings">Reset Settings</string>
     <string name="players">Players:</string>
-    <string name="leaderboard">Leaderboard</string>
-    <string name="start_game">Start Game</string>
-    <string name="exit_lobby">Exit Lobby</string>
-    <string name="desc_more_actions">Show more actions</string>
+    <string name="timer">Timer:</string>
+    <string name="game_mode">Game Mode:</string>
+    <string name="game_mode_highest_score">Timer</string>
+    <string name="game_mode_battle_royale">Battle Royale</string>
+
+    <!--  Create lobby content descriptions  -->
+
     <string name="desc_countdown_slider">Countdown slider</string>
     <string name="desc_player_limit_slider">Player limit slider</string>
-    <string name="desc_countdown_display">Countdown display</string>
+    <string name="desc_timer_slider">Game timer slider</string>
+
+    <!--  Lobby strings  -->
+
+    <string name="start_game">Start Game</string>
+    <string name="exit_lobby">Exit Lobby</string>
+    <string name="lobby_exit_alert_title">Exit the lobby?</string>
+    <string name="lobby_exit_alert_message">By pressing "Yes" you will be disconnected from the current lobby.</string>
+    <string name="share_invite_code_subject">MichaelRayven\'s Tetris lobby invitation</string>
+
+    <!--  Lobby content descriptions  -->
+
+    <string name="desc_more_actions">Show more actions</string>
+
+    <!--  Profile strings  -->
+
+    <string name="time_in_game">Play time:\n%.1f hours</string>
+    <string name="leaderboard_placement">Leaderboard placement:\n№%d</string>
     <string name="statistics">Statistics</string>
     <string name="friends">Friends</string>
     <string name="store">Store</string>
-    <string name="desc_timer_slider">Game timer slider</string>
-    <string name="timer">Timer:</string>
-    <string name="game_mode">Game Mode:</string>
-    <string name="battle_royale">Battle Royale</string>
-    <string name="join_random_lobby">Join random lobby</string>
 
+
+
+    <string name="accept">Accept</string>
+    <string name="agree">Yes</string>
+    <string name="disagree">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="permission_required">Permission Required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="okay">OK</string>
+    <string name="storage_permission_rationale">It seems you permanently declined write storage permission. You can go to the app settings to grant it.</string>
+    <string name="storage_permission_request">This app needs access to your storage so that it can periodically download updates.</string>
+
+    <string name="api_url" translatable="false">https://gleaming-toad-gaiters.cyclic.app/api/</string>
+    <string name="github_url" translatable="false">https://github.com/MichaelRayven/TetrisApp</string>
+    <string name="invite_url" translatable="false">https://tetrisapp.com/invite/%s</string>
+    <string name="copy">Copy</string>
+    <string name="share">Share</string>
+    <string name="your_lobby">Your lobby</string>
+    <string name="users_lobby">%s\'s lobby</string>
 </resources>

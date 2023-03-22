@@ -354,15 +354,17 @@ open class GameFragment : Fragment() {
     }
 
     protected open fun confirmExit() {
+        viewModel.countdownFuture?.cancel(true)
+        viewModel.timerFuture?.cancel(true)
+        binding.tvCountdown.visibility = View.GONE
         viewModel.game.setPause(true)
+
         MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
             .setTitle(getString(R.string.exit_dialog_title))
             .setMessage(getString(R.string.exit_dialog_description))
             .setOnDismissListener { viewModel.game.setPause(false) }
             .setNegativeButton(getString(R.string.disagree)) { _, _ ->
-                viewModel.game.setPause(
-                    false
-                )
+                countdown()
             }
             .setPositiveButton(getString(R.string.agree)) { _, _ ->
                 findNavController(

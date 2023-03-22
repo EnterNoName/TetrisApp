@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -267,7 +266,7 @@ class MainMenuFragment : Fragment() {
             if (!connectionUtil.isOnline()) {
                 Snackbar.make(
                     binding.root,
-                    "No internet connection available.",
+                    getString(R.string.internet_unavailable),
                     Snackbar.LENGTH_SHORT
                 ).show()
                 return@OnTouchListener
@@ -320,7 +319,7 @@ class MainMenuFragment : Fragment() {
                 showPermissionDialog(
                     permissionTextProvider = when(permission) {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                            StoragePermissionTextProvider()
+                            StoragePermissionTextProvider(requireContext())
                         }
                         else -> return@forEach
                     },
@@ -357,13 +356,13 @@ class MainMenuFragment : Fragment() {
         onGoToAppSettings: () -> Unit
     ) {
         MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-            .setTitle("Permission Required")
+            .setTitle(getString(R.string.permission_required))
             .setMessage(permissionTextProvider.getDescription(isPermanentlyDeclined))
             .setOnDismissListener {
                 onDismiss()
             }
             .setPositiveButton(
-                if (isPermanentlyDeclined) "Grant Permission" else "OK"
+                if (isPermanentlyDeclined) getString(R.string.grant_permission) else getString(R.string.okay)
             ) { _, _ ->
                 if (isPermanentlyDeclined) onGoToAppSettings()
                 else onAccept()
@@ -374,13 +373,12 @@ class MainMenuFragment : Fragment() {
         fun getDescription(isPermanentlyDeclined: Boolean): String
     }
 
-    class StoragePermissionTextProvider: PermissionTextProvider {
+    class StoragePermissionTextProvider(val context: Context): PermissionTextProvider {
         override fun getDescription(isPermanentlyDeclined: Boolean): String {
             return if (isPermanentlyDeclined) {
-                "It seems you permanently declined write storage permission. " +
-                        "You can go to the app settings to grant it"
+                context.getString(R.string.storage_permission_rationale)
             } else {
-                "This app needs access to your storage so that it can periodically download updates."
+                context.getString(R.string.storage_permission_request)
             }
         }
 

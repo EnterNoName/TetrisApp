@@ -1,6 +1,5 @@
 package com.example.tetrisapp.ui.fragment
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -28,7 +27,6 @@ import io.ktor.serialization.gson.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 
 @AndroidEntryPoint
 class GameOverMultiplayerFragment : GameOverFragment() {
@@ -50,7 +48,6 @@ class GameOverMultiplayerFragment : GameOverFragment() {
         unbindGameStart(channel!!)
     }
 
-    @SuppressLint("SetTextI18n")
     override fun updateUI() {
         val pusher = (requireActivity() as MainActivity).pusher
         binding.score.text = args.data.score.toString()
@@ -63,8 +60,8 @@ class GameOverMultiplayerFragment : GameOverFragment() {
             insertScoreInDB(args.data.score, args.data.level, args.data.lines, args.data.timer)
         }
 
-        binding.tvHighScore.text = if (args.data.placement == 1) "GG! You've won!"
-        else "GG! You've placed №${args.data.placement}\nThe winner is ${winnerUserInfo?.name}"
+        binding.tvHighScore.text = if (args.data.placement == 1) getString(R.string.game_over_player_won)
+        else getString(R.string.game_over_player_lost).format(args.data.placement, winnerUserInfo?.name)
     }
 
     override fun initClickListeners() {
