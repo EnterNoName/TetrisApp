@@ -91,6 +91,9 @@ class MainMenuFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentMainMenuBinding.inflate(inflater, container, false)
+
+        binding.tvVersion.text = getString(R.string.version).format(BuildConfig.VERSION_NAME)
+
         dialogQueue = viewModel.visiblePermissionDialogQueue
         firebaseAuth = FirebaseAuth.getInstance()
         firebaseUser = firebaseAuth.currentUser
