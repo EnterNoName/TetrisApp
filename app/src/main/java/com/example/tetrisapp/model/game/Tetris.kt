@@ -332,6 +332,7 @@ class Tetris(
     // Setters
     fun setPause(pause: Boolean) {
         if (pause == isPaused || isGameOver) return
+        isPaused = pause
 
         if (pause) {
             if (future == null) return
@@ -343,11 +344,10 @@ class Tetris(
             delayLeft = 0
             onResumeCallback()
         }
-        isPaused = pause
     }
 
     fun setSoftDrop(softDrop: Boolean) {
-        if (softDrop == this.softDrop || isPaused || isGameOver) return
+        if (softDrop == this.softDrop || isPaused || isGameOver || isLocking) return
 
         this.softDrop = softDrop
         delayLeft = future?.getDelay(TimeUnit.MILLISECONDS) ?: 0

@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import androidx.core.graphics.ColorUtils
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
@@ -182,6 +181,7 @@ class GameView : View {
     }
 
     companion object {
+        private const val TAG = "GameView"
         private const val SHADOW_COLOR = 0x11000000
         private const val FPS = 120
     }
