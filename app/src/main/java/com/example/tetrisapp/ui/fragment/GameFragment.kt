@@ -1,6 +1,5 @@
 package com.example.tetrisapp.ui.fragment
 
-import android.animation.Animator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,6 +12,7 @@ import android.view.*
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation.findNavController
 import com.example.tetrisapp.R
 import com.example.tetrisapp.databinding.FragmentGameBinding
@@ -27,10 +27,15 @@ import com.example.tetrisapp.util.OnGestureListener.GestureListener
 import com.example.tetrisapp.util.OnTouchListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 open class GameFragment : Fragment() {
@@ -40,10 +45,10 @@ open class GameFragment : Fragment() {
 
     @Inject lateinit var mediaHelper: MediaPlayerUtil
     protected var gameMusic: MediaPlayer? = null
-    protected var musicVolume = 0.5f
+    private var musicVolume = 0.5f
     protected var sfxVolume = 0.5f
 
-    protected lateinit var preferences: SharedPreferences
+    private lateinit var preferences: SharedPreferences
 
     private val backPressCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -114,14 +119,14 @@ open class GameFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        countdown()
+        startCountdown()
     }
 
     override fun onPause() {
         super.onPause()
         viewModel.game.setPause(true)
         viewModel.timerFuture?.cancel(true)
-        viewModel.countdownFuture?.cancel(true)
+        viewModel.countdownFuture?.cancel()
     }
 
     override fun onDestroy() {
@@ -129,6 +134,11 @@ open class GameFragment : Fragment() {
         gameMusic?.stop()
         gameMusic?.release()
         gameMusic = null
+
+        viewModel.countdownFuture?.cancel()
+        viewModel.timerFuture?.cancel(true)
+        viewModel.futureMoveLeft?.cancel(true)
+        viewModel.futureMoveRight?.cancel(true)
         viewModel.game.stop()
     }
 
@@ -239,7 +249,7 @@ open class GameFragment : Fragment() {
                             if (xDiff > blockSize / 2f) moved = true
                             if (moved) {
                                 var col = viewModel.game.currentPiece!!.col
-                                val colDiff = Math.round((this.x - x) / blockSize)
+                                val colDiff = ((this.x - x) / blockSize).roundToInt()
                                 val desiredCol = this.col - colDiff
                                 if (desiredCol == col) return true
                                 while (desiredCol != col) {
@@ -354,7 +364,7 @@ open class GameFragment : Fragment() {
     }
 
     protected open fun confirmExit() {
-        viewModel.countdownFuture?.cancel(true)
+        viewModel.countdownFuture?.cancel()
         viewModel.timerFuture?.cancel(true)
         binding.tvCountdown.visibility = View.GONE
         viewModel.game.setPause(true)
@@ -362,10 +372,8 @@ open class GameFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
             .setTitle(getString(R.string.exit_dialog_title))
             .setMessage(getString(R.string.exit_dialog_description))
-            .setOnDismissListener { viewModel.game.setPause(false) }
-            .setNegativeButton(getString(R.string.disagree)) { _, _ ->
-                countdown()
-            }
+            .setOnDismissListener { startCountdown() }
+            .setNegativeButton(getString(R.string.disagree)) { _, _ -> }
             .setPositiveButton(getString(R.string.agree)) { _, _ ->
                 findNavController(
                     binding.root
@@ -374,11 +382,7 @@ open class GameFragment : Fragment() {
             .show()
     }
 
-    private fun countdown() {
-        viewModel.countdownFuture = viewModel.executor.submit(CountdownRunnable())
-    }
-
-    protected fun onGameOver() {
+    private fun onGameOver() {
         gameMusic?.stop()
         gameMusic?.release()
         gameMusic = null
@@ -409,68 +413,61 @@ open class GameFragment : Fragment() {
         }
     }
 
-    private inner class CountdownRunnable : Runnable {
-        @SuppressLint("SetTextI18n")
-        override fun run() {
-            val volume = preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
-            requireActivity().runOnUiThread {
+    private fun startCountdown() {
+        viewModel.countdownRemaining = viewModel.countdown
+
+        viewModel.countdownFuture = lifecycleScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
                 binding.tvCountdown.visibility = View.VISIBLE
-                animate(binding.tvCountdown, object : Animator.AnimatorListener {
-                    fun updateUI() {
-                        if (viewModel.countdownRemaining > 0) {
-                            binding.tvCountdown.text = viewModel.countdownRemaining.toString() + ""
-                            mediaHelper.playSound(R.raw.countdown, volume)
-                        } else {
-                            viewModel.countdownRemaining = viewModel.countdown
-                            binding.tvCountdown.text = "GO!"
-                            mediaHelper.playSound(R.raw.gamestart, volume)
-                        }
-                    }
+                updateCountdown()
+            }
+            delay(1000)
 
-                    override fun onAnimationStart(animation: Animator) {
-                        updateUI()
-                    }
+            for (i in viewModel.countdownRemaining downTo 0) {
+                withContext(Dispatchers.Main) {
+                    updateCountdown()
+                }
+                delay(1000)
+            }
 
-                    override fun onAnimationRepeat(animation: Animator) {
-                        viewModel.countdownRemaining--
-                        updateUI()
-                    }
-
-                    override fun onAnimationEnd(animation: Animator) {
-                        binding.tvCountdown.visibility = View.GONE
-                        startTimer()
-
-                        viewModel.game.setPause(false)
-                        viewModel.countdownFuture?.cancel(true)
-                    }
-
-                    override fun onAnimationCancel(animation: Animator) {
-                        viewModel.countdownFuture?.cancel(true)
-                    }
-                })
+            withContext(Dispatchers.Main) {
+                binding.tvCountdown.visibility = View.GONE
+                viewModel.game.setPause(false)
+                startTimer()
             }
         }
+    }
+
+    private fun updateCountdown() {
+        val volume = preferences.getInt(getString(R.string.setting_sfx_volume), 5) / 10f
+
+        animateCountdownStep(binding.tvCountdown)
+        if (viewModel.countdownRemaining > 0) {
+            binding.tvCountdown.text = viewModel.countdownRemaining.toString()
+            mediaHelper.playSound(R.raw.countdown, volume)
+        } else {
+            viewModel.countdownRemaining = viewModel.countdown
+            binding.tvCountdown.text = "GO!"
+            mediaHelper.playSound(R.raw.gamestart, volume)
+        }
+        viewModel.countdownRemaining--
     }
 
     protected open fun startTimer() {
         viewModel.timerFuture = viewModel.executor.scheduleAtFixedRate({viewModel.timer += 1}, 0, 1, TimeUnit.SECONDS)
     }
 
-    // Animation
-    fun animate(view: View, listener: Animator.AnimatorListener?) {
+    private fun animateCountdownStep(view: View) {
         val alphaAnimator = ValueAnimator.ofFloat(1f, 0f)
-        alphaAnimator.addListener(listener)
         alphaAnimator.duration = 1000
-        alphaAnimator.repeatCount = viewModel.countdown
-        alphaAnimator.addUpdateListener { `val`: ValueAnimator ->
-            view.alpha = (`val`.animatedValue as Float)
+        alphaAnimator.addUpdateListener { alpha: ValueAnimator ->
+            view.alpha = (alpha.animatedValue as Float)
         }
         val scaleAnimator = ValueAnimator.ofFloat(1f, 1.5f)
         scaleAnimator.duration = 1000
-        scaleAnimator.repeatCount = viewModel.countdown
-        scaleAnimator.addUpdateListener { `val`: ValueAnimator ->
-            view.scaleX = (`val`.animatedValue as Float)
-            view.scaleY = (`val`.animatedValue as Float)
+        scaleAnimator.addUpdateListener { scale: ValueAnimator ->
+            view.scaleX = (scale.animatedValue as Float)
+            view.scaleY = (scale.animatedValue as Float)
         }
         alphaAnimator.start()
         scaleAnimator.start()

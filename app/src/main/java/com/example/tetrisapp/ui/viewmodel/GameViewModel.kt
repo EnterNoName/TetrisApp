@@ -12,9 +12,9 @@ import com.example.tetrisapp.model.local.model.Tetromino
 import com.example.tetrisapp.util.FirebaseTokenUtil
 import com.example.tetrisapp.util.PusherUtil.getUserInfo
 import com.pusher.client.channel.PresenceChannel
+import kotlinx.coroutines.Job
 import java.util.*
 import java.util.concurrent.Executors
-import java.util.concurrent.Future
 import java.util.concurrent.ScheduledFuture
 
 class GameViewModel : ViewModel() {
@@ -29,7 +29,7 @@ class GameViewModel : ViewModel() {
     val executor = Executors.newSingleThreadScheduledExecutor()
     var futureMoveRight: ScheduledFuture<*>? = null
     var futureMoveLeft: ScheduledFuture<*>? = null
-    var countdownFuture: Future<*>? = null
+    var countdownFuture: Job? = null
     var timerFuture: ScheduledFuture<*>? = null
 
     val userGameDataMap: MutableMap<String, PlayerGameData> = HashMap()
