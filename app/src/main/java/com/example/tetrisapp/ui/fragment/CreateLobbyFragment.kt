@@ -53,8 +53,12 @@ class CreateLobbyFragment : Fragment() {
     }
 
     private fun initOnClickListeners() {
-        binding.chipHighScore.setOnCheckedChangeListener { _, checked ->
-            binding.linearLayout3.visibility = if (checked) View.VISIBLE else View.GONE
+        binding.chipHighScore.setOnCheckedChangeListener { _, _ ->
+            binding.linearLayout3.visibility = View.VISIBLE
+        }
+
+        binding.chipBattleRoyale.setOnCheckedChangeListener { _, _ ->
+            binding.linearLayout3.visibility = View.GONE
         }
 
         binding.btnBack.setOnClickListener(OnTouchListener(requireActivity() as MainActivity) {
