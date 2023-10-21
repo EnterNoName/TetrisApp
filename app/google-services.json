@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "686081521328",
+    "project_id": "tetriscompose",
+    "storage_bucket": "tetriscompose.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:686081521328:android:fed3ebda5b92603d7ced75",
+        "android_client_info": {
+          "package_name": "com.michaelrayven.tetris_jetpack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXVIyiIMIcxrIX4411_IaVd7dRqelHG1g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
